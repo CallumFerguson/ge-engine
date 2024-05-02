@@ -4,3 +4,8 @@ project(GameEngine)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(GameEngine src/main.cpp)
+
+target_include_directories(
+        GameEngine PRIVATE
+        Dependencies/glm/include
+)
