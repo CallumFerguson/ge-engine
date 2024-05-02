@@ -13,8 +13,8 @@ int main() {
     std::cout << Projection[0][0] << std::endl;
 
     std::cout << glm::pi<float>() << std::endl;
-	
-	if (!glfwInit()) {
+
+    if (!glfwInit()) {
         return -1;
     }
 
