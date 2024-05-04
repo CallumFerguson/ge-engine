@@ -46,7 +46,7 @@ python -m http.server
 
 Project should be able to build Windows native using CLion without any additional setup
 
-- press build or run
+- Press build or run
 
 ### Building WASM on windows in CLion
 
