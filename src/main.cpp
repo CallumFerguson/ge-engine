@@ -20,6 +20,8 @@
 //})
 //// @formatter:on
 
+#ifdef USE_EMSCRIPTEN
+
 #include <lib_webgpu.h>
 
 WGpuAdapter adapter;
@@ -54,6 +56,8 @@ void ObtainedWebGpuAdapter(WGpuAdapter result, void *userData) {
     wgpu_adapter_request_device_async(adapter, &deviceDesc, ObtainedWebGpuDevice, nullptr);
 }
 
+#endif
+
 int main() {
     std::cout << "test" << std::endl;
 
@@ -64,6 +68,7 @@ int main() {
 
     printf("start\n");
 
+#ifdef USE_EMSCRIPTEN
     if (navigator_gpu_available()) {
         std::cout << "WebGPU supported" << std::endl;
     } else {
@@ -74,6 +79,7 @@ int main() {
     WGpuRequestAdapterOptions options = {};
     options.powerPreference = WGPU_POWER_PREFERENCE_HIGH_PERFORMANCE;
     navigator_gpu_request_adapter_async(&options, ObtainedWebGpuAdapter, nullptr);
+#endif
 
     printf("done\n");
 

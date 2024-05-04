@@ -10,6 +10,8 @@ macro(append_linker_flags FLAGS)
 endmacro()
 
 if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+    add_definitions(-DUSE_EMSCRIPTEN)
+
     file(COPY index.html DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY favicon.ico DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
@@ -31,7 +33,13 @@ target_include_directories(
         GameEngine PRIVATE
         Dependencies/glm/include
         Dependencies/GLFW/include
-        Dependencies/wasm_webgpu/include
 )
+
+if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+    target_include_directories(
+            GameEngine PRIVATE
+            Dependencies/wasm_webgpu/include
+    )
+endif ()
 
 target_link_libraries(GameEngine PRIVATE glfw3)
