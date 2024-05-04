@@ -6,19 +6,30 @@
 
 //#include <GLFW/glfw3.h>
 
-#include <emscripten.h>
-#include <emscripten/html5.h>
+//#include <emscripten.h>
+//#include <emscripten/html5.h>
 
-// @formatter:off
-EM_JS(void, initializeWebGPU, (), {
-    (async() => {
-        const canvas = document.querySelector('canvas');
-        const adapter = await navigator.gpu.requestAdapter();
-        const device = await adapter.requestDevice();
-        console.log(device);
-    })();
-})
-// @formatter:on
+//// @formatter:off
+//EM_JS(void, initializeWebGPU, (), {
+//    (async() => {
+//        const canvas = document.querySelector('canvas');
+//        const adapter = await navigator.gpu.requestAdapter();
+//        const device = await adapter.requestDevice();
+//        console.log(device);
+//    })();
+//})
+//// @formatter:on
+
+#include <lib_webgpu.h>
+
+WGpuAdapter adapter;
+
+void ObtainedWebGpuAdapter(WGpuAdapter result, void *userData) {
+    adapter = result;
+
+    std::cout << "got adapter" << std::endl;
+    std::cout << adapter << std::endl;
+}
 
 int main() {
     std::cout << "test" << std::endl;
@@ -28,7 +39,30 @@ int main() {
 
     std::cout << glm::pi<float>() << std::endl;
 
-    initializeWebGPU();
+//    initializeWebGPU();
+
+    printf("start\n");
+
+    WGpuRequestAdapterOptions options = {};
+    options.powerPreference = WGPU_POWER_PREFERENCE_HIGH_PERFORMANCE;
+    if (navigator_gpu_request_adapter_async(&options, ObtainedWebGpuAdapter, nullptr)) {
+        std::cout << "WebGPU supported" << std::endl;
+    } else {
+        std::cout << "This browser does not support WebGPU" << std::endl;
+    }
+
+//    WGPUInstanceDescriptor desc = {};
+//    desc.nextInChain = nullptr;
+//    printf("1\n");
+//
+//    WGPUInstance instance = wgpuCreateInstance(&desc);
+//    printf("2\n");
+//    if (!instance) {
+//        printf("Failed to create WebGPU instance\n");
+//        return -1;
+//    }
+
+    printf("done\n");
 
 //    if (!glfwInit()) {
 //        return -1;
