@@ -6,6 +6,20 @@
 
 //#include <GLFW/glfw3.h>
 
+#include <emscripten.h>
+#include <emscripten/html5.h>
+
+// @formatter:off
+EM_JS(void, initializeWebGPU, (), {
+    (async() => {
+        const canvas = document.querySelector('canvas');
+        const adapter = await navigator.gpu.requestAdapter();
+        const device = await adapter.requestDevice();
+        console.log(device);
+    })();
+})
+// @formatter:on
+
 int main() {
     std::cout << "test" << std::endl;
 
@@ -13,6 +27,8 @@ int main() {
     std::cout << Projection[0][0] << std::endl;
 
     std::cout << glm::pi<float>() << std::endl;
+
+    initializeWebGPU();
 
 //    if (!glfwInit()) {
 //        return -1;
