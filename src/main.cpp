@@ -4,7 +4,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/scalar_constants.hpp>
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 int main() {
     std::cout << "test" << std::endl;
@@ -14,21 +14,21 @@ int main() {
 
     std::cout << glm::pi<float>() << std::endl;
 
-    if (!glfwInit()) {
-        return -1;
-    }
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-    GLFWwindow *window = glfwCreateWindow(640, 480, "Game Engine", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return -1;
-    }
-
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
+//    if (!glfwInit()) {
+//        return -1;
+//    }
+//
+//    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+//
+//    GLFWwindow *window = glfwCreateWindow(640, 480, "Game Engine", NULL, NULL);
+//    if (!window) {
+//        glfwTerminate();
+//        return -1;
+//    }
+//
+//    while (!glfwWindowShouldClose(window)) {
+//        glfwPollEvents();
+//    }
+//
+//    glfwTerminate();
 }
