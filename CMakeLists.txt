@@ -22,11 +22,22 @@ endif ()
 
 link_directories(Dependencies/GLFW/lib)
 
+set(
+        SOURCE_FILES
+        src/main.cpp
+)
+
+if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+    list(
+            APPEND SOURCE_FILES
+            Dependencies/wasm_webgpu/include/lib_webgpu.cpp
+            Dependencies/wasm_webgpu/include/lib_webgpu_cpp20.cpp
+    )
+endif ()
+
 add_executable(
         GameEngine
-        src/main.cpp
-        Dependencies/wasm_webgpu/include/lib_webgpu.cpp
-        Dependencies/wasm_webgpu/include/lib_webgpu_cpp20.cpp
+        ${SOURCE_FILES}
 )
 
 target_include_directories(
