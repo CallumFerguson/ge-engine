@@ -56,10 +56,11 @@ Project should be able to build Windows native using CLion without any additiona
 - create a .env file and add emscripten_cmake_path=C:\Program Files\JetBrains\CLion [version]
   \bin\cmake\win\x64\bin\cmake.exe
 - Go to "File" > "Settings", then "Build, Execution, Deployment" > "Toolchains"
-- Duplicate "MinGW (default)" and name it "MinGW-Emscripten"
+- Add a new System toolchain and name it "Emscripten"
 - Set CMake to the included cmake-emscripten.bat
 - go to "Build, Execution, Deployment" > "CMake"
 - Duplicate "Debug" and name it "Debug-Emscripten"
+- Select "Emscripten" for "Toolchain"
 - add CMake option -DUSE_EMSCRIPTEN=ON
 - Select GameEngine-Emscripten | Debug-Emscripten configuration
 - Go to "Run" > "Edit Configurations..."
