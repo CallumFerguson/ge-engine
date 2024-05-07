@@ -42,7 +42,7 @@ cd build-wasm/dist
 Then host local server to view the build. For example:
 
 ```
-python -m http.server
+http-server -p 8080
 ```
 
 ### Building Windows native in CLion
@@ -52,8 +52,6 @@ Project should be able to build Windows native using CLion without any additiona
 - Press build or run
 
 ### Building WASM on windows in CLion
-
-Python must be installed to run the web server after building
 
 - create a .env file and add emscripten_cmake_path=C:\Program Files\JetBrains\CLion [version]
   \bin\cmake\win\x64\bin\cmake.exe
@@ -67,6 +65,5 @@ Python must be installed to run the web server after building
 - Go to "Run" > "Edit Configurations..."
 - Select "CMake Application" > "GameEngine-Emscripten"
 - Set Executable to the included start-http-server.bat
-- Set Program arguments to $CMakeCurrentBuildDir$/dist
-- Under "Before launch", add "Launch Web Browser", and put http://127.0.0.1:9229 for the URL
-- Press build or run
+- cd into browser-reloader and run "npm install"
+- Press run and go to http://127.0.0.1:3002

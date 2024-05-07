@@ -59,14 +59,12 @@ void ObtainedWebGpuAdapter(WGpuAdapter result, void *userData) {
 #endif
 
 int main() {
-    std::cout << "test" << std::endl;
+    std::cout << "main start" << std::endl;
 
     glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.f);
     std::cout << Projection[0][0] << std::endl;
 
     std::cout << glm::pi<float>() << std::endl;
-
-    printf("start\n");
 
 #ifdef USE_EMSCRIPTEN
     if (navigator_gpu_available()) {
@@ -81,7 +79,7 @@ int main() {
     navigator_gpu_request_adapter_async(&options, ObtainedWebGpuAdapter, nullptr);
 #endif
 
-    printf("done\n");
+    std::cout << "done" << std::endl;
 
 //    if (!glfwInit()) {
 //        return -1;
