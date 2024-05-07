@@ -20,6 +20,62 @@
 //})
 //// @formatter:on
 
+// Define these only in *one* .cc file.
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+// #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
+#include <tiny_gltf.h>
+
+#include <stdio.h>
+#include <string.h>
+#include <emscripten/fetch.h>
+
+void loadModelAndPrintVertexCount(const std::string &filename) {
+    tinygltf::Model model;
+    tinygltf::TinyGLTF loader;
+    std::string err;
+    std::string warn;
+
+    // Load the GLTF model from file
+    bool result = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
+    if (!warn.empty()) {
+        std::cout << "Warning: " << warn << std::endl;
+    }
+    if (!err.empty()) {
+        std::cerr << "Error: " << err << std::endl;
+    }
+    if (!result) {
+        std::cerr << "Failed to load GLTF model." << std::endl;
+        return;
+    }
+
+    // Check if the model contains any meshes
+    if (model.meshes.empty()) {
+        std::cout << "Model does not contain any meshes." << std::endl;
+        return;
+    }
+
+    // Access the first mesh
+    const tinygltf::Mesh &mesh = model.meshes[0];
+    if (mesh.primitives.empty()) {
+        std::cout << "First mesh does not contain any primitives." << std::endl;
+        return;
+    }
+
+    // Access the first primitive of the first mesh
+    const tinygltf::Primitive &primitive = mesh.primitives[0];
+    auto it = primitive.attributes.find("POSITION");
+    if (it == primitive.attributes.end()) {
+        std::cout << "Primitive does not contain POSITION attribute." << std::endl;
+        return;
+    }
+
+    // Get the number of vertices from the POSITION accessor
+    const tinygltf::Accessor &accessor = model.accessors[it->second];
+    std::cout << "Number of vertices in the first mesh: " << accessor.count << std::endl;
+}
+
 #ifdef USE_EMSCRIPTEN
 
 #include <lib_webgpu.h>
@@ -58,13 +114,47 @@ void ObtainedWebGpuAdapter(WGpuAdapter result, void *userData) {
 
 #endif
 
+void downloadSucceeded(emscripten_fetch_t *fetch) {
+    printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
+
+    for (int i = 0; i < 10; i++) {
+        std::cout << fetch->data[i];
+    }
+    std::cout << std::endl;
+
+    std::cout << fetch->data << std::endl;
+
+    // The data is now available at fetch->data[0] through fetch->data[fetch->numBytes-1];
+    emscripten_fetch_close(fetch); // Free data associated with the fetch.
+}
+
+void downloadFailed(emscripten_fetch_t *fetch) {
+    printf("Downloading %s failed, HTTP failure status code: %d.\n", fetch->url, fetch->status);
+    emscripten_fetch_close(fetch); // Also free data on failure.
+}
+
 int main() {
     std::cout << "main start" << std::endl;
+
+    std::ifstream f("sphere.glb", std::ifstream::binary);
+    if (!f) {
+        std::cout << "no file" << std::endl;
+    }
+
+    emscripten_fetch_attr_t attr;
+    emscripten_fetch_attr_init(&attr);
+    strcpy(attr.requestMethod, "GET");
+    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+    attr.onsuccess = downloadSucceeded;
+    attr.onerror = downloadFailed;
+    emscripten_fetch(&attr, "GameEngine.js");
 
     glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.f);
     std::cout << Projection[0][0] << std::endl;
 
     std::cout << glm::pi<float>() << std::endl;
+
+    loadModelAndPrintVertexCount("sphere.glb");
 
 #ifdef USE_EMSCRIPTEN
     if (navigator_gpu_available()) {
