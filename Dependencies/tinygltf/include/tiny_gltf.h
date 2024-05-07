@@ -1590,7 +1590,7 @@ class TinyGLTF {
 
       nullptr  // Fs callback user data
 #else
-      nullptr, nullptr, nullptr, nullptr, nullptr,
+      nullptr, nullptr, ReadWholeFile, nullptr, nullptr,
 
       nullptr  // Fs callback user data
 #endif

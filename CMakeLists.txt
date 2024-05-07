@@ -10,12 +10,10 @@ macro(append_linker_flags FLAGS)
 endmacro()
 
 if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
-    add_definitions(-DUSE_EMSCRIPTEN)
-
     file(COPY index.html DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY favicon.ico DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGPU=1 -sFETCH")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGPU=1 -sFETCH --proxy-to-worker")
 
     append_linker_flags("--js-library ${PROJECT_SOURCE_DIR}/Dependencies/wasm_webgpu/include/lib_webgpu.js")
 endif ()
@@ -30,6 +28,7 @@ set(
 if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
     list(
             APPEND SOURCE_FILES
+            src/tiny_gltf_http_fs.cpp
             Dependencies/wasm_webgpu/include/lib_webgpu.cpp
             Dependencies/wasm_webgpu/include/lib_webgpu_cpp20.cpp
     )

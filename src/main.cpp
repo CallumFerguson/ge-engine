@@ -25,11 +25,24 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
+#ifdef __EMSCRIPTEN__
+#define TINYGLTF_NO_FS
+
+#include <fstream>
+#include "tiny_gltf_http_fs.hpp"
+
+#endif
+
 #include <tiny_gltf.h>
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+
+#ifdef __EMSCRIPTEN__
+
 #include <emscripten/fetch.h>
+
+#endif
 
 void loadModelAndPrintVertexCount(const std::string &filename) {
     tinygltf::Model model;
@@ -76,7 +89,7 @@ void loadModelAndPrintVertexCount(const std::string &filename) {
     std::cout << "Number of vertices in the first mesh: " << accessor.count << std::endl;
 }
 
-#ifdef USE_EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
 
 #include <lib_webgpu.h>
 
@@ -112,15 +125,8 @@ void ObtainedWebGpuAdapter(WGpuAdapter result, void *userData) {
     wgpu_adapter_request_device_async(adapter, &deviceDesc, ObtainedWebGpuDevice, nullptr);
 }
 
-#endif
-
 void downloadSucceeded(emscripten_fetch_t *fetch) {
     printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
-
-    for (int i = 0; i < 10; i++) {
-        std::cout << fetch->data[i];
-    }
-    std::cout << std::endl;
 
     std::cout << fetch->data << std::endl;
 
@@ -133,21 +139,28 @@ void downloadFailed(emscripten_fetch_t *fetch) {
     emscripten_fetch_close(fetch); // Also free data on failure.
 }
 
+#endif
+
 int main() {
     std::cout << "main start" << std::endl;
 
-    std::ifstream f("sphere.glb", std::ifstream::binary);
-    if (!f) {
-        std::cout << "no file" << std::endl;
-    }
-
+    std::cout << "start" << std::endl;
+#ifdef __EMSCRIPTEN__
     emscripten_fetch_attr_t attr;
     emscripten_fetch_attr_init(&attr);
     strcpy(attr.requestMethod, "GET");
-    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-    attr.onsuccess = downloadSucceeded;
-    attr.onerror = downloadFailed;
-    emscripten_fetch(&attr, "GameEngine.js");
+    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY | EMSCRIPTEN_FETCH_SYNCHRONOUS | EMSCRIPTEN_FETCH_REPLACE;
+    emscripten_fetch_t *fetch = emscripten_fetch(&attr, "test.txt"); // Blocks here until the operation is complete.
+    if (fetch->status == 200) {
+        printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
+        // The data is now available at fetch->data[0] through fetch->data[fetch->numBytes-1];
+        std::cout << fetch->data << std::endl;
+    } else {
+        printf("Downloading %s failed, HTTP failure status code: %d.\n", fetch->url, fetch->status);
+    }
+    emscripten_fetch_close(fetch);
+#endif
+    std::cout << "finish" << std::endl;
 
     glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.f);
     std::cout << Projection[0][0] << std::endl;
@@ -156,7 +169,7 @@ int main() {
 
     loadModelAndPrintVertexCount("sphere.glb");
 
-#ifdef USE_EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
     if (navigator_gpu_available()) {
         std::cout << "WebGPU supported" << std::endl;
     } else {
