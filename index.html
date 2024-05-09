@@ -41,11 +41,11 @@
             socket.onmessage = function (event) {
                 const message = JSON.parse(event.data);
 
-                if (message.name === "buildHash") {
-                    const buildHash = "#" + message.content;
-                    if (window.location.hash !== buildHash) {
+                if (message.name === "buildId") {
+                    const buildId = "#" + message.content;
+                    if (window.location.hash !== buildId) {
                         // console.log("Refreshing page...");
-                        window.location.hash = buildHash;
+                        window.location.hash = buildId;
                         window.location.reload(true);
                     } else {
                         // console.log("Page matches build hash and does not need to be refreshed.");

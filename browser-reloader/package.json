@@ -6,8 +6,8 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "folder-hash": "^4.0.4",
     "http-server": "^14.1.1",
+    "uuid": "^9.0.1",
     "ws": "^8.17.0"
   }
 }

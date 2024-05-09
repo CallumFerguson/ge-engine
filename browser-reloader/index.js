@@ -1,18 +1,17 @@
 import { WebSocketServer } from "ws";
 import { spawn } from "child_process";
-import * as path from "path";
-import { hashElement } from "folder-hash";
+import { v4 as uuidv4 } from "uuid";
 
 async function main() {
-  const buildHash = await hashElement("../cmake-build-debug-emscripten/dist");
-  console.log("build hash: " + buildHash.hash);
+  const buildId = uuidv4();
+  console.log("build id: " + buildId);
 
   const wss = new WebSocketServer({ port: 3001 });
   const connections = [];
   wss.on("connection", function connection(ws) {
     connections.push(ws);
 
-    ws.send(JSON.stringify({ name: "buildHash", content: buildHash.hash }));
+    ws.send(JSON.stringify({ name: "buildId", content: buildId }));
 
     ws.on("error", () => {
       const i = connections.indexOf(ws);
