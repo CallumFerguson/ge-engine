@@ -1,48 +1,17 @@
 #include <iostream>
+#include <cstdio>
+#include <cstring>
 
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/scalar_constants.hpp>
-
-//#include <GLFW/glfw3.h>
-
-//#include <emscripten.h>
-//#include <emscripten/html5.h>
-
-//// @formatter:off
-//EM_JS(void, initializeWebGPU, (), {
-//    (async() => {
-//        const canvas = document.querySelector('canvas');
-//        const adapter = await navigator.gpu.requestAdapter();
-//        const device = await adapter.requestDevice();
-//        console.log(device);
-//    })();
-//})
-//// @formatter:on
 
 // Define these only in *one* .cc file.
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
-#ifdef __EMSCRIPTEN__
-//#define TINYGLTF_NO_FS
-
-#include <fstream>
-#include "tiny_gltf_http_fs.hpp"
-
-#endif
-
 #include <tiny_gltf.h>
-
-#include <cstdio>
-#include <cstring>
-
-#ifdef __EMSCRIPTEN__
-
-#include <emscripten/fetch.h>
-
-#endif
 
 void loadModelAndPrintVertexCount(const std::string &filename) {
     tinygltf::Model model;
@@ -125,24 +94,16 @@ void ObtainedWebGpuAdapter(WGpuAdapter result, void *userData) {
     wgpu_adapter_request_device_async(adapter, &deviceDesc, ObtainedWebGpuDevice, nullptr);
 }
 
-void downloadSucceeded(emscripten_fetch_t *fetch) {
-    printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
-
-    std::cout << fetch->data << std::endl;
-
-    // The data is now available at fetch->data[0] through fetch->data[fetch->numBytes-1];
-    emscripten_fetch_close(fetch); // Free data associated with the fetch.
-}
-
-void downloadFailed(emscripten_fetch_t *fetch) {
-    printf("Downloading %s failed, HTTP failure status code: %d.\n", fetch->url, fetch->status);
-    emscripten_fetch_close(fetch); // Also free data on failure.
-}
-
 #endif
 
 int main() {
     std::cout << "main start" << std::endl;
+
+    try {
+        throw std::runtime_error("test error");
+    } catch (const std::runtime_error &e) {
+        std::cout << "caught error: " << e.what() << std::endl;
+    }
 
     std::ifstream file("assets/sphere.glb", std::ifstream::ate | std::ifstream::binary);
     if (file.is_open()) {
@@ -150,14 +111,6 @@ int main() {
     } else {
         std::cout << "cannot open file" << std::endl;
     }
-
-    std::cout << "start" << std::endl;
-#ifdef __EMSCRIPTEN__
-    size_t fileSize = 0;
-    GetFileSizeInBytes(&fileSize, nullptr, "sphere.glb", nullptr);
-    std::cout << fileSize << std::endl;
-#endif
-    std::cout << "finish" << std::endl;
 
     glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.f);
     std::cout << Projection[0][0] << std::endl;
