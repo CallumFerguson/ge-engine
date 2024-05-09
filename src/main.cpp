@@ -129,6 +129,12 @@ int main() {
     WGpuRequestAdapterOptions options = {};
     options.powerPreference = WGPU_POWER_PREFERENCE_HIGH_PERFORMANCE;
     navigator_gpu_request_adapter_async(&options, ObtainedWebGpuAdapter, nullptr);
+
+    auto canvasContext = wgpu_canvas_get_webgpu_context("canvas");
+    if (!wgpu_is_canvas_context(canvasContext)) {
+        std::cout << "could not get context" << std::endl;
+        return -1;
+    }
 #endif
 
     std::cout << "done" << std::endl;
