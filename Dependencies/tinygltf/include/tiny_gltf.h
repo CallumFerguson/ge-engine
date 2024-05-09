@@ -3036,7 +3036,7 @@ bool GetFileSizeInBytes(size_t *filesize_out, std::string *err,
       (*err) += "File is empty : " + filepath + "\n";
     }
     return false;
-  } else if (sz >= (std::numeric_limits<std::streamoff>::max)()) {
+  } else if (sizeof(size_t) >= sizeof(std::streamoff) && sz >= (std::numeric_limits<std::streamoff>::max)()) {
     if (err) {
       (*err) += "Invalid file size : " + filepath + "\n";
     }
@@ -3131,7 +3131,7 @@ bool ReadWholeFile(std::vector<unsigned char> *out, std::string *err,
       (*err) += "File is empty : " + filepath + "\n";
     }
     return false;
-  } else if (sz >= (std::numeric_limits<std::streamoff>::max)()) {
+  } else if (sizeof(size_t) >= sizeof(std::streamoff) && sz >= (std::numeric_limits<std::streamoff>::max)()) {
     if (err) {
       (*err) += "Invalid file size : " + filepath + "\n";
     }
