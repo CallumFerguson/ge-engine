@@ -13,7 +13,7 @@ if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
     file(COPY index.html DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY favicon.ico DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGPU=1 -sFETCH --proxy-to-worker -fexceptions")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_WEBGPU=1 -sFETCH --proxy-to-worker -fexceptions -sALLOW_MEMORY_GROWTH ")
 
     append_linker_flags("--js-library ${PROJECT_SOURCE_DIR}/Dependencies/wasm_webgpu/include/lib_webgpu.js -fexceptions")
 endif ()
