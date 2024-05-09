@@ -1,6 +1,5 @@
 #include <iostream>
-#include <cstdio>
-#include <cstring>
+#include <string>
 
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
