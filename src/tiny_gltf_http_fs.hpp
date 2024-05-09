@@ -1,22 +1,14 @@
-//
-// Created by Calxf on 5/7/2024.
-//
-
-#ifndef GAMEENGINE_TINY_GLTF_HTTP_FS_HPP
-#define GAMEENGINE_TINY_GLTF_HTTP_FS_HPP
+#pragma  once
 
 #include <vector>
 #include <string>
-#include <fstream>
-#include <limits>
 
-#ifdef __EMSCRIPTEN__
+bool FileExists(const std::string &abs_filename, void *);
 
-#include <emscripten/fetch.h>
+std::string ExpandFilePath(const std::string &filepath, void *userdata);
 
-#endif
+bool ReadWholeFile(std::vector<unsigned char> *out, std::string *err, const std::string &filepath, void *);
 
-bool ReadWholeFile(std::vector<unsigned char> *out, std::string *err,
-                   const std::string &filepath, void *);
+bool WriteWholeFile(std::string *err, const std::string &filepath, const std::vector<unsigned char> &contents, void *);
 
-#endif //GAMEENGINE_TINY_GLTF_HTTP_FS_HPP
+bool GetFileSizeInBytes(size_t *filesize_out, std::string *err, const std::string &filepath, void *);

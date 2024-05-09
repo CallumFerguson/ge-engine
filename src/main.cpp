@@ -146,19 +146,9 @@ int main() {
 
     std::cout << "start" << std::endl;
 #ifdef __EMSCRIPTEN__
-    emscripten_fetch_attr_t attr;
-    emscripten_fetch_attr_init(&attr);
-    strcpy(attr.requestMethod, "GET");
-    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY | EMSCRIPTEN_FETCH_SYNCHRONOUS | EMSCRIPTEN_FETCH_REPLACE;
-    emscripten_fetch_t *fetch = emscripten_fetch(&attr, "test.txt"); // Blocks here until the operation is complete.
-    if (fetch->status == 200) {
-        printf("Finished downloading %llu bytes from URL %s.\n", fetch->numBytes, fetch->url);
-        // The data is now available at fetch->data[0] through fetch->data[fetch->numBytes-1];
-        std::cout << fetch->data << std::endl;
-    } else {
-        printf("Downloading %s failed, HTTP failure status code: %d.\n", fetch->url, fetch->status);
-    }
-    emscripten_fetch_close(fetch);
+    size_t fileSize;
+    GetFileSizeInBytes(&fileSize, nullptr, "sphere.glb", nullptr);
+    std::cout << fileSize << std::endl;
 #endif
     std::cout << "finish" << std::endl;
 
