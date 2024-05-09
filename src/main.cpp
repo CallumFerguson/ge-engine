@@ -26,7 +26,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #ifdef __EMSCRIPTEN__
-#define TINYGLTF_NO_FS
+//#define TINYGLTF_NO_FS
 
 #include <fstream>
 #include "tiny_gltf_http_fs.hpp"
@@ -144,9 +144,16 @@ void downloadFailed(emscripten_fetch_t *fetch) {
 int main() {
     std::cout << "main start" << std::endl;
 
+    std::ifstream file("assets/sphere.glb", std::ifstream::ate | std::ifstream::binary);
+    if (file.is_open()) {
+        std::cout << file.tellg() << std::endl;
+    } else {
+        std::cout << "cannot open file" << std::endl;
+    }
+
     std::cout << "start" << std::endl;
 #ifdef __EMSCRIPTEN__
-    size_t fileSize;
+    size_t fileSize = 0;
     GetFileSizeInBytes(&fileSize, nullptr, "sphere.glb", nullptr);
     std::cout << fileSize << std::endl;
 #endif
@@ -157,7 +164,7 @@ int main() {
 
     std::cout << glm::pi<float>() << std::endl;
 
-    loadModelAndPrintVertexCount("sphere.glb");
+    loadModelAndPrintVertexCount("assets/sphere.glb");
 
 #ifdef __EMSCRIPTEN__
     if (navigator_gpu_available()) {
