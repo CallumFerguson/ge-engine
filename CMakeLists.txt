@@ -24,6 +24,7 @@ if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
     append_linker_flags("--use-preload-cache")
     append_linker_flags("--preload-file ../assets")
     #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
+    append_linker_flags("-sASYNCIFY=1")
 else ()
     file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
