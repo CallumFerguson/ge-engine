@@ -26,6 +26,9 @@ if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
     #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
 else ()
     file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
+
+    append_linker_flags("-static-libstdc++")
+    append_linker_flags("-static-libgcc")
 endif ()
 
 link_directories(Dependencies/GLFW/lib)
