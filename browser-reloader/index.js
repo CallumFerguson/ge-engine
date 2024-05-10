@@ -28,29 +28,29 @@ async function main() {
     });
   });
 
-  const dir = spawn(
+  const httpServer = spawn(
     "http-server",
     ["../cmake-build-debug-emscripten/dist", "-p 3002", "-c-1"],
     { shell: true }
   );
 
-  dir.stdout.on("data", (data) => {
+  httpServer.stdout.on("data", (data) => {
     // console.log(`spawn stdout: ${data}`);
   });
 
-  dir.stderr.on("data", (data) => {
+  httpServer.stderr.on("data", (data) => {
     // console.log(`spawn stderr: ${data}`);
   });
 
-  dir.on("error", (code) => {
+  httpServer.on("error", (code) => {
     // console.log(`spawn error: ${code}`);
   });
 
-  dir.on("close", (code) => {
+  httpServer.on("close", (code) => {
     // console.log(`spawn child process closed with code ${code}`);
   });
 
-  dir.on("exit", (code) => {
+  httpServer.on("exit", (code) => {
     // console.log(`spawn child process exited with code ${code}`);
   });
 
