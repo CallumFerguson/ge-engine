@@ -23,6 +23,7 @@ if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
     append_linker_flags("--js-library ${PROJECT_SOURCE_DIR}/Dependencies/wasm_webgpu/include/lib_webgpu.js")
     append_linker_flags("--use-preload-cache")
     append_linker_flags("--preload-file ../assets")
+    #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
 else ()
     file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 endif ()
@@ -32,6 +33,7 @@ link_directories(Dependencies/GLFW/lib)
 set(
         SOURCE_FILES
         src/main.cpp
+        src/gltfloader.cpp
 )
 
 if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
@@ -39,6 +41,7 @@ if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
             APPEND SOURCE_FILES
             Dependencies/wasm_webgpu/include/lib_webgpu.cpp
             Dependencies/wasm_webgpu/include/lib_webgpu_cpp20.cpp
+            src/webgpu.cpp
     )
 endif ()
 
