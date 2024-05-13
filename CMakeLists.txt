@@ -14,7 +14,7 @@ macro(append_linker_flags FLAGS)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
 endmacro()
 
-if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+if (EMSCRIPTEN)
     file(COPY index.html DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY favicon.ico DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
@@ -42,7 +42,7 @@ set(
         src/gltfloader.cpp
 )
 
-if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+if (EMSCRIPTEN)
     list(
             APPEND SOURCE_FILES
             src/webgpu.cpp
@@ -61,7 +61,7 @@ target_include_directories(
         Dependencies/tinygltf/include
 )
 
-if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+if (EMSCRIPTEN)
     target_include_directories(
             GameEngine PRIVATE
             Dependencies/wasm_webgpu/include

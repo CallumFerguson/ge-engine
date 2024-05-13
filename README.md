@@ -34,7 +34,7 @@ cd build/dist
 ```
 git clone https://github.com/CallumFerguson/GameEngine
 cd GameEngine
-emcmake cmake -B build-wasm -G Ninja -DUSE_EMSCRIPTEN=ON
+emcmake cmake -B build-wasm -G Ninja
 cmake --build build-wasm
 cd build-wasm/dist
 ```
@@ -61,8 +61,7 @@ Project should be able to build Windows native using CLion without any additiona
 - go to "Build, Execution, Deployment" > "CMake"
 - Duplicate "Debug" and name it "Debug-Emscripten"
 - Select "Emscripten" for "Toolchain"
-- add CMake option -DUSE_EMSCRIPTEN=ON
-- Select GameEngine-Emscripten | Debug-Emscripten configuration
+- Close settings and select the GameEngine-Emscripten | Debug-Emscripten run configuration
 - Go to "Run" > "Edit Configurations..."
 - Select "CMake Application" > "GameEngine-Emscripten"
 - Set Executable to the included start-http-server.bat
