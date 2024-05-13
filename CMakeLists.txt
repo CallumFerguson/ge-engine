@@ -34,7 +34,7 @@ else ()
     append_linker_flags("-static-libgcc")
 endif ()
 
-link_directories(Dependencies/GLFW/lib)
+link_directories(Dependencies/GLFW/lib) # TODO: only for native? because emscripten is bundled with glfw I think?
 
 set(
         SOURCE_FILES
