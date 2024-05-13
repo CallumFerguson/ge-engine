@@ -15,6 +15,7 @@ wgpu::Adapter adapter;
 wgpu::Device device;
 wgpu::SwapChain swapChain;
 wgpu::RenderPipeline pipeline;
+wgpu::TextureFormat presentationFormat;
 
 void resizeCanvas() {
     wgpu::SupportedLimits supportedLimits = {};
@@ -72,7 +73,7 @@ void CreateRenderPipeline() {
             device.CreateShaderModule(&shaderModuleDescriptor);
 
     wgpu::ColorTargetState colorTargetState{
-            .format = wgpu::TextureFormat::BGRA8Unorm};
+            .format = presentationFormat};
 
     wgpu::FragmentState fragmentState{.module = shaderModule,
     .targetCount = 1,
@@ -89,6 +90,7 @@ void Render() {
             .view = swapChain.GetCurrentTextureView(),
             .loadOp = wgpu::LoadOp::Clear,
             .storeOp = wgpu::StoreOp::Store};
+    attachment.clearValue = wgpu::Color{0.25, 0, 0, 1};
 
     wgpu::RenderPassDescriptor renderpass{.colorAttachmentCount = 1,
             .colorAttachments = &attachment};
@@ -115,8 +117,7 @@ void mainWebGPU() {
 
     auto surface = instance.CreateSurface(&surfaceDescriptor);
 
-    auto presentationFormat = surface.GetPreferredFormat(adapter);
-    std::cout << "Presentation format: " << static_cast<uint32_t>(presentationFormat) << std::endl;
+    presentationFormat = surface.GetPreferredFormat(adapter);
 
     resizeCanvas();
 
