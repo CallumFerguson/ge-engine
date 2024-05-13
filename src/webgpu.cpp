@@ -12,6 +12,59 @@
 wgpu::Instance instance;
 wgpu::Adapter adapter;
 wgpu::Device device;
+wgpu::SwapChain swapChain;
+wgpu::RenderPipeline pipeline;
+
+const char shaderCode[] = R"(
+    @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
+      @builtin(position) vec4f {
+        const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
+        return vec4f(pos[i], 0, 1);
+    }
+    @fragment fn fragmentMain() -> @location(0) vec4f {
+        return vec4f(1, 0, 0, 1);
+    }
+)";
+
+void CreateRenderPipeline() {
+    wgpu::ShaderModuleWGSLDescriptor wgslDesc{};
+    wgslDesc.code = shaderCode;
+
+    wgpu::ShaderModuleDescriptor shaderModuleDescriptor{
+            .nextInChain = &wgslDesc};
+    wgpu::ShaderModule shaderModule =
+            device.CreateShaderModule(&shaderModuleDescriptor);
+
+    wgpu::ColorTargetState colorTargetState{
+            .format = wgpu::TextureFormat::BGRA8Unorm};
+
+    wgpu::FragmentState fragmentState{.module = shaderModule,
+    .targetCount = 1,
+    .targets = &colorTargetState};
+
+    wgpu::RenderPipelineDescriptor descriptor{
+            .vertex = {.module = shaderModule},
+            .fragment = &fragmentState};
+    pipeline = device.CreateRenderPipeline(&descriptor);
+}
+
+void Render() {
+    wgpu::RenderPassColorAttachment attachment{
+            .view = swapChain.GetCurrentTextureView(),
+            .loadOp = wgpu::LoadOp::Clear,
+            .storeOp = wgpu::StoreOp::Store};
+
+    wgpu::RenderPassDescriptor renderpass{.colorAttachmentCount = 1,
+            .colorAttachments = &attachment};
+
+    wgpu::CommandEncoder encoder = device.CreateCommandEncoder();
+    wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&renderpass);
+    pass.SetPipeline(pipeline);
+    pass.Draw(3);
+    pass.End();
+    wgpu::CommandBuffer commands = encoder.Finish();
+    device.GetQueue().Submit(1, &commands);
+}
 
 void mainWebGPU() {
     wgpu::SupportedLimits limits;
@@ -28,6 +81,17 @@ void mainWebGPU() {
 
     auto presentationFormat = surface.GetPreferredFormat(adapter);
     std::cout << "Presentation format: " << static_cast<uint32_t>(presentationFormat) << std::endl;
+
+    wgpu::SwapChainDescriptor swapChainDescriptor = {};
+    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
+    swapChainDescriptor.format = presentationFormat;
+    swapChainDescriptor.width = 512;
+    swapChainDescriptor.height = 512;
+    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
+    swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
+
+    CreateRenderPipeline();
+    Render();
 }
 
 void errorCallback(WGPUErrorType type, const char *message, void *userdata) {
