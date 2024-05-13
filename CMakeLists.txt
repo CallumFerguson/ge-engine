@@ -14,18 +14,18 @@ macro(append_linker_flags FLAGS)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
 endmacro()
 
-if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+if (EMSCRIPTEN)
     file(COPY index.html DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY favicon.ico DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
     append_compiler_flags("-fexceptions")
 
-    append_linker_flags("--js-library ${PROJECT_SOURCE_DIR}/Dependencies/wasm_webgpu/include/lib_webgpu.js")
     append_linker_flags("--use-preload-cache")
     append_linker_flags("--preload-file ../assets")
     append_linker_flags("--preload-file ../shaders")
     #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
     append_linker_flags("-sASYNCIFY=1")
+    append_linker_flags("-sUSE_WEBGPU=1")
 else ()
     file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY shaders DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
@@ -42,11 +42,9 @@ set(
         src/gltfloader.cpp
 )
 
-if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+if (EMSCRIPTEN)
     list(
             APPEND SOURCE_FILES
-            Dependencies/wasm_webgpu/include/lib_webgpu.cpp
-            Dependencies/wasm_webgpu/include/lib_webgpu_cpp20.cpp
             src/webgpu.cpp
     )
 endif ()
@@ -63,7 +61,7 @@ target_include_directories(
         Dependencies/tinygltf/include
 )
 
-if (DEFINED USE_EMSCRIPTEN AND USE_EMSCRIPTEN)
+if (EMSCRIPTEN)
     target_include_directories(
             GameEngine PRIVATE
             Dependencies/wasm_webgpu/include
