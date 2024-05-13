@@ -9,32 +9,38 @@
 #include "gltfloader.hpp"
 
 wgpu::Instance instance;
+wgpu::Adapter adapter;
 wgpu::Device device;
 
-void GetDevice(void (*callback)(wgpu::Device)) {
-    instance.RequestAdapter(
-            nullptr,
-            [](WGPURequestAdapterStatus status, WGPUAdapter cAdapter,
-               const char *message, void *userdata) {
-                if (status != WGPURequestAdapterStatus_Success) {
-                    exit(0);
-                }
-                wgpu::Adapter adapter = wgpu::Adapter::Acquire(cAdapter);
-                adapter.RequestDevice(
-                        nullptr,
-                        [](WGPURequestDeviceStatus status, WGPUDevice cDevice,
-                           const char *message, void *userdata) {
-                            wgpu::Device device = wgpu::Device::Acquire(cDevice);
-                            device.SetUncapturedErrorCallback(
-                                    [](WGPUErrorType type, const char *message, void *userdata) {
-                                        std::cout << "Error: " << type << " - message: " << message;
-                                    },
-                                    nullptr);
-                            reinterpret_cast<void (*)(wgpu::Device)>(userdata)(device);
-                        },
-                        userdata);
-            },
-            reinterpret_cast<void *>(callback));
+void errorCallback(WGPUErrorType type, const char *message, void *userdata) {
+    std::ostringstream oss;
+    oss << "Error: " << type << " - message: " << message;
+    throw std::runtime_error(oss.str());
+}
+
+void getDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice cDevice, const char *message, void *userdata) {
+    device = wgpu::Device::Acquire(cDevice);
+    device.SetUncapturedErrorCallback(errorCallback, nullptr);
+
+    wgpu::SupportedLimits limits;
+    device.GetLimits(&limits);
+    std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
+}
+
+void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, const char *message, void *userdata) {
+    if (status != WGPURequestAdapterStatus_Success) {
+        std::cout << status << std::endl;
+
+        throw std::runtime_error("getAdapterCallback status not success");
+    }
+    adapter = wgpu::Adapter::Acquire(cAdapter);
+    adapter.RequestDevice(nullptr, getDeviceCallback, nullptr);
+}
+
+void getDevice() {
+    wgpu::RequestAdapterOptions options = {};
+    options.powerPreference = wgpu::PowerPreference::HighPerformance;
+    instance.RequestAdapter(&options, getAdapterCallback, nullptr);
 }
 
 void webgpuTest() {
@@ -43,17 +49,8 @@ void webgpuTest() {
     loadModelAndPrintVertexCount("assets/sphere.glb");
 
     instance = wgpu::CreateInstance();
-    if (!instance) {
-        std::cerr << "Failed to create WebGPU instance" << std::endl;
-        return;
-    }
 
-    GetDevice([](wgpu::Device dev) {
-        device = dev;
-        wgpu::SupportedLimits limits;
-        device.GetLimits(&limits);
-        std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
-    });
+    getDevice();
 }
 
 //void webgpuTest() {
