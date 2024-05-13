@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
 #include <webgpu/webgpu_cpp.h>
 
 #include "gltfloader.hpp"
@@ -11,6 +12,23 @@
 wgpu::Instance instance;
 wgpu::Adapter adapter;
 wgpu::Device device;
+
+void mainWebGPU() {
+    wgpu::SupportedLimits limits;
+    device.GetLimits(&limits);
+    std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
+
+    wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDescriptor = {};
+    canvasDescriptor.selector = "#canvas";
+
+    wgpu::SurfaceDescriptor surfaceDescriptor = {};
+    surfaceDescriptor.nextInChain = &canvasDescriptor;
+
+    auto surface = instance.CreateSurface(&surfaceDescriptor);
+
+    auto presentationFormat = surface.GetPreferredFormat(adapter);
+    std::cout << "Presentation format: " << static_cast<uint32_t>(presentationFormat) << std::endl;
+}
 
 void errorCallback(WGPUErrorType type, const char *message, void *userdata) {
     std::ostringstream oss;
@@ -22,9 +40,7 @@ void getDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice cDevice, const
     device = wgpu::Device::Acquire(cDevice);
     device.SetUncapturedErrorCallback(errorCallback, nullptr);
 
-    wgpu::SupportedLimits limits;
-    device.GetLimits(&limits);
-    std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
+    mainWebGPU();
 }
 
 void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, const char *message, void *userdata) {
@@ -34,7 +50,29 @@ void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, c
         throw std::runtime_error("getAdapterCallback status not success");
     }
     adapter = wgpu::Adapter::Acquire(cAdapter);
-    adapter.RequestDevice(nullptr, getDeviceCallback, nullptr);
+
+    size_t numFeatures = adapter.EnumerateFeatures(nullptr);
+    std::vector<wgpu::FeatureName> features(numFeatures);
+    if (numFeatures > 0) {
+        adapter.EnumerateFeatures(features.data());
+    }
+
+    std::vector<wgpu::FeatureName> requiredFeatures;
+
+    bool canTimestamp =
+            std::find(features.begin(), features.end(), wgpu::FeatureName::TimestampQuery) != features.end();
+    if (canTimestamp) {
+        requiredFeatures.push_back(wgpu::FeatureName::TimestampQuery);
+    }
+
+    wgpu::RequiredLimits limits = {};
+
+    wgpu::DeviceDescriptor deviceDescriptor = {};
+    deviceDescriptor.requiredFeatures = requiredFeatures.data();
+    deviceDescriptor.requiredFeatureCount = requiredFeatures.size();
+    deviceDescriptor.requiredLimits = &limits;
+
+    adapter.RequestDevice(&deviceDescriptor, getDeviceCallback, nullptr);
 }
 
 void getDevice() {
