@@ -21,17 +21,19 @@ void resizeCanvas() {
     wgpu::SupportedLimits supportedLimits = {};
     device.GetLimits(&supportedLimits);
 
+    // @formatter:off
     EM_ASM({
-        const canvas = Module.canvas;
-        const width = Math.max(1, Math.min($0, canvas.clientWidth));
-        const height = Math.max(1, Math.min($0, canvas.clientHeight));
+               const canvas = Module.canvas;
+               const width = Math.max(1, Math.min($0, canvas.clientWidth));
+               const height = Math.max(1, Math.min($0, canvas.clientHeight));
 
-        const needResize = width !== canvas.width || height !== canvas.height;
-        if (needResize) {
-            canvas.width = width;
-            canvas.height = height;
-        }
-    }, supportedLimits.limits.maxTextureDimension2D);
+               const needResize = width !== canvas.width || height !== canvas.height;
+               if (needResize) {
+                   canvas.width = width;
+                   canvas.height = height;
+               }
+           }, supportedLimits.limits.maxTextureDimension2D);
+    // @formatter:on
 }
 
 uint32_t getCanvasWidth() {
@@ -39,8 +41,8 @@ uint32_t getCanvasWidth() {
             if (Module.canvas) {
                 return canvas.width;
             }
-           return 0;
-       );
+            return 0;
+    );
 }
 
 uint32_t getCanvasHeight() {
@@ -52,20 +54,17 @@ uint32_t getCanvasHeight() {
     );
 }
 
-const char shaderCode[] = R"(
-    @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
-      @builtin(position) vec4f {
-        const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
-        return vec4f(pos[i], 0, 1);
-    }
-    @fragment fn fragmentMain() -> @location(0) vec4f {
-        return vec4f(1, 0, 0, 1);
-    }
-)";
-
 void CreateRenderPipeline() {
+    std::ifstream shaderFile("shaders/basic_triangle.wgsl", std::ios::binary);
+    if (!shaderFile) {
+        throw std::runtime_error("Could not open shader file");
+    }
+    std::stringstream shaderBuffer;
+    shaderBuffer << shaderFile.rdbuf();
+    std::string shaderString = shaderBuffer.str();
+
     wgpu::ShaderModuleWGSLDescriptor wgslDesc{};
-    wgslDesc.code = shaderCode;
+    wgslDesc.code = shaderString.c_str();
 
     wgpu::ShaderModuleDescriptor shaderModuleDescriptor{
             .nextInChain = &wgslDesc};
@@ -269,7 +268,7 @@ void webgpuTest() {
 //    std::string shaderString = shaderBuffer.str();
 //
 //    WGpuShaderModuleDescriptor shaderModuleDescriptor = {};
-//    shaderModuleDescriptor.code = shaderBuffer.str().c_str();
+//    shaderModuleDescriptor.code = shaderString.c_str();
 //    auto shaderModule = wgpu_device_create_shader_module(device, &shaderModuleDescriptor);
 //
 //    auto pipelineLayout = wgpu_device_create_pipeline_layout(device, nullptr, 0);
