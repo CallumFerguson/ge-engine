@@ -7,9 +7,6 @@ following options listed under [Build Instructions](#build-instructions) are off
 
 ## Build Instructions
 
-The wasm_webgpu dependency does not work with certain versions of emscripten. Emscripten version 3.1.35 has been tested
-and is working.
-
 - **Windows**
     - Terminal
         - [Native](#building-windows-native-in-terminal)
