@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <webgpu/webgpu_cpp.h>
+#include <emscripten.h>
 
 #include "gltfloader.hpp"
 
@@ -14,6 +15,41 @@ wgpu::Adapter adapter;
 wgpu::Device device;
 wgpu::SwapChain swapChain;
 wgpu::RenderPipeline pipeline;
+
+void resizeCanvas() {
+    wgpu::SupportedLimits supportedLimits = {};
+    device.GetLimits(&supportedLimits);
+
+    EM_ASM({
+        const canvas = Module.canvas;
+        const width = Math.max(1, Math.min($0, canvas.clientWidth));
+        const height = Math.max(1, Math.min($0, canvas.clientHeight));
+
+        const needResize = width !== canvas.width || height !== canvas.height;
+        if (needResize) {
+            canvas.width = width;
+            canvas.height = height;
+        }
+    }, supportedLimits.limits.maxTextureDimension2D);
+}
+
+uint32_t getCanvasWidth() {
+    return EM_ASM_INT(
+            if (Module.canvas) {
+                return canvas.width;
+            }
+           return 0;
+       );
+}
+
+uint32_t getCanvasHeight() {
+    return EM_ASM_INT(
+            if (Module.canvas) {
+                return canvas.height;
+            }
+            return 0;
+    );
+}
 
 const char shaderCode[] = R"(
     @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
@@ -82,11 +118,13 @@ void mainWebGPU() {
     auto presentationFormat = surface.GetPreferredFormat(adapter);
     std::cout << "Presentation format: " << static_cast<uint32_t>(presentationFormat) << std::endl;
 
+    resizeCanvas();
+
     wgpu::SwapChainDescriptor swapChainDescriptor = {};
     swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
     swapChainDescriptor.format = presentationFormat;
-    swapChainDescriptor.width = 512;
-    swapChainDescriptor.height = 512;
+    swapChainDescriptor.width = getCanvasWidth();
+    swapChainDescriptor.height = getCanvasHeight();
     swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
     swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
 
