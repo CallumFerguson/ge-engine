@@ -8,13 +8,52 @@
 
 #include "gltfloader.hpp"
 
+wgpu::Instance instance;
+wgpu::Device device;
+
+void GetDevice(void (*callback)(wgpu::Device)) {
+    instance.RequestAdapter(
+            nullptr,
+            [](WGPURequestAdapterStatus status, WGPUAdapter cAdapter,
+               const char *message, void *userdata) {
+                if (status != WGPURequestAdapterStatus_Success) {
+                    exit(0);
+                }
+                wgpu::Adapter adapter = wgpu::Adapter::Acquire(cAdapter);
+                adapter.RequestDevice(
+                        nullptr,
+                        [](WGPURequestDeviceStatus status, WGPUDevice cDevice,
+                           const char *message, void *userdata) {
+                            wgpu::Device device = wgpu::Device::Acquire(cDevice);
+                            device.SetUncapturedErrorCallback(
+                                    [](WGPUErrorType type, const char *message, void *userdata) {
+                                        std::cout << "Error: " << type << " - message: " << message;
+                                    },
+                                    nullptr);
+                            reinterpret_cast<void (*)(wgpu::Device)>(userdata)(device);
+                        },
+                        userdata);
+            },
+            reinterpret_cast<void *>(callback));
+}
+
 void webgpuTest() {
     std::cout << "webgpu test start" << std::endl;
 
     loadModelAndPrintVertexCount("assets/sphere.glb");
 
-    auto instance = wgpu::CreateInstance();
-    std::cout << instance.Get() << std::endl;
+    instance = wgpu::CreateInstance();
+    if (!instance) {
+        std::cerr << "Failed to create WebGPU instance" << std::endl;
+        return;
+    }
+
+    GetDevice([](wgpu::Device dev) {
+        device = dev;
+        wgpu::SupportedLimits limits;
+        device.GetLimits(&limits);
+        std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
+    });
 }
 
 //void webgpuTest() {
