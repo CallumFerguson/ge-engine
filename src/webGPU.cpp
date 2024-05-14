@@ -140,6 +140,12 @@ void mainWebGPU() {
 
     pipelineDescriptor.vertex = vertex;
     pipelineDescriptor.fragment = &fragment;
+
+    pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
+    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
+
+    pipelineDescriptor.multisample.count = 1;
+
     pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
 
     colorAttachment = {};
