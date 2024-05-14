@@ -24,13 +24,15 @@ wgpu::Adapter adapter;
 wgpu::Device device;
 wgpu::Surface surface;
 wgpu::RenderPipeline pipeline;
+
+wgpu::RenderPassColorAttachment colorAttachment;
 wgpu::RenderPassDescriptor renderPassDescriptor;
 
-//wgpu::SurfaceTexture currentSurfaceTexture;
-//wgpu::Texture currentSurfaceTextureTexture;
-//wgpu::TextureView currentSurfaceTextureView;
-
 void render() {
+    wgpu::SurfaceTexture currentSurfaceTexture;
+    surface.GetCurrentTexture(&currentSurfaceTexture);
+    colorAttachment.view = currentSurfaceTexture.texture.CreateView();
+
     auto commandEncoder = device.CreateCommandEncoder();
 
     auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
@@ -80,13 +82,8 @@ void mainWebGPU() {
     wgpu::SurfaceConfiguration surfaceConfiguration = {};
     surfaceConfiguration.device = device;
     surfaceConfiguration.format = presentationFormat;
-    surfaceConfiguration.usage = wgpu::TextureUsage::RenderAttachment;
-    surfaceConfiguration.viewFormatCount = 0;
-    surfaceConfiguration.viewFormats = nullptr;
-    surfaceConfiguration.alphaMode = wgpu::CompositeAlphaMode::Opaque;
     surfaceConfiguration.width = width;
     surfaceConfiguration.height = height;
-    surfaceConfiguration.presentMode = wgpu::PresentMode::Fifo;
     surface.Configure(&surfaceConfiguration);
 
     std::ifstream shaderFile("shaders/simple_triangle.wgsl", std::ios::binary);
@@ -104,41 +101,37 @@ void mainWebGPU() {
     shaderModuleDescriptor.nextInChain = &wgslDescriptor;
     auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
 
+    wgpu::ColorTargetState colorTargetState = {};
+    colorTargetState.format = presentationFormat;
+
+    wgpu::FragmentState fragment = {};
+    fragment.module = shaderModule;
+    fragment.entryPoint = "frag";
+    fragment.targetCount = 1;
+    fragment.targets = &colorTargetState;
+
+    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+
+    wgpu::VertexState vertex = {};
+    vertex.module = shaderModule;
+    vertex.entryPoint = "vert";
+    vertex.bufferCount = 0;
+
+    pipelineDescriptor.vertex = vertex;
+    pipelineDescriptor.fragment = &fragment;
+    pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
+
+    colorAttachment = {};
+    colorAttachment.loadOp = wgpu::LoadOp::Clear;
+    colorAttachment.storeOp = wgpu::StoreOp::Store;
+    colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
+
+    renderPassDescriptor = {};
+    renderPassDescriptor.colorAttachmentCount = 1;
+    renderPassDescriptor.colorAttachments = &colorAttachment;
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-
-        wgpu::SurfaceTexture currentSurfaceTexture;
-        surface.GetCurrentTexture(&currentSurfaceTexture);
-
-        wgpu::ColorTargetState colorTargetState = {};
-        colorTargetState.format = presentationFormat;
-
-        wgpu::FragmentState fragment = {};
-        fragment.module = shaderModule;
-        fragment.entryPoint = "frag";
-        fragment.targetCount = 1;
-        fragment.targets = &colorTargetState;
-
-        wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
-
-        wgpu::VertexState vertex = {};
-        vertex.module = shaderModule;
-        vertex.entryPoint = "vert";
-        vertex.bufferCount = 0;
-
-        pipelineDescriptor.vertex = vertex;
-        pipelineDescriptor.fragment = &fragment;
-        pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
-
-        wgpu::RenderPassColorAttachment colorAttachment = {};
-        colorAttachment.view = currentSurfaceTexture.texture.CreateView();
-        colorAttachment.loadOp = wgpu::LoadOp::Clear;
-        colorAttachment.storeOp = wgpu::StoreOp::Store;
-        colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
-
-        renderPassDescriptor = {};
-        renderPassDescriptor.colorAttachmentCount = 1;
-        renderPassDescriptor.colorAttachments = &colorAttachment;
 
         render();
 
