@@ -181,7 +181,14 @@ void getDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice cDevice, const
     device = wgpu::Device::Acquire(cDevice);
     device.SetUncapturedErrorCallback(errorCallback, nullptr);
 
-    mainWebGPU();
+    try {
+        mainWebGPU();
+    } catch (const std::exception& e) {
+        std::cout << "Caught exception:" << std::endl;
+        std::cerr << e.what() << std::endl;
+    } catch (...) {
+        std::cerr << "Caught an unknown exception" << std::endl;
+    }
 }
 
 #ifndef __EMSCRIPTEN__
