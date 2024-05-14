@@ -36,6 +36,7 @@ void resizeCanvas() {
     // @formatter:on
 }
 
+// @formatter:off
 uint32_t getCanvasWidth() {
     return EM_ASM_INT(
             if (Module.canvas) {
@@ -53,55 +54,7 @@ uint32_t getCanvasHeight() {
             return 0;
     );
 }
-
-void CreateRenderPipeline() {
-    std::ifstream shaderFile("shaders/basic_triangle.wgsl", std::ios::binary);
-    if (!shaderFile) {
-        throw std::runtime_error("Could not open shader file");
-    }
-    std::stringstream shaderBuffer;
-    shaderBuffer << shaderFile.rdbuf();
-    std::string shaderString = shaderBuffer.str();
-
-    wgpu::ShaderModuleWGSLDescriptor wgslDesc{};
-    wgslDesc.code = shaderString.c_str();
-
-    wgpu::ShaderModuleDescriptor shaderModuleDescriptor{
-            .nextInChain = &wgslDesc};
-    wgpu::ShaderModule shaderModule =
-            device.CreateShaderModule(&shaderModuleDescriptor);
-
-    wgpu::ColorTargetState colorTargetState{
-            .format = presentationFormat};
-
-    wgpu::FragmentState fragmentState{.module = shaderModule,
-    .targetCount = 1,
-    .targets = &colorTargetState};
-
-    wgpu::RenderPipelineDescriptor descriptor{
-            .vertex = {.module = shaderModule},
-            .fragment = &fragmentState};
-    pipeline = device.CreateRenderPipeline(&descriptor);
-}
-
-void Render() {
-    wgpu::RenderPassColorAttachment attachment{
-            .view = swapChain.GetCurrentTextureView(),
-            .loadOp = wgpu::LoadOp::Clear,
-            .storeOp = wgpu::StoreOp::Store};
-    attachment.clearValue = wgpu::Color{0.25, 0, 0, 1};
-
-    wgpu::RenderPassDescriptor renderpass{.colorAttachmentCount = 1,
-            .colorAttachments = &attachment};
-
-    wgpu::CommandEncoder encoder = device.CreateCommandEncoder();
-    wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&renderpass);
-    pass.SetPipeline(pipeline);
-    pass.Draw(3);
-    pass.End();
-    wgpu::CommandBuffer commands = encoder.Finish();
-    device.GetQueue().Submit(1, &commands);
-}
+// @formatter:on
 
 void mainWebGPU() {
     wgpu::SupportedLimits limits;
@@ -128,8 +81,61 @@ void mainWebGPU() {
     swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
     swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
 
-    CreateRenderPipeline();
-    Render();
+    std::ifstream shaderFile("shaders/fullscreen_color.wgsl", std::ios::binary);
+    if (!shaderFile) {
+        throw std::runtime_error("Could not open shader file");
+    }
+    std::stringstream shaderBuffer;
+    shaderBuffer << shaderFile.rdbuf();
+    auto shaderString = shaderBuffer.str();
+
+    wgpu::ShaderModuleWGSLDescriptor wgslDescriptor{};
+    wgslDescriptor.code = shaderString.c_str();
+
+    wgpu::ShaderModuleDescriptor shaderModuleDescriptor = {};
+    shaderModuleDescriptor.nextInChain = &wgslDescriptor;
+    auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
+
+    wgpu::ColorTargetState colorTargetState = {};
+    colorTargetState.format = presentationFormat;
+
+    wgpu::FragmentState fragment = {};
+    fragment.module = shaderModule;
+    fragment.entryPoint = "frag";
+    fragment.targetCount = 1;
+    fragment.targets = &colorTargetState;
+
+    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+
+    wgpu::VertexState vertex = {};
+    vertex.module = shaderModule;
+    vertex.entryPoint = "vert";
+    vertex.bufferCount = 0;
+
+    pipelineDescriptor.vertex = vertex;
+    pipelineDescriptor.fragment = &fragment;
+    pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
+
+    wgpu::RenderPassColorAttachment colorAttachment = {};
+    colorAttachment.view = swapChain.GetCurrentTextureView();
+    colorAttachment.loadOp = wgpu::LoadOp::Clear;
+    colorAttachment.storeOp = wgpu::StoreOp::Store;
+    colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
+
+    wgpu::RenderPassDescriptor renderPassDescriptor = {};
+    renderPassDescriptor.colorAttachmentCount = 1;
+    renderPassDescriptor.colorAttachments = &colorAttachment;
+
+    auto commandEncoder = device.CreateCommandEncoder();
+
+    auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
+
+    renderPassEncoder.SetPipeline(pipeline);
+    renderPassEncoder.Draw(3);
+    renderPassEncoder.End();
+
+    auto commandBuffer = commandEncoder.Finish();
+    device.GetQueue().Submit(1, &commandBuffer);
 }
 
 void errorCallback(WGPUErrorType type, const char *message, void *userdata) {
