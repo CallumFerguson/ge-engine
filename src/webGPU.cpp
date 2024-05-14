@@ -30,6 +30,19 @@ wgpu::RenderPassDescriptor renderPassDescriptor;
 //wgpu::Texture currentSurfaceTextureTexture;
 //wgpu::TextureView currentSurfaceTextureView;
 
+void render() {
+    auto commandEncoder = device.CreateCommandEncoder();
+
+    auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
+
+    renderPassEncoder.SetPipeline(pipeline);
+    renderPassEncoder.Draw(3);
+    renderPassEncoder.End();
+
+    auto commandBuffer = commandEncoder.Finish();
+    device.GetQueue().Submit(1, &commandBuffer);
+}
+
 void mainWebGPU() {
     wgpu::SupportedLimits limits;
     device.GetLimits(&limits);
@@ -96,12 +109,6 @@ void mainWebGPU() {
 
         wgpu::SurfaceTexture currentSurfaceTexture;
         surface.GetCurrentTexture(&currentSurfaceTexture);
-//        currentSurfaceTextureTexture = currentSurfaceTexture.texture;
-//        currentSurfaceTextureView = currentSurfaceTextureTexture.CreateView();
-
-//        auto colorAttachment = renderPassDescriptor.colorAttachments[0];
-//        colorAttachment.view = currentSurfaceTextureView;
-//        renderPassDescriptor.colorAttachments = &colorAttachment;
 
         wgpu::ColorTargetState colorTargetState = {};
         colorTargetState.format = presentationFormat;
@@ -133,16 +140,7 @@ void mainWebGPU() {
         renderPassDescriptor.colorAttachmentCount = 1;
         renderPassDescriptor.colorAttachments = &colorAttachment;
 
-        auto commandEncoder = device.CreateCommandEncoder();
-
-        auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
-
-        renderPassEncoder.SetPipeline(pipeline);
-        renderPassEncoder.Draw(3);
-        renderPassEncoder.End();
-
-        auto commandBuffer = commandEncoder.Finish();
-        device.GetQueue().Submit(1, &commandBuffer);
+        render();
 
         surface.Present();
         instance.ProcessEvents();
