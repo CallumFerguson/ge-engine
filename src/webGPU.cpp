@@ -29,10 +29,20 @@ wgpu::RenderPipeline pipeline;
 wgpu::RenderPassColorAttachment colorAttachment;
 wgpu::RenderPassDescriptor renderPassDescriptor;
 
+#ifdef __EMSCRIPTEN__
+wgpu::SwapChain swapChain;
+#endif
+
 void render() {
+#ifdef __EMSCRIPTEN__
+    auto currentSurfaceTextureView = swapChain.GetCurrentTextureView();
+#else
     wgpu::SurfaceTexture currentSurfaceTexture;
     surface.GetCurrentTexture(&currentSurfaceTexture);
-    colorAttachment.view = currentSurfaceTexture.texture.CreateView();
+    auto currentSurfaceTextureView = currentSurfaceTexture.texture.CreateView();
+#endif
+
+    colorAttachment.view = currentSurfaceTextureView;
 
     auto commandEncoder = device.CreateCommandEncoder();
 
@@ -80,14 +90,22 @@ void mainWebGPU() {
 
     auto presentationFormat = surface.GetPreferredFormat(adapter);
 
-    device.CreateSwapChain()
-
+#ifdef __EMSCRIPTEN__
+    wgpu::SwapChainDescriptor swapChainDescriptor = {};
+    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
+    swapChainDescriptor.format = presentationFormat;
+    swapChainDescriptor.width = width;
+    swapChainDescriptor.height = width;
+    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
+    swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
+#else
     wgpu::SurfaceConfiguration surfaceConfiguration = {};
     surfaceConfiguration.device = device;
     surfaceConfiguration.format = presentationFormat;
     surfaceConfiguration.width = width;
     surfaceConfiguration.height = height;
     surface.Configure(&surfaceConfiguration);
+#endif
 
     std::ifstream shaderFile("shaders/simple_triangle.wgsl", std::ios::binary);
     if (!shaderFile) {
