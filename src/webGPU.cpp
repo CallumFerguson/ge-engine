@@ -160,11 +160,37 @@ void getDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice cDevice, const
     mainWebGPU();
 }
 
+void deviceLostCallback(WGPUDevice const * device, WGPUDeviceLostReason reason, char const * message, void * userdata) {
+    switch (reason) {
+        case WGPUDeviceLostReason_Unknown:
+            std::cout << "instance lost for unknown reason" << std::endl;
+            std::cout << "message: " << message << std::endl;
+            break;
+        case WGPUDeviceLostReason_Destroyed:
+            std::cout << "instance destroyed" << std::endl;
+            break;
+        case WGPUDeviceLostReason_InstanceDropped:
+            std::cout << "instance dropped" << std::endl;
+            break;
+        case WGPUDeviceLostReason_FailedCreation:
+            std::cout << "instance failed creation" << std::endl;
+            break;
+        case WGPUDeviceLostReason_Force32:
+            std::cout << "instance WGPUDeviceLostReason_Force32" << std::endl;
+            std::cout << "message: " << message << std::endl;
+            break;
+        default:
+            std::cout << "instance lost for reason not handled in the switch" << std::endl;
+            std::cout << "reason: " << reason << std::endl;
+            std::cout << "message: " << message << std::endl;
+            break;
+    }
+}
+
 void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, const char *message, void *userdata) {
     if (status != WGPURequestAdapterStatus_Success) {
-        std::cout << status << std::endl;
-
-        throw std::runtime_error("getAdapterCallback status not success");
+        std::cout << "getAdapterCallback status not success" << std::endl;
+        return;
     }
     adapter = wgpu::Adapter::Acquire(cAdapter);
 
@@ -188,6 +214,10 @@ void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, c
     deviceDescriptor.requiredFeatures = requiredFeatures.data();
     deviceDescriptor.requiredFeatureCount = requiredFeatures.size();
     deviceDescriptor.requiredLimits = &limits;
+
+    wgpu::DeviceLostCallbackInfo deviceLostCallbackInfo = {};
+    deviceLostCallbackInfo.callback = deviceLostCallback;
+    deviceDescriptor.deviceLostCallbackInfo = deviceLostCallbackInfo;
 
     adapter.RequestDevice(&deviceDescriptor, getDeviceCallback, nullptr);
 }
