@@ -30,8 +30,8 @@ else ()
     file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     file(COPY shaders DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
-    append_linker_flags("-static-libstdc++")
-    append_linker_flags("-static-libgcc")
+    #    append_linker_flags("-static-libstdc++")
+    #    append_linker_flags("-static-libgcc")
 endif ()
 
 link_directories(Dependencies/GLFW/lib) # TODO: only for native? because emscripten is bundled with glfw I think?
@@ -40,12 +40,18 @@ set(
         SOURCE_FILES
         src/main.cpp
         src/gltfloader.cpp
+        src/webGPU.cpp
 )
 
 if (EMSCRIPTEN)
     list(
             APPEND SOURCE_FILES
-            src/webgpu.cpp
+            src/webGPUEmscripten.cpp
+    )
+else ()
+    list(
+            APPEND SOURCE_FILES
+            src/webGPUDawn.cpp
     )
 endif ()
 
@@ -66,6 +72,10 @@ if (EMSCRIPTEN)
             GameEngine PRIVATE
             Dependencies/wasm_webgpu/include
     )
+else ()
+    set(DAWN_FETCH_DEPENDENCIES ON)
+    add_subdirectory("dawn" EXCLUDE_FROM_ALL)
+    target_link_libraries(GameEngine PRIVATE webgpu_cpp webgpu_dawn webgpu_glfw)
 endif ()
 
 target_link_libraries(GameEngine PRIVATE glfw3)

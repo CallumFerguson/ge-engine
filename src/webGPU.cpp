@@ -1,4 +1,4 @@
-#include "webgpu.hpp"
+#include "webGPU.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -6,61 +6,36 @@
 #include <sstream>
 #include <algorithm>
 #include <webgpu/webgpu_cpp.h>
-#include <emscripten.h>
 
-#include "gltfloader.hpp"
+#ifdef __EMSCRIPTEN__
+
+#include "webGPUEmscripten.hpp"
+
+#else
+
+#include "webGPUDawn.hpp"
+#include <webgpu/webgpu_glfw.h>
+#include <GLFW/glfw3.h>
+
+#endif
 
 wgpu::Instance instance;
 wgpu::Adapter adapter;
 wgpu::Device device;
-wgpu::SwapChain swapChain;
+wgpu::Surface surface;
 wgpu::RenderPipeline pipeline;
-wgpu::TextureFormat presentationFormat;
+wgpu::RenderPassDescriptor renderPassDescriptor;
 
-void resizeCanvas() {
-    wgpu::SupportedLimits supportedLimits = {};
-    device.GetLimits(&supportedLimits);
-
-    // @formatter:off
-    EM_ASM({
-           const canvas = Module.canvas;
-           const width = Math.max(1, Math.min($0, canvas.clientWidth));
-           const height = Math.max(1, Math.min($0, canvas.clientHeight));
-
-           const needResize = width !== canvas.width || height !== canvas.height;
-           if (needResize) {
-               canvas.width = width;
-               canvas.height = height;
-           }
-       }, supportedLimits.limits.maxTextureDimension2D);
-    // @formatter:on
-}
-
-// @formatter:off
-uint32_t getCanvasWidth() {
-    return EM_ASM_INT(
-        if (Module.canvas) {
-            return canvas.width;
-        }
-        return 0;
-    );
-}
-
-uint32_t getCanvasHeight() {
-    return EM_ASM_INT(
-        if (Module.canvas) {
-            return canvas.height;
-        }
-        return 0;
-    );
-}
-// @formatter:on
+//wgpu::SurfaceTexture currentSurfaceTexture;
+//wgpu::Texture currentSurfaceTextureTexture;
+//wgpu::TextureView currentSurfaceTextureView;
 
 void mainWebGPU() {
     wgpu::SupportedLimits limits;
     device.GetLimits(&limits);
     std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
 
+#ifdef __EMSCRIPTEN__
     wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDescriptor = {};
     canvasDescriptor.selector = "#canvas";
 
@@ -69,19 +44,39 @@ void mainWebGPU() {
 
     auto surface = instance.CreateSurface(&surfaceDescriptor);
 
-    presentationFormat = surface.GetPreferredFormat(adapter);
-
     resizeCanvas();
+    uint32_t width = getCanvasWidth();
+    uint32_t height = getCanvasHeight();
+#else
+    if (!glfwInit()) {
+        std::cout << "could not glfwInit" << std::endl;
+        return;
+    }
 
-    wgpu::SwapChainDescriptor swapChainDescriptor = {};
-    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
-    swapChainDescriptor.format = presentationFormat;
-    swapChainDescriptor.width = getCanvasWidth();
-    swapChainDescriptor.height = getCanvasHeight();
-    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
-    swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    auto window = glfwCreateWindow(512, 512, "WebGPU window", nullptr, nullptr);
 
-    std::ifstream shaderFile("shaders/fullscreen_color.wgsl", std::ios::binary);
+    surface = wgpu::glfw::CreateSurfaceForWindow(instance, window);
+
+    uint32_t width = 512;
+    uint32_t height = 512;
+#endif
+
+    auto presentationFormat = surface.GetPreferredFormat(adapter);
+
+    wgpu::SurfaceConfiguration surfaceConfiguration = {};
+    surfaceConfiguration.device = device;
+    surfaceConfiguration.format = presentationFormat;
+    surfaceConfiguration.usage = wgpu::TextureUsage::RenderAttachment;
+    surfaceConfiguration.viewFormatCount = 0;
+    surfaceConfiguration.viewFormats = nullptr;
+    surfaceConfiguration.alphaMode = wgpu::CompositeAlphaMode::Opaque;
+    surfaceConfiguration.width = width;
+    surfaceConfiguration.height = height;
+    surfaceConfiguration.presentMode = wgpu::PresentMode::Fifo;
+    surface.Configure(&surfaceConfiguration);
+
+    std::ifstream shaderFile("shaders/simple_triangle.wgsl", std::ios::binary);
     if (!shaderFile) {
         throw std::runtime_error("Could not open shader file");
     }
@@ -96,46 +91,62 @@ void mainWebGPU() {
     shaderModuleDescriptor.nextInChain = &wgslDescriptor;
     auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
 
-    wgpu::ColorTargetState colorTargetState = {};
-    colorTargetState.format = presentationFormat;
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
 
-    wgpu::FragmentState fragment = {};
-    fragment.module = shaderModule;
-    fragment.entryPoint = "frag";
-    fragment.targetCount = 1;
-    fragment.targets = &colorTargetState;
+        wgpu::SurfaceTexture currentSurfaceTexture;
+        surface.GetCurrentTexture(&currentSurfaceTexture);
+//        currentSurfaceTextureTexture = currentSurfaceTexture.texture;
+//        currentSurfaceTextureView = currentSurfaceTextureTexture.CreateView();
 
-    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+//        auto colorAttachment = renderPassDescriptor.colorAttachments[0];
+//        colorAttachment.view = currentSurfaceTextureView;
+//        renderPassDescriptor.colorAttachments = &colorAttachment;
 
-    wgpu::VertexState vertex = {};
-    vertex.module = shaderModule;
-    vertex.entryPoint = "vert";
-    vertex.bufferCount = 0;
+        wgpu::ColorTargetState colorTargetState = {};
+        colorTargetState.format = presentationFormat;
 
-    pipelineDescriptor.vertex = vertex;
-    pipelineDescriptor.fragment = &fragment;
-    pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
+        wgpu::FragmentState fragment = {};
+        fragment.module = shaderModule;
+        fragment.entryPoint = "frag";
+        fragment.targetCount = 1;
+        fragment.targets = &colorTargetState;
 
-    wgpu::RenderPassColorAttachment colorAttachment = {};
-    colorAttachment.view = swapChain.GetCurrentTextureView();
-    colorAttachment.loadOp = wgpu::LoadOp::Clear;
-    colorAttachment.storeOp = wgpu::StoreOp::Store;
-    colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
+        wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
-    wgpu::RenderPassDescriptor renderPassDescriptor = {};
-    renderPassDescriptor.colorAttachmentCount = 1;
-    renderPassDescriptor.colorAttachments = &colorAttachment;
+        wgpu::VertexState vertex = {};
+        vertex.module = shaderModule;
+        vertex.entryPoint = "vert";
+        vertex.bufferCount = 0;
 
-    auto commandEncoder = device.CreateCommandEncoder();
+        pipelineDescriptor.vertex = vertex;
+        pipelineDescriptor.fragment = &fragment;
+        pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
 
-    auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
+        wgpu::RenderPassColorAttachment colorAttachment = {};
+        colorAttachment.view = currentSurfaceTexture.texture.CreateView();
+        colorAttachment.loadOp = wgpu::LoadOp::Clear;
+        colorAttachment.storeOp = wgpu::StoreOp::Store;
+        colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
 
-    renderPassEncoder.SetPipeline(pipeline);
-    renderPassEncoder.Draw(3);
-    renderPassEncoder.End();
+        renderPassDescriptor = {};
+        renderPassDescriptor.colorAttachmentCount = 1;
+        renderPassDescriptor.colorAttachments = &colorAttachment;
 
-    auto commandBuffer = commandEncoder.Finish();
-    device.GetQueue().Submit(1, &commandBuffer);
+        auto commandEncoder = device.CreateCommandEncoder();
+
+        auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
+
+        renderPassEncoder.SetPipeline(pipeline);
+        renderPassEncoder.Draw(3);
+        renderPassEncoder.End();
+
+        auto commandBuffer = commandEncoder.Finish();
+        device.GetQueue().Submit(1, &commandBuffer);
+
+        surface.Present();
+        instance.ProcessEvents();
+    }
 }
 
 void errorCallback(WGPUErrorType type, const char *message, void *userdata) {
@@ -189,17 +200,14 @@ void getDevice() {
     instance.RequestAdapter(&options, getAdapterCallback, nullptr);
 }
 
-void webgpuTest() {
+void webGPUTest() {
     std::cout << "webgpu test start" << std::endl;
 
-    loadModelAndPrintVertexCount("assets/sphere.glb");
-
     instance = wgpu::CreateInstance();
-
     getDevice();
 }
 
-//void webgpuTest() {
+//void webGPUTest() {
 //    std::cout << "webgpu test start" << std::endl;
 //
 //    loadModelAndPrintVertexCount("assets/sphere.glb");

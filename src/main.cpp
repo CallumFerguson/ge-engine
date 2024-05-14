@@ -1,17 +1,14 @@
 #include <iostream>
 
-#ifdef __EMSCRIPTEN__
-
-#include "webgpu.hpp"
-
-#endif
+#include "gltfloader.hpp"
+#include "webGPU.hpp"
 
 int main() {
     std::cout << "main start" << std::endl;
 
-#ifdef __EMSCRIPTEN__
-    webgpuTest();
-#endif
+    loadModelAndPrintVertexCount("assets/sphere.glb");
+
+    webGPUTest();
 
     std::cout << "done" << std::endl;
 }
