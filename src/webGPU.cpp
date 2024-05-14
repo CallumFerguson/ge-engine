@@ -10,6 +10,7 @@
 #ifdef __EMSCRIPTEN__
 
 #include "webGPUEmscripten.hpp"
+#include <emscripten.h>
 
 #else
 
@@ -57,9 +58,9 @@ void mainWebGPU() {
     wgpu::SurfaceDescriptor surfaceDescriptor = {};
     surfaceDescriptor.nextInChain = &canvasDescriptor;
 
-    auto surface = instance.CreateSurface(&surfaceDescriptor);
+    surface = instance.CreateSurface(&surfaceDescriptor);
 
-    resizeCanvas();
+    resizeCanvas(device);
     uint32_t width = getCanvasWidth();
     uint32_t height = getCanvasHeight();
 #else
@@ -78,6 +79,8 @@ void mainWebGPU() {
 #endif
 
     auto presentationFormat = surface.GetPreferredFormat(adapter);
+
+    device.CreateSwapChain()
 
     wgpu::SurfaceConfiguration surfaceConfiguration = {};
     surfaceConfiguration.device = device;
@@ -130,6 +133,9 @@ void mainWebGPU() {
     renderPassDescriptor.colorAttachmentCount = 1;
     renderPassDescriptor.colorAttachments = &colorAttachment;
 
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(render, 0, false); // TODO: try simulate loop, also animation loop variables? or just use c++ stuff to get current time
+#else
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -138,6 +144,7 @@ void mainWebGPU() {
         surface.Present();
         instance.ProcessEvents();
     }
+#endif
 }
 
 void errorCallback(WGPUErrorType type, const char *message, void *userdata) {
@@ -153,6 +160,7 @@ void getDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice cDevice, const
     mainWebGPU();
 }
 
+#ifndef __EMSCRIPTEN__
 void deviceLostCallback(WGPUDevice const * device, WGPUDeviceLostReason reason, char const * message, void * userdata) {
     switch (reason) {
         case WGPUDeviceLostReason_Unknown:
@@ -179,6 +187,7 @@ void deviceLostCallback(WGPUDevice const * device, WGPUDeviceLostReason reason, 
             break;
     }
 }
+#endif
 
 void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, const char *message, void *userdata) {
     if (status != WGPURequestAdapterStatus_Success) {
@@ -208,9 +217,11 @@ void getAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter cAdapter, c
     deviceDescriptor.requiredFeatureCount = requiredFeatures.size();
     deviceDescriptor.requiredLimits = &limits;
 
+#ifndef __EMSCRIPTEN__
     wgpu::DeviceLostCallbackInfo deviceLostCallbackInfo = {};
     deviceLostCallbackInfo.callback = deviceLostCallback;
     deviceDescriptor.deviceLostCallbackInfo = deviceLostCallbackInfo;
+#endif
 
     adapter.RequestDevice(&deviceDescriptor, getDeviceCallback, nullptr);
 }
