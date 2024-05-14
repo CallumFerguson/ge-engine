@@ -34,7 +34,12 @@ else ()
     #    append_linker_flags("-static-libgcc")
 endif ()
 
-link_directories(Dependencies/GLFW/lib) # TODO: only for native? because emscripten is bundled with glfw I think?
+#TODO: separate vulkan/webgpu build and within webgpu build option for wasm or native webgpu, then use included glfw for vulkan
+#link_directories(Dependencies/GLFW/lib)
+
+if (NOT EMSCRIPTEN)
+    link_directories(${CMAKE_CURRENT_BINARY_DIR}/dawn/third_party/glfw/src)
+endif ()
 
 set(
         SOURCE_FILES
@@ -63,7 +68,7 @@ add_executable(
 target_include_directories(
         GameEngine PRIVATE
         Dependencies/glm/include
-        Dependencies/GLFW/include
+        #        Dependencies/GLFW/include
         Dependencies/tinygltf/include
 )
 
@@ -76,6 +81,10 @@ else ()
     set(DAWN_FETCH_DEPENDENCIES ON)
     add_subdirectory("dawn" EXCLUDE_FROM_ALL)
     target_link_libraries(GameEngine PRIVATE webgpu_cpp webgpu_dawn webgpu_glfw)
+    target_include_directories(
+            GameEngine PRIVATE
+            dawn/third_party/glfw/include
+    )
 endif ()
 
-target_link_libraries(GameEngine PRIVATE glfw3)
+#target_link_libraries(GameEngine PRIVATE glfw3)
