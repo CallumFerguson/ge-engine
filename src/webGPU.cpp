@@ -179,7 +179,7 @@ void getDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice cDevice, const
 }
 
 #ifndef __EMSCRIPTEN__
-void deviceLostCallback(WGPUDevice const * device, WGPUDeviceLostReason reason, char const * message, void * userdata) {
+void deviceLostCallback(WGPUDevice const * lostDevice, WGPUDeviceLostReason reason, char const * message, void * userdata) {
     switch (reason) {
         case WGPUDeviceLostReason_Unknown:
             std::cout << "instance lost for unknown reason" << std::endl;
