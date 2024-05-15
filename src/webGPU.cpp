@@ -6,6 +6,9 @@
 #include <sstream>
 #include <algorithm>
 #include <webgpu/webgpu_cpp.h>
+#include <imgui.h>
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_wgpu.h"
 
 #ifdef __EMSCRIPTEN__
 
@@ -87,6 +90,12 @@ void mainWebGPU() {
     uint32_t width = 512;
     uint32_t height = 512;
 #endif
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+
+    std::cout << "ImGui version: " << ImGui::GetVersion() << std::endl;
 
     auto presentationFormat = surface.GetPreferredFormat(adapter);
 

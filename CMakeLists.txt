@@ -46,6 +46,13 @@ set(
         src/main.cpp
         src/gltfloader.cpp
         src/webGPU.cpp
+        Dependencies/imgui/src/imgui.cpp
+        Dependencies/imgui/src/imgui_demo.cpp
+        Dependencies/imgui/src/imgui_draw.cpp
+        Dependencies/imgui/src/imgui_impl_glfw.cpp
+        Dependencies/imgui/src/imgui_impl_wgpu.cpp
+        Dependencies/imgui/src/imgui_tables.cpp
+        Dependencies/imgui/src/imgui_widgets.cpp
 )
 
 if (EMSCRIPTEN)
@@ -70,6 +77,7 @@ target_include_directories(
         Dependencies/glm/include
         #        Dependencies/GLFW/include
         Dependencies/tinygltf/include
+        Dependencies/imgui/include
 )
 
 if (EMSCRIPTEN)
