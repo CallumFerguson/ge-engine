@@ -84,6 +84,10 @@ void mainWebGPU() {
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     auto window = glfwCreateWindow(512, 512, "WebGPU window", nullptr, nullptr);
+    if (!window) {
+        std::cout << "failed to create window" << std::endl;
+        return;
+    }
 
     surface = wgpu::glfw::CreateSurfaceForWindow(instance, window);
 
@@ -94,8 +98,12 @@ void mainWebGPU() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-    std::cout << "ImGui version: " << ImGui::GetVersion() << std::endl;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOther(window, true);
 
     auto presentationFormat = surface.GetPreferredFormat(adapter);
 
@@ -114,6 +122,13 @@ void mainWebGPU() {
     surfaceConfiguration.width = width;
     surfaceConfiguration.height = height;
     surface.Configure(&surfaceConfiguration);
+
+    ImGui_ImplWGPU_InitInfo init_info;
+    init_info.Device = device.Get();
+    init_info.NumFramesInFlight = 3;
+    init_info.RenderTargetFormat = (WGPUTextureFormat)presentationFormat;
+    init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
+    ImGui_ImplWGPU_Init(&init_info);
 #endif
 
     std::ifstream shaderFile("shaders/simple_triangle.wgsl", std::ios::binary);
@@ -166,13 +181,58 @@ void mainWebGPU() {
     renderPassDescriptor.colorAttachmentCount = 1;
     renderPassDescriptor.colorAttachments = &colorAttachment;
 
+    bool showDemoWindow = true;
+
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(render, 0, false); // TODO: try simulate loop, also animation loop variables? or just use c++ stuff to get current time
 #else
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        render();
+        ImGui_ImplWGPU_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        if (showDemoWindow) {
+            ImGui::ShowDemoWindow(&showDemoWindow);
+        }
+
+        ImGui::Render();
+
+#ifndef __EMSCRIPTEN__
+        // Tick needs to be called in Dawn to display validation errors
+        wgpuDeviceTick(device.Get());
+#endif
+
+        wgpu::SurfaceTexture currentSurfaceTexture;
+        surface.GetCurrentTexture(&currentSurfaceTexture);
+        auto currentSurfaceTextureView = currentSurfaceTexture.texture.CreateView();
+
+        WGPURenderPassColorAttachment color_attachments = {};
+        color_attachments.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        color_attachments.loadOp = WGPULoadOp_Clear;
+        color_attachments.storeOp = WGPUStoreOp_Store;
+        color_attachments.clearValue = { 0, 0, 0, 1 };
+        color_attachments.view = currentSurfaceTextureView.Get();
+
+        WGPURenderPassDescriptor render_pass_desc = {};
+        render_pass_desc.colorAttachmentCount = 1;
+        render_pass_desc.colorAttachments = &color_attachments;
+        render_pass_desc.depthStencilAttachment = nullptr;
+
+        WGPUCommandEncoderDescriptor enc_desc = {};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(device.Get(), &enc_desc);
+
+        WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &render_pass_desc);
+        ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), pass);
+        wgpuRenderPassEncoderEnd(pass);
+
+        WGPUCommandBufferDescriptor cmd_buffer_desc = {};
+        WGPUCommandBuffer cmd_buffer = wgpuCommandEncoderFinish(encoder, &cmd_buffer_desc);
+        WGPUQueue queue = wgpuDeviceGetQueue(device.Get());
+        wgpuQueueSubmit(queue, 1, &cmd_buffer);
+
+//        render();
 
         surface.Present();
         instance.ProcessEvents();
