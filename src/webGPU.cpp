@@ -68,7 +68,7 @@ void configureSurface() {
 #endif
 }
 
-void render() {
+void draw() {
     ImGui_ImplWGPU_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -124,7 +124,7 @@ void mainLoop() {
         ImGui_ImplWGPU_CreateDeviceObjects();
     }
 
-    render();
+    draw();
 
 #ifdef __EMSCRIPTEN__
     updateCursor();
