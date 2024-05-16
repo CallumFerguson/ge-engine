@@ -2,24 +2,25 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <sstream>
 #include <algorithm>
 #include <webgpu/webgpu_cpp.h>
 #include <imgui.h>
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_wgpu.h"
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_wgpu.h>
+#include <GLFW/glfw3.h>
+
+#include <imgui_internal.h>
 
 #ifdef __EMSCRIPTEN__
 
-#include "webGPUEmscripten.hpp"
 #include <emscripten.h>
+#include <emscripten/html5_webgpu.h>
 
 #else
 
 #include "webGPUDawn.hpp"
 #include <webgpu/webgpu_glfw.h>
-#include <GLFW/glfw3.h>
 
 #endif
 
@@ -32,11 +33,57 @@ wgpu::RenderPipeline pipeline;
 wgpu::RenderPassColorAttachment colorAttachment;
 wgpu::RenderPassDescriptor renderPassDescriptor;
 
+wgpu::TextureFormat presentationFormat;
+
+GLFWwindow* window;
+
 #ifdef __EMSCRIPTEN__
 wgpu::SwapChain swapChain;
 #endif
 
+bool showDemoWindow = true;
+
+bool once = true;
+
+int renderSurfaceWidth = 512;
+int renderSurfaceHeight = 512;
+
+void configureSurface() {
+#ifdef __EMSCRIPTEN__
+    wgpu::SwapChainDescriptor swapChainDescriptor = {};
+    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
+    swapChainDescriptor.format = presentationFormat;
+    swapChainDescriptor.width = renderSurfaceWidth;
+    swapChainDescriptor.height = renderSurfaceHeight;
+    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
+    swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
+#else
+    wgpu::SurfaceConfiguration surfaceConfiguration = {};
+    surfaceConfiguration.device = device;
+    surfaceConfiguration.format = presentationFormat;
+    surfaceConfiguration.width = renderSurfaceWidth;
+    surfaceConfiguration.height = renderSurfaceHeight;
+    surface.Configure(&surfaceConfiguration);
+#endif
+}
+
 void render() {
+    ImGui_ImplWGPU_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    if (showDemoWindow) {
+        ImGui::ShowDemoWindow(&showDemoWindow);
+    }
+
+    ImGui::Render();
+
+#ifndef __EMSCRIPTEN__
+    // Tick needs to be called in Dawn to display validation errors
+    // https://github.com/ocornut/imgui/blob/master/examples/example_glfw_wgpu/main.cpp
+    device.Tick();
+#endif
+
 #ifdef __EMSCRIPTEN__
     auto currentSurfaceTextureView = swapChain.GetCurrentTextureView();
 #else
@@ -53,16 +100,59 @@ void render() {
 
     renderPassEncoder.SetPipeline(pipeline);
     renderPassEncoder.Draw(3);
+
+    ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), renderPassEncoder.Get());
+
     renderPassEncoder.End();
 
     auto commandBuffer = commandEncoder.Finish();
     device.GetQueue().Submit(1, &commandBuffer);
 }
 
+void mainLoop() {
+    glfwPollEvents();
+
+    // React to changes in screen size
+    int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
+    glfwGetFramebufferSize(window, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);
+    if (currentRenderSurfaceWidth != renderSurfaceWidth || currentRenderSurfaceHeight != renderSurfaceHeight) {
+        ImGui_ImplWGPU_InvalidateDeviceObjects();
+        renderSurfaceWidth = currentRenderSurfaceWidth;
+        renderSurfaceHeight = currentRenderSurfaceHeight;
+        configureSurface();
+        ImGui_ImplWGPU_CreateDeviceObjects();
+    }
+
+    render();
+
+#ifndef __EMSCRIPTEN__
+    surface.Present();
+    instance.ProcessEvents();
+#endif
+}
+
 void mainWebGPU() {
     wgpu::SupportedLimits limits;
     device.GetLimits(&limits);
     std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
+
+    if (!glfwInit()) {
+        std::cout << "could not glfwInit" << std::endl;
+        return;
+    }
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    window = glfwCreateWindow(renderSurfaceWidth, renderSurfaceHeight, "WebGPU window", nullptr, nullptr);
+    if (!window) {
+        std::cout << "failed to create window" << std::endl;
+        return;
+    }
+
+    // in a browser, glfwCreateWindow will ignore the passed width and height,
+    // so get the actual size which is based on the canvas size
+#ifdef __EMSCRIPTEN__
+    glfwGetWindowSize(window, &renderSurfaceWidth, &renderSurfaceHeight);
+#endif
 
 #ifdef __EMSCRIPTEN__
     wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDescriptor = {};
@@ -72,27 +162,8 @@ void mainWebGPU() {
     surfaceDescriptor.nextInChain = &canvasDescriptor;
 
     surface = instance.CreateSurface(&surfaceDescriptor);
-
-    resizeCanvas(device);
-    uint32_t width = getCanvasWidth();
-    uint32_t height = getCanvasHeight();
 #else
-    if (!glfwInit()) {
-        std::cout << "could not glfwInit" << std::endl;
-        return;
-    }
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    auto window = glfwCreateWindow(512, 512, "WebGPU window", nullptr, nullptr);
-    if (!window) {
-        std::cout << "failed to create window" << std::endl;
-        return;
-    }
-
     surface = wgpu::glfw::CreateSurfaceForWindow(instance, window);
-
-    uint32_t width = 512;
-    uint32_t height = 512;
 #endif
 
     IMGUI_CHECKVERSION();
@@ -105,23 +176,14 @@ void mainWebGPU() {
 
     ImGui_ImplGlfw_InitForOther(window, true);
 
-    auto presentationFormat = surface.GetPreferredFormat(adapter);
-
 #ifdef __EMSCRIPTEN__
-    wgpu::SwapChainDescriptor swapChainDescriptor = {};
-    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
-    swapChainDescriptor.format = presentationFormat;
-    swapChainDescriptor.width = width;
-    swapChainDescriptor.height = width;
-    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
-    swapChain = device.CreateSwapChain(surface, &swapChainDescriptor);
-#else
-    wgpu::SurfaceConfiguration surfaceConfiguration = {};
-    surfaceConfiguration.device = device;
-    surfaceConfiguration.format = presentationFormat;
-    surfaceConfiguration.width = width;
-    surfaceConfiguration.height = height;
-    surface.Configure(&surfaceConfiguration);
+    ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
+    io.IniFilename = nullptr;
+#endif
+
+    presentationFormat = surface.GetPreferredFormat(adapter);
+
+    configureSurface();
 
     ImGui_ImplWGPU_InitInfo init_info;
     init_info.Device = device.Get();
@@ -129,7 +191,6 @@ void mainWebGPU() {
     init_info.RenderTargetFormat = (WGPUTextureFormat)presentationFormat;
     init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
     ImGui_ImplWGPU_Init(&init_info);
-#endif
 
     std::ifstream shaderFile("shaders/simple_triangle.wgsl", std::ios::binary);
     if (!shaderFile) {
@@ -181,61 +242,11 @@ void mainWebGPU() {
     renderPassDescriptor.colorAttachmentCount = 1;
     renderPassDescriptor.colorAttachments = &colorAttachment;
 
-    bool showDemoWindow = true;
-
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(render, 0, false); // TODO: try simulate loop, also animation loop variables? or just use c++ stuff to get current time
+    emscripten_set_main_loop(mainLoop, 0, false); // TODO: try simulate loop, also animation loop variables? or just use c++ stuff to get current time
 #else
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        ImGui_ImplWGPU_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        if (showDemoWindow) {
-            ImGui::ShowDemoWindow(&showDemoWindow);
-        }
-
-        ImGui::Render();
-
-#ifndef __EMSCRIPTEN__
-        // Tick needs to be called in Dawn to display validation errors
-        wgpuDeviceTick(device.Get());
-#endif
-
-        wgpu::SurfaceTexture currentSurfaceTexture;
-        surface.GetCurrentTexture(&currentSurfaceTexture);
-        auto currentSurfaceTextureView = currentSurfaceTexture.texture.CreateView();
-
-        WGPURenderPassColorAttachment color_attachments = {};
-        color_attachments.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
-        color_attachments.loadOp = WGPULoadOp_Clear;
-        color_attachments.storeOp = WGPUStoreOp_Store;
-        color_attachments.clearValue = { 0, 0, 0, 1 };
-        color_attachments.view = currentSurfaceTextureView.Get();
-
-        WGPURenderPassDescriptor render_pass_desc = {};
-        render_pass_desc.colorAttachmentCount = 1;
-        render_pass_desc.colorAttachments = &color_attachments;
-        render_pass_desc.depthStencilAttachment = nullptr;
-
-        WGPUCommandEncoderDescriptor enc_desc = {};
-        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(device.Get(), &enc_desc);
-
-        WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &render_pass_desc);
-        ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), pass);
-        wgpuRenderPassEncoderEnd(pass);
-
-        WGPUCommandBufferDescriptor cmd_buffer_desc = {};
-        WGPUCommandBuffer cmd_buffer = wgpuCommandEncoderFinish(encoder, &cmd_buffer_desc);
-        WGPUQueue queue = wgpuDeviceGetQueue(device.Get());
-        wgpuQueueSubmit(queue, 1, &cmd_buffer);
-
-//        render();
-
-        surface.Present();
-        instance.ProcessEvents();
+        mainLoop();
     }
 #endif
 }
