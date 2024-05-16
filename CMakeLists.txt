@@ -30,7 +30,7 @@ if (EMSCRIPTEN)
 
 else ()
     file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
-    file(COPY shaders DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
+    #    file(COPY shaders DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
     #    append_linker_flags("-static-libstdc++")
     #    append_linker_flags("-static-libgcc")
@@ -96,5 +96,18 @@ else ()
             dawn/third_party/glfw/include
     )
 endif ()
+
+# Custom command to copy shaders into dist
+add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders
+        COMMENT "Copying shaders..."
+)
+# Custom target to ensure shaders are copied every time you run
+add_custom_target(copy_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders)
+# Ensure executable depends on shader copying
+add_dependencies(GameEngine copy_shaders)
+
 
 #target_link_libraries(GameEngine PRIVATE glfw3)
