@@ -14,6 +14,7 @@
 
 #ifdef __EMSCRIPTEN__
 
+#include "webGPUEmscripten.hpp"
 #include <emscripten.h>
 #include <emscripten/html5_webgpu.h>
 
@@ -124,6 +125,10 @@ void mainLoop() {
     }
 
     render();
+
+#ifdef __EMSCRIPTEN__
+    updateCursor();
+#endif
 
 #ifndef __EMSCRIPTEN__
     surface.Present();
