@@ -21,15 +21,16 @@ if (EMSCRIPTEN)
     append_compiler_flags("-fexceptions")
 
     append_linker_flags("--use-preload-cache")
-    append_linker_flags("--preload-file ../assets")
-    append_linker_flags("--preload-file ../shaders")
+    append_linker_flags("-sFORCE_FILESYSTEM")
+    #    append_linker_flags("--preload-file ../assets")
+    #    append_linker_flags("--preload-file ../shaders")
     #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
     #    append_linker_flags("-sASYNCIFY=1")
     append_linker_flags("-sUSE_WEBGPU=1")
     append_linker_flags("-sUSE_GLFW=3")
 
 else ()
-    file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
+    #    file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
     #    file(COPY shaders DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
 
     #    append_linker_flags("-static-libstdc++")
@@ -87,6 +88,34 @@ if (EMSCRIPTEN)
             GameEngine PRIVATE
             Dependencies/wasm_webgpu/include
     )
+
+    if (NOT EMSDK_PATH)
+        message(FATAL_ERROR "Please specify the path to emsdk using the EMSDK_PATH variable.")
+    endif ()
+
+    # preload shaders
+    add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js
+            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py
+            ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data --preload shaders --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders
+            COMMENT "Packaging shaders..."
+    )
+    add_custom_target(package_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js)
+    add_dependencies(GameEngine package_shaders)
+
+    # preload assets
+    add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js
+            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py
+            ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data --preload assets --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets
+            COMMENT "Packaging assets..."
+    )
+    add_custom_target(package_assets ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js)
+    add_dependencies(GameEngine package_assets)
 else ()
     set(DAWN_FETCH_DEPENDENCIES ON)
     add_subdirectory("dawn" EXCLUDE_FROM_ALL)
@@ -95,19 +124,26 @@ else ()
             GameEngine PRIVATE
             dawn/third_party/glfw/include
     )
+
+    # copy shaders
+    add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders
+            COMMENT "Packaging shaders..."
+    )
+    add_custom_target(package_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders)
+    add_dependencies(GameEngine package_shaders)
+
+    # copy assets
+    add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets
+            COMMENT "Packaging assets..."
+    )
+    add_custom_target(package_assets ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/assets)
+    add_dependencies(GameEngine package_assets)
 endif ()
-
-# Custom command to copy shaders into dist
-add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders
-        COMMENT "Copying shaders..."
-)
-# Custom target to ensure shaders are copied every time you run
-add_custom_target(copy_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders)
-# Ensure executable depends on shader copying
-add_dependencies(GameEngine copy_shaders)
-
 
 #target_link_libraries(GameEngine PRIVATE glfw3)
