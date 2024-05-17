@@ -177,13 +177,16 @@ void mainWebGPU() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
+    // this is only needed for emscripten, but to keep things consistent, just do it for all platforms.
+    // if init file is needed later, it can be added to emscripten by preloading/file packing it
+    io.IniFilename = nullptr;
+
     ImGui::StyleColorsDark();
 
     ImGui_ImplGlfw_InitForOther(window, true);
 
 #ifdef __EMSCRIPTEN__
     ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
-    io.IniFilename = nullptr;
 #endif
 
     presentationFormat = surface.GetPreferredFormat(adapter);
