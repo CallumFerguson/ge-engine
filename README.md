@@ -31,7 +31,7 @@ cd build/dist
 ```
 git clone https://github.com/CallumFerguson/GameEngine
 cd GameEngine
-emcmake cmake -B build-wasm -G Ninja
+emcmake cmake -B build-wasm -G Ninja -DEMSDK_PATH=C:\path\to\emsdk
 cmake --build build-wasm
 cd build-wasm/dist
 ```
@@ -58,6 +58,7 @@ Project should be able to build Windows native using CLion without any additiona
 - go to "Build, Execution, Deployment" > "CMake"
 - Duplicate "Debug" and name it "Debug-Emscripten"
 - Select "Emscripten" for "Toolchain"
+- Add -DEMSDK_PATH=C:\path\to\emsdk to CMake Options
 - Close settings and select the GameEngine-Emscripten | Debug-Emscripten run configuration
 - Go to "Run" > "Edit Configurations..."
 - Select "CMake Application" > "GameEngine-Emscripten"
