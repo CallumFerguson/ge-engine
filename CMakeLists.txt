@@ -15,9 +15,6 @@ macro(append_linker_flags FLAGS)
 endmacro()
 
 if (EMSCRIPTEN)
-    file(COPY index.html DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
-    file(COPY favicon.ico DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
-
     append_compiler_flags("-fexceptions")
 
     append_linker_flags("--use-preload-cache")
@@ -83,11 +80,29 @@ target_include_directories(
         Dependencies/imgui/include
 )
 
+function(copy_file_relative NEW_TARGET_NAME PATH TARGET)
+    set(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/${PATH})
+    set(DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist/${PATH})
+
+    add_custom_command(
+            OUTPUT ${DESTINATION}
+            COMMAND ${CMAKE_COMMAND} -E copy ${SOURCE} ${DESTINATION}
+            DEPENDS ${SOURCE}
+            COMMENT "Copying ${NEW_TARGET_NAME}..."
+    )
+
+    add_custom_target(${NEW_TARGET_NAME} ALL DEPENDS ${DESTINATION})
+    add_dependencies(${TARGET} ${NEW_TARGET_NAME})
+endfunction()
+
 if (EMSCRIPTEN)
     target_include_directories(
             GameEngine PRIVATE
             Dependencies/wasm_webgpu/include
     )
+
+    copy_file_relative(index_html index.html GameEngine)
+    copy_file_relative(favicon_ico favicon.ico GameEngine)
 
     if (NOT EMSDK_PATH)
         message(FATAL_ERROR "Please specify the path to emsdk using the EMSDK_PATH variable.")
