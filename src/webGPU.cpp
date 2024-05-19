@@ -136,11 +136,17 @@ void mainLoop() {
 #endif
 }
 
-void mainWebGPU() {
-    wgpu::SupportedLimits limits;
-    device.GetLimits(&limits);
-    std::cout << "Maximum storage buffer size: " << limits.limits.maxStorageBufferBindingSize << std::endl;
+#ifndef __EMSCRIPTEN__
+void windowPosCallback(GLFWwindow*, int xpos, int ypos) {
+    mainLoop();
+}
 
+void framebufferSizeCallback(GLFWwindow*, int width, int height) {
+    mainLoop();
+}
+#endif
+
+void mainWebGPU() {
     if (!glfwInit()) {
         std::cout << "could not glfwInit" << std::endl;
         return;
@@ -187,6 +193,9 @@ void mainWebGPU() {
 
 #ifdef __EMSCRIPTEN__
     ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
+#else
+    glfwSetWindowPosCallback(window, windowPosCallback);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 #endif
 
     presentationFormat = surface.GetPreferredFormat(adapter);
