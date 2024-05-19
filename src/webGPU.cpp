@@ -68,7 +68,7 @@ void configureSurface() {
 #endif
 }
 
-void draw() {
+void drawImGui() {
     ImGui_ImplWGPU_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -78,7 +78,9 @@ void draw() {
     }
 
     ImGui::Render();
+}
 
+void draw() {
 #ifndef __EMSCRIPTEN__
     // Tick needs to be called in Dawn to display validation errors
     // https://github.com/ocornut/imgui/blob/master/examples/example_glfw_wgpu/main.cpp
@@ -116,6 +118,9 @@ void mainLoop() {
     // React to changes in screen size
     int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
     glfwGetFramebufferSize(window, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);
+    if (currentRenderSurfaceWidth == 0 || currentRenderSurfaceHeight == 0) {
+        return;
+    }
     if (currentRenderSurfaceWidth != renderSurfaceWidth || currentRenderSurfaceHeight != renderSurfaceHeight) {
         ImGui_ImplWGPU_InvalidateDeviceObjects();
         renderSurfaceWidth = currentRenderSurfaceWidth;
@@ -124,6 +129,7 @@ void mainLoop() {
         ImGui_ImplWGPU_CreateDeviceObjects();
     }
 
+    drawImGui();
     draw();
 
 #ifdef __EMSCRIPTEN__
