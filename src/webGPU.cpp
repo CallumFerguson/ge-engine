@@ -30,6 +30,7 @@ wgpu::Adapter adapter;
 wgpu::Device device;
 wgpu::Surface surface;
 wgpu::RenderPipeline pipeline;
+wgpu::BindGroup bindGroup0;
 
 wgpu::RenderPassColorAttachment colorAttachment;
 wgpu::RenderPassDescriptor renderPassDescriptor;
@@ -102,6 +103,7 @@ void draw() {
     auto renderPassEncoder = commandEncoder.BeginRenderPass(&renderPassDescriptor);
 
     renderPassEncoder.SetPipeline(pipeline);
+    renderPassEncoder.SetBindGroup(0, bindGroup0);
     renderPassEncoder.Draw(3);
 
     ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), renderPassEncoder.Get());
@@ -215,7 +217,7 @@ void mainWebGPU() {
     init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
     ImGui_ImplWGPU_Init(&init_info);
 
-    std::ifstream shaderFile("shaders/simple_triangle.wgsl", std::ios::binary);
+    std::ifstream shaderFile("shaders/uniform_color_triangle.wgsl", std::ios::binary);
     if (!shaderFile) {
         throw std::runtime_error("Could not open shader file");
     }
@@ -233,13 +235,33 @@ void mainWebGPU() {
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = presentationFormat;
 
+    wgpu::BufferBindingLayout bindGroupLayoutGroup0Entry0BufferBindingLayout = {};
+    bindGroupLayoutGroup0Entry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
+
+    wgpu::BindGroupLayoutEntry bindGroupLayoutGroup0Entry0 = {};
+    bindGroupLayoutGroup0Entry0.binding = 0;
+    bindGroupLayoutGroup0Entry0.visibility = wgpu::ShaderStage::Fragment;
+    bindGroupLayoutGroup0Entry0.buffer = bindGroupLayoutGroup0Entry0BufferBindingLayout;
+
+    wgpu::BindGroupLayoutDescriptor bindGroupLayoutGroup0Descriptor = {};
+    bindGroupLayoutGroup0Descriptor.entryCount = 1;
+    bindGroupLayoutGroup0Descriptor.entries = &bindGroupLayoutGroup0Entry0;
+    auto bindGroupLayoutGroup0 = device.CreateBindGroupLayout(&bindGroupLayoutGroup0Descriptor);
+
+    wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor = {};
+    pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
+    pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
+    auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
+
+    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+
+    pipelineDescriptor.layout = pipelineLayout;
+
     wgpu::FragmentState fragment = {};
     fragment.module = shaderModule;
     fragment.entryPoint = "frag";
     fragment.targetCount = 1;
     fragment.targets = &colorTargetState;
-
-    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
     wgpu::VertexState vertex = {};
     vertex.module = shaderModule;
@@ -255,6 +277,25 @@ void mainWebGPU() {
     pipelineDescriptor.multisample.count = 1;
 
     pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
+
+    const float uniformBufferData[4] = { 0.25, 0, 0, 1};
+
+    wgpu::BufferDescriptor uniformBufferDescriptor = {};
+    uniformBufferDescriptor.size = 16;
+    uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
+    auto uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
+    device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, 16);
+
+    wgpu::BindGroupEntry bindGroupDescriptor0Entry0 = {};
+    bindGroupDescriptor0Entry0.binding = 0;
+    bindGroupDescriptor0Entry0.buffer = uniformBuffer;
+
+    wgpu::BindGroupDescriptor bindGroupDescriptor0 = {};
+    bindGroupDescriptor0.layout = bindGroupLayoutGroup0;
+    bindGroupDescriptor0.entryCount = 1;
+    bindGroupDescriptor0.entries = &bindGroupDescriptor0Entry0;
+
+    bindGroup0 = device.CreateBindGroup(&bindGroupDescriptor0);
 
     colorAttachment = {};
     colorAttachment.loadOp = wgpu::LoadOp::Clear;
