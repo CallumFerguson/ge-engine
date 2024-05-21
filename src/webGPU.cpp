@@ -4,24 +4,27 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <random>
+
 #include <webgpu/webgpu_cpp.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
 #include <GLFW/glfw3.h>
-
-#include <imgui_internal.h>
+//#include <imgui_memory_editor.h>
 
 #ifdef __EMSCRIPTEN__
 
-#include "webGPUEmscripten.hpp"
 #include <emscripten.h>
 #include <emscripten/html5_webgpu.h>
 
+#include "webGPUEmscripten.hpp"
+
 #else
 
-#include "webGPUDawn.hpp"
 #include <webgpu/webgpu_glfw.h>
+
+#include "webGPUDawn.hpp"
 
 #endif
 
@@ -31,6 +34,8 @@ wgpu::Device device;
 wgpu::Surface surface;
 wgpu::RenderPipeline pipeline;
 wgpu::BindGroup bindGroup0;
+wgpu::Buffer uniformBuffer;
+float uniformBufferData[4] = { 0.25, 0, 0, 1};
 
 wgpu::RenderPassColorAttachment colorAttachment;
 wgpu::RenderPassDescriptor renderPassDescriptor;
@@ -43,12 +48,20 @@ GLFWwindow* window;
 wgpu::SwapChain swapChain;
 #endif
 
-bool showDemoWindow = true;
-
 bool once = true;
 
 int renderSurfaceWidth = 512;
 int renderSurfaceHeight = 512;
+
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+void randomizeColor(float color[4]) {
+    color[0] = dist(mt);
+    color[1] = dist(mt);
+    color[2] = dist(mt);
+}
 
 void configureSurface() {
 #ifdef __EMSCRIPTEN__
@@ -74,9 +87,27 @@ void drawImGui() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (showDemoWindow) {
-        ImGui::ShowDemoWindow(&showDemoWindow);
+//    static bool showDemoWindow = true;
+//    if (showDemoWindow) {
+//        ImGui::ShowDemoWindow(&showDemoWindow);
+//    }
+
+    ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    ImGui::Text("FPS: ");
+    ImGui::End();
+
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    if (ImGui::Button("Randomize triangle color")) {
+        randomizeColor(uniformBufferData);
+        device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, 16);
     }
+    ImGui::End();
+
+//    static MemoryEditor mem_edit;
+//    mem_edit.DrawWindow("Memory Editor", uniformBufferData, 16);
 
     ImGui::Render();
 }
@@ -278,12 +309,10 @@ void mainWebGPU() {
 
     pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
 
-    const float uniformBufferData[4] = { 0.25, 0, 0, 1};
-
     wgpu::BufferDescriptor uniformBufferDescriptor = {};
     uniformBufferDescriptor.size = 16;
     uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
-    auto uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
+    uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
     device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, 16);
 
     wgpu::BindGroupEntry bindGroupDescriptor0Entry0 = {};
