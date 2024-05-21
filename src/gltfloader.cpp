@@ -47,10 +47,18 @@ std::optional<Model> loadModel(const std::string &filename) {
         return std::nullopt;
     }
 
-    const tinygltf::Accessor &accessor = model.accessors[it->second];
-    auto &bufferView = model.bufferViews[accessor.bufferView];
-    auto &buffer = model.buffers[bufferView.buffer];
-    void *positions = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
+    const tinygltf::Accessor &positionAccessor = model.accessors[it->second];
+    auto &positionBufferView = model.bufferViews[positionAccessor.bufferView];
+    auto &positionBuffer = model.buffers[positionBufferView.buffer];
+    void *positions = &positionBuffer.data[positionBufferView.byteOffset + positionAccessor.byteOffset];
+
+    if (positionBufferView.byteStride != 0) {
+        std::cout << "positions are not tightly packed which is not supported yet" << std::endl;
+        return std::nullopt;
+    }
+//    std::cout << positionBufferView.byteStride << std::endl;
+//    std::cout << positionAccessor.ByteStride(positionBufferView) << std::endl;
+
 
     if (primitive.indices < 0) {
         std::cout << "Primitive does not contain indices." << std::endl;
@@ -62,9 +70,17 @@ std::optional<Model> loadModel(const std::string &filename) {
     auto &indexBuffer = model.buffers[indexBufferView.buffer];
     void *indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
 
+    if (indexBufferView.byteStride != 0) {
+        std::cout << "indices are not tightly packed which is not supported yet" << std::endl;
+        return std::nullopt;
+    }
+//    std::cout << indexBufferView.byteStride << std::endl;
+//    std::cout << indexAccessor.ByteStride(indexBufferView) << std::endl;
+
+
     Model returnModel;
     returnModel.model = model;
-    returnModel.numPositions = accessor.count;
+    returnModel.numPositions = positionAccessor.count;
     returnModel.positions = positions;
     returnModel.numIndices = indexAccessor.count;
     returnModel.indices = indices;

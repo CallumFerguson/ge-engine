@@ -320,8 +320,6 @@ void mainWebGPU() {
         throw std::runtime_error("no model");
     }
 
-    std::cout << model->numIndices << std::endl;
-
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
     pipelineDescriptor.layout = pipelineLayout;
