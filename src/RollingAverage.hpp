@@ -8,7 +8,7 @@ public:
 
     void addSample(double sample);
 
-    double average();
+    double average() const;
 
 private:
     int numSamples;

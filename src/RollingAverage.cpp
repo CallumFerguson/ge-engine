@@ -1,10 +1,9 @@
 #include "RollingAverage.hpp"
 
-RollingAverage::RollingAverage(int numSamples) {
+RollingAverage::RollingAverage(int numSamples) : numSamples(numSamples) {
     if (numSamples < 1) {
         throw std::runtime_error("numSamples should be larger than 0");
     }
-    this->numSamples = numSamples;
 }
 
 void RollingAverage::addSample(double sample) {
@@ -18,6 +17,6 @@ void RollingAverage::addSample(double sample) {
     _average = total / samples.size();
 }
 
-double RollingAverage::average() {
+double RollingAverage::average() const {
     return _average;
 }
