@@ -15,6 +15,8 @@
 #include <GLFW/glfw3.h>
 //#include <imgui_memory_editor.h>
 
+#include "RollingAverage.hpp"
+
 #ifdef __EMSCRIPTEN__
 
 #include <emscripten.h>
@@ -55,6 +57,7 @@ std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>> start
 bool once = true;
 
 double deltaTime;
+RollingAverage fpsRollingAverage;
 
 int renderSurfaceWidth = 512;
 int renderSurfaceHeight = 512;
@@ -101,7 +104,7 @@ void drawImGui() {
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
     ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-    ImGui::Text("fps: %d", static_cast<int>(std::round(1.0 / deltaTime)));
+    ImGui::Text("fps: %d", static_cast<int>(std::round(fpsRollingAverage.average())));
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
@@ -167,6 +170,8 @@ void mainLoop() {
     } else {
         deltaTime = 1.0 / 60;
     }
+
+    fpsRollingAverage.addSample(1 / deltaTime);
 
     glfwPollEvents();
 

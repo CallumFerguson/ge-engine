@@ -46,6 +46,7 @@ set(
         src/main.cpp
         src/gltfloader.cpp
         src/webGPU.cpp
+        src/RollingAverage.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp
