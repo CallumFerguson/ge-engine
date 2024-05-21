@@ -5,6 +5,8 @@
 #include <sstream>
 #include <algorithm>
 #include <random>
+#include <optional>
+#include <cmath>
 
 #include <webgpu/webgpu_cpp.h>
 #include <imgui.h>
@@ -48,7 +50,11 @@ GLFWwindow* window;
 wgpu::SwapChain swapChain;
 #endif
 
+std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>> startTime = std::nullopt;
+
 bool once = true;
+
+double deltaTime;
 
 int renderSurfaceWidth = 512;
 int renderSurfaceHeight = 512;
@@ -92,9 +98,10 @@ void drawImGui() {
 //        ImGui::ShowDemoWindow(&showDemoWindow);
 //    }
 
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
     ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-    ImGui::Text("FPS: ");
+    ImGui::Text("fps: %d", static_cast<int>(std::round(1.0 / deltaTime)));
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
@@ -146,6 +153,21 @@ void draw() {
 }
 
 void mainLoop() {
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    static std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>> lastTime = std::nullopt;
+    if(!startTime) {
+        startTime = currentTime;
+    }
+//    std::chrono::duration<double> timeSinceStartDuration = currentTime - startTime.value();
+//    double timeSinceStart = timeSinceStartDuration.count();
+
+    if (lastTime.has_value()) {
+        std::chrono::duration<double> deltaTimeDuration = currentTime - lastTime.value();
+        deltaTime = deltaTimeDuration.count();
+    } else {
+        deltaTime = 1.0 / 60;
+    }
+
     glfwPollEvents();
 
     // React to changes in screen size
@@ -173,6 +195,8 @@ void mainLoop() {
     surface.Present();
     instance.ProcessEvents();
 #endif
+
+    lastTime = currentTime;
 }
 
 #ifndef __EMSCRIPTEN__
