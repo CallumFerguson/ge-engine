@@ -473,8 +473,6 @@ void getDevice() {
 }
 
 void webGPUTest() {
-    std::cout << "webgpu test start" << std::endl;
-
     instance = wgpu::CreateInstance();
     getDevice();
 }
