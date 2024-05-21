@@ -1,5 +1,7 @@
 #include "RollingAverage.hpp"
 
+#include <stdexcept>
+
 RollingAverage::RollingAverage(int numSamples) : numSamples(numSamples) {
     if (numSamples < 1) {
         throw std::runtime_error("numSamples should be larger than 0");

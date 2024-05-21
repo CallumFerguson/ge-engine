@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 #include <tiny_gltf.h>
 
 struct Model {
