@@ -77,7 +77,6 @@ std::optional<Model> loadModel(const std::string &filename) {
 //    std::cout << indexBufferView.byteStride << std::endl;
 //    std::cout << indexAccessor.ByteStride(indexBufferView) << std::endl;
 
-
     Model returnModel;
     returnModel.model = model;
     returnModel.numPositions = positionAccessor.count;

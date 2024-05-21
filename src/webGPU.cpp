@@ -42,11 +42,15 @@ wgpu::RenderPipeline pipeline;
 wgpu::BindGroup bindGroup0;
 wgpu::Buffer uniformBuffer;
 float uniformBufferData[4] = { 0.25, 0, 0, 1};
+wgpu::Buffer positionBuffer;
+wgpu::Buffer indexBuffer;
 
 wgpu::RenderPassColorAttachment colorAttachment;
 wgpu::RenderPassDescriptor renderPassDescriptor;
 
 wgpu::TextureFormat presentationFormat;
+
+size_t numIndices;
 
 GLFWwindow* window;
 
@@ -112,7 +116,7 @@ void drawImGui() {
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowFocus();
     ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-    if (ImGui::Button("Randomize triangle color")) {
+    if (ImGui::Button("Randomize color")) {
         randomizeColor(uniformBufferData);
         device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, 16);
     }
@@ -147,7 +151,9 @@ void draw() {
 
     renderPassEncoder.SetPipeline(pipeline);
     renderPassEncoder.SetBindGroup(0, bindGroup0);
-    renderPassEncoder.Draw(3);
+    renderPassEncoder.SetVertexBuffer(0, positionBuffer);
+    renderPassEncoder.SetIndexBuffer(indexBuffer, wgpu::IndexFormat::Uint16);
+    renderPassEncoder.DrawIndexed(numIndices);
 
     ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), renderPassEncoder.Get());
 
@@ -279,7 +285,7 @@ void mainWebGPU() {
     init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
     ImGui_ImplWGPU_Init(&init_info);
 
-    std::ifstream shaderFile("shaders/uniform_color_triangle.wgsl", std::ios::binary);
+    std::ifstream shaderFile("shaders/unlit_color.wgsl", std::ios::binary);
     if (!shaderFile) {
         throw std::runtime_error("Could not open shader file");
     }
@@ -320,6 +326,20 @@ void mainWebGPU() {
         throw std::runtime_error("no model");
     }
 
+    numIndices = model->numIndices;
+
+    wgpu::BufferDescriptor positionBufferDescriptor = {};
+    positionBufferDescriptor.size = model->numPositions * 4 * 3;
+    positionBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex;
+    positionBuffer = device.CreateBuffer(&positionBufferDescriptor);
+    device.GetQueue().WriteBuffer(positionBuffer, 0, model->positions, positionBufferDescriptor.size);
+
+    wgpu::BufferDescriptor indexBufferDescriptor = {};
+    indexBufferDescriptor.size = model->numIndices * 2;
+    indexBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Index;
+    indexBuffer = device.CreateBuffer(&indexBufferDescriptor);
+    device.GetQueue().WriteBuffer(indexBuffer, 0, model->indices, indexBufferDescriptor.size);
+
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
     pipelineDescriptor.layout = pipelineLayout;
@@ -330,16 +350,27 @@ void mainWebGPU() {
     fragment.targetCount = 1;
     fragment.targets = &colorTargetState;
 
+    wgpu::VertexAttribute vertexBuffer0Attribute0 = {};
+    vertexBuffer0Attribute0.shaderLocation = 0;
+    vertexBuffer0Attribute0.offset = 0;
+    vertexBuffer0Attribute0.format = wgpu::VertexFormat::Float32x3;
+
+    wgpu::VertexBufferLayout positionBufferLayout = {};
+    positionBufferLayout.arrayStride = 3 * 4;
+    positionBufferLayout.attributeCount = 1;
+    positionBufferLayout.attributes = &vertexBuffer0Attribute0;
+
     wgpu::VertexState vertex = {};
     vertex.module = shaderModule;
     vertex.entryPoint = "vert";
-    vertex.bufferCount = 0;
+    vertex.bufferCount = 1;
+    vertex.buffers = &positionBufferLayout;
 
     pipelineDescriptor.vertex = vertex;
     pipelineDescriptor.fragment = &fragment;
 
     pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
-    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
+    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::None;
 
     pipelineDescriptor.multisample.count = 1;
 
@@ -349,7 +380,7 @@ void mainWebGPU() {
     uniformBufferDescriptor.size = 16;
     uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
     uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
-    device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, 16);
+    device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, uniformBufferDescriptor.size);
 
     wgpu::BindGroupEntry bindGroupDescriptor0Entry0 = {};
     bindGroupDescriptor0Entry0.binding = 0;
