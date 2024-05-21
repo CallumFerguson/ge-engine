@@ -16,6 +16,7 @@
 //#include <imgui_memory_editor.h>
 
 #include "RollingAverage.hpp"
+#include "gltfloader.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -312,6 +313,13 @@ void mainWebGPU() {
     pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
     pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
     auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
+
+    auto model = loadModel("assets/sphere.glb");
+    if(!model.has_value()) {
+        throw std::runtime_error("no model");
+    }
+
+    std::cout << model->numIndices << std::endl;
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 

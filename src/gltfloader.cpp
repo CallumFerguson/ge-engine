@@ -1,6 +1,7 @@
 #include "gltfloader.hpp"
 
 #include <iostream>
+#include <optional>
 
 // Define these only in *one* .cc file.
 #define TINYGLTF_IMPLEMENTATION
@@ -9,62 +10,77 @@
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #include <tiny_gltf.h>
 
-void loadModelAndPrintVertexCount(const std::string &filename) {
+tinygltf::TinyGLTF loader;
+
+std::optional<Model> loadModel(const std::string &filename) {
     tinygltf::Model model;
-    tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
 
-    // Load the GLTF model from file
-    std::cout << "loading" << std::endl;
     bool result = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
-    std::cout << "finished loading" << std::endl;
     if (!warn.empty()) {
-        std::cout << "Warning: " << warn << std::endl;
+        std::cout << "loadModel warning: " << warn << std::endl;
     }
     if (!err.empty()) {
-        std::cerr << "Error: " << err << std::endl;
+        std::cerr << "loadModel error: " << err << std::endl;
     }
     if (!result) {
-        std::cerr << "Failed to load GLTF model." << std::endl;
-        return;
+        std::cerr << "loadModel ailed to load GLTF model." << std::endl;
+        return std::nullopt;
     }
 
-    // Check if the model contains any meshes
     if (model.meshes.empty()) {
         std::cout << "Model does not contain any meshes." << std::endl;
-        return;
+        return std::nullopt;
     }
 
-    // Access the first mesh
-    const tinygltf::Mesh &mesh = model.meshes[0];
+    auto &mesh = model.meshes[0];
     if (mesh.primitives.empty()) {
         std::cout << "First mesh does not contain any primitives." << std::endl;
-        return;
+        return std::nullopt;
     }
 
-    // Access the first primitive of the first mesh
     const tinygltf::Primitive &primitive = mesh.primitives[0];
     auto it = primitive.attributes.find("POSITION");
     if (it == primitive.attributes.end()) {
         std::cout << "Primitive does not contain POSITION attribute." << std::endl;
-        return;
+        return std::nullopt;
     }
 
-    // Get the number of vertices from the POSITION accessor
     const tinygltf::Accessor &accessor = model.accessors[it->second];
-    std::cout << "Number of vertices in the first mesh: " << accessor.count << std::endl;
+    auto &bufferView = model.bufferViews[accessor.bufferView];
+    auto &buffer = model.buffers[bufferView.buffer];
+    void *positions = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
+
+    if (primitive.indices < 0) {
+        std::cout << "Primitive does not contain indices." << std::endl;
+        return std::nullopt;
+    }
+
+    const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
+    auto &indexBufferView = model.bufferViews[indexAccessor.bufferView];
+    auto &indexBuffer = model.buffers[indexBufferView.buffer];
+    void *indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
+
+    Model returnModel;
+    returnModel.model = model;
+    returnModel.numPositions = accessor.count;
+    returnModel.positions = positions;
+    returnModel.numIndices = indexAccessor.count;
+    returnModel.indices = indices;
+    returnModel.indicesComponentType = indexAccessor.componentType;
+    return returnModel;
 
     // Access the first image used as a texture
-    if (!model.textures.empty()) {
-        const tinygltf::Texture &texture = model.textures.front();
-        if (texture.source >= 0) {
-            const tinygltf::Image &image = model.images[texture.source];
-            std::cout << "Width: " << image.width << ", Height: " << image.height << std::endl;
-        } else {
-            std::cout << "Texture source is invalid." << std::endl;
-        }
-    } else {
-        std::cout << "No textures found in the model." << std::endl;
-    }
+//    if (!model.textures.empty()) {
+//        const tinygltf::Texture &texture = model.textures.front();
+//        if (texture.source >= 0) {
+//            const tinygltf::Image &image = model.images[texture.source];
+//            std::cout << "Width: " << image.width << ", Height: " << image.height << std::endl;
+//        } else {
+//            std::cout << "Texture source is invalid." << std::endl;
+//        }
+//    } else {
+//        std::cout << "No textures found in the model." << std::endl;
+//    }
 }
