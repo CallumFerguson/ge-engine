@@ -19,6 +19,7 @@
 
 #include "RollingAverage.hpp"
 #include "gltfloader.hpp"
+#include "utility.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -329,17 +330,8 @@ void mainWebGPU() {
 
     numIndices = model->numIndices;
 
-    wgpu::BufferDescriptor positionBufferDescriptor = {};
-    positionBufferDescriptor.size = model->numPositions * 4 * 3;
-    positionBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Vertex;
-    positionBuffer = device.CreateBuffer(&positionBufferDescriptor);
-    device.GetQueue().WriteBuffer(positionBuffer, 0, model->positions, positionBufferDescriptor.size);
-
-    wgpu::BufferDescriptor indexBufferDescriptor = {};
-    indexBufferDescriptor.size = model->numIndices * 2;
-    indexBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Index;
-    indexBuffer = device.CreateBuffer(&indexBufferDescriptor);
-    device.GetQueue().WriteBuffer(indexBuffer, 0, model->indices, indexBufferDescriptor.size);
+    positionBuffer = createBuffer(device, model->positions, model->numPositions * 4 * 3, wgpu::BufferUsage::Vertex);
+    indexBuffer = createBuffer(device, model->indices, model->numIndices * 2, wgpu::BufferUsage::Index);
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
