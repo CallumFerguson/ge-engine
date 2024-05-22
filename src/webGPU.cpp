@@ -14,6 +14,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
 #include <GLFW/glfw3.h>
+#include <entt/entt.hpp>
 //#include <imgui_memory_editor.h>
 
 #include "RollingAverage.hpp"

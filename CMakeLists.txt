@@ -79,6 +79,7 @@ target_include_directories(
         #        Dependencies/GLFW/include
         Dependencies/tinygltf/include
         Dependencies/imgui/include
+        Dependencies/entt/include
 )
 
 function(copy_file_relative NEW_TARGET_NAME PATH TARGET)
