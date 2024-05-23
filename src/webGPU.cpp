@@ -15,7 +15,7 @@
 #include <imgui_impl_wgpu.h>
 #include <GLFW/glfw3.h>
 #include <entt/entt.hpp>
-//#include <imgui_memory_editor.h>
+#include <imgui_memory_editor.h>
 
 #include "RollingAverage.hpp"
 #include "gltfloader.hpp"
@@ -116,7 +116,7 @@ void drawImGui() {
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowFocus();
+//    ImGui::SetNextWindowFocus();
     ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     if (ImGui::Button("Randomize color")) {
         randomizeColor(uniformBufferData);
@@ -125,7 +125,7 @@ void drawImGui() {
     ImGui::End();
 
 //    static MemoryEditor mem_edit;
-//    mem_edit.DrawWindow("Memory Editor", uniformBufferData, 16);
+//    mem_edit.DrawWindow("Memory Editor", testData, 100);
 
     ImGui::Render();
 }

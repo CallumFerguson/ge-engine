@@ -78,7 +78,7 @@ std::optional<Model> loadModel(const std::string &filename) {
 //    std::cout << indexAccessor.ByteStride(indexBufferView) << std::endl;
 
     Model returnModel;
-    returnModel.model = model;
+    returnModel.model = std::move(model);
     returnModel.numPositions = positionAccessor.count;
     returnModel.positions = positions;
     returnModel.numIndices = indexAccessor.count;
