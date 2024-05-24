@@ -44,10 +44,10 @@ endif ()
 set(
         SOURCE_FILES
         src/main.cpp
-        src/gltfloader.cpp
-        src/webGPU.cpp
-        src/RollingAverage.cpp
-        src/utility.cpp
+        src/assets/gltfloader.cpp
+        src/rendering/backends/webgpu/webGPU.cpp
+        src/utility/RollingAverage.cpp
+        src/utility/utility.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp
@@ -60,12 +60,12 @@ set(
 if (EMSCRIPTEN)
     list(
             APPEND SOURCE_FILES
-            src/webGPUEmscripten.cpp
+            src/utility/emscriptenUtility.cpp
     )
 else ()
     list(
             APPEND SOURCE_FILES
-            src/webGPUDawn.cpp
+            #            src/webGPUDawn.cpp
     )
 endif ()
 

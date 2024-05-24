@@ -8,11 +8,11 @@ public:
 
     void addSample(double sample);
 
-    double average() const;
+    [[nodiscard]] double average() const;
 
 private:
-    int numSamples;
-    std::queue<double> samples;
-    double total = 0;
-    double _average = 0;
+    int m_numSamples;
+    std::queue<double> m_samples;
+    double m_total = 0;
+    double m_average = 0;
 };

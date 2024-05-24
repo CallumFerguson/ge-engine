@@ -10,29 +10,27 @@
 #include <stdexcept>
 
 #include <webgpu/webgpu_cpp.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_wgpu.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_wgpu.h"
 #include <GLFW/glfw3.h>
-#include <entt/entt.hpp>
-#include <imgui_memory_editor.h>
+#include "entt/entt.hpp"
+#include "imgui_memory_editor.h"
 
-#include "RollingAverage.hpp"
-#include "gltfloader.hpp"
-#include "utility.hpp"
+#include "../../../utility/RollingAverage.hpp"
+#include "../../../assets/gltfloader.hpp"
+#include "../../../utility/utility.hpp"
 
 #ifdef __EMSCRIPTEN__
 
 #include <emscripten.h>
 #include <emscripten/html5_webgpu.h>
 
-#include "webGPUEmscripten.hpp"
+#include "../../../utility/emscriptenUtility.hpp"
 
 #else
 
 #include <webgpu/webgpu_glfw.h>
-
-#include "webGPUDawn.hpp"
 
 #endif
 

@@ -1,4 +1,4 @@
-#include "webGPU.hpp"
+#include "rendering/backends/webgpu/webGPU.hpp"
 
 int main() {
     webGPUTest();
