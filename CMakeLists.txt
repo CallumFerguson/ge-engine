@@ -48,6 +48,9 @@ set(
         src/rendering/backends/webgpu/webGPU.cpp
         src/utility/RollingAverage.cpp
         src/utility/utility.cpp
+        src/engine/Entity.cpp
+        src/engine/App.cpp
+        src/engine/Scene.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp
