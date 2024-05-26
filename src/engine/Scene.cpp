@@ -13,8 +13,6 @@ Entity Scene::createEntity() {
     return createEntity("New Entity");
 }
 
-struct Test;
-
 void Scene::onUpdate() {
     m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
         if (!nsc.instance) {
