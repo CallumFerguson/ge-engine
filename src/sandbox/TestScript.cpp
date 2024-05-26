@@ -1,8 +1,10 @@
 #include "TestScript.hpp"
 
-void TestScript::onFirstUpdate() {
+#include "../engine/Components.hpp"
+
+void TestScript::onStart() {
     auto &transform = getComponent<TransformComponent>();
-    std::cout << "first update: " << transform.position[0] << std::endl;
+    std::cout << "start: " << transform.position[0] << std::endl;
 }
 
 void TestScript::onUpdate() {

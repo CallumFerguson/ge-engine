@@ -2,8 +2,10 @@
 
 #include "../engine/ScriptableEntity.hpp"
 
-struct TestScript : public ScriptableEntity {
+struct TestRenderer : public ScriptableEntity {
     void onStart();
 
     void onUpdate();
+
+    void onRender();
 };

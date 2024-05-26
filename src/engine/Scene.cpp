@@ -18,9 +18,15 @@ void Scene::onUpdate() {
         if (!nsc.instance) {
             nsc.instantiate();
             nsc.instance->m_entity = Entity(entity, this);
-            nsc.onFirstUpdate(nsc.instance);
+            nsc.onStart(nsc.instance);
         }
+    });
 
+    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
         nsc.onUpdate(nsc.instance);
+    });
+
+    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+        nsc.onRender(nsc.instance);
     });
 }

@@ -55,6 +55,7 @@ set(
         src/engine/ScriptableEntity.cpp
         src/sandbox/SandboxApp.cpp
         src/sandbox/TestScript.cpp
+        src/sandbox/TestRenderer.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp
