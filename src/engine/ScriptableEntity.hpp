@@ -25,8 +25,11 @@ public:
         m_entity.removeComponent<T>();
     }
 
+    Entity &getEntity();
+
 private:
     Entity m_entity;
 
     friend class Scene;
 };
+

@@ -30,6 +30,8 @@ public:
         m_scene->m_registry.remove<T>(m_enttEntity);
     }
 
+    Scene *getScene();
+
 private:
     entt::entity m_enttEntity = entt::null;
     Scene *m_scene = nullptr;

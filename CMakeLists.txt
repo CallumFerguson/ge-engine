@@ -52,6 +52,7 @@ set(
         src/engine/App.cpp
         src/engine/Scene.cpp
         src/engine/Window.cpp
+        src/engine/ScriptableEntity.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp
