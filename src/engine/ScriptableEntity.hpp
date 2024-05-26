@@ -32,4 +32,3 @@ private:
 
     friend class Scene;
 };
-

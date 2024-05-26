@@ -53,6 +53,8 @@ set(
         src/engine/Scene.cpp
         src/engine/Window.cpp
         src/engine/ScriptableEntity.cpp
+        src/sandbox/SandboxApp.cpp
+        src/sandbox/TestScript.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp
