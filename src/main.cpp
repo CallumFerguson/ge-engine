@@ -9,13 +9,16 @@
 struct Test : public ScriptableEntity {
     int x = 5;
 
-    void onUpdate() {
-        getComponent<TransformComponent>();
-        std::cout << "update x: " << x << std::endl;
+    void onFirstUpdate() {
+        auto &transform = getComponent<TransformComponent>();
+        std::cout << "first update x: " << x << ", " << transform.position[0] << std::endl;
     }
 
-    void onFirstUpdate() {
-        std::cout << "first update x: " << x << std::endl;
+    void onUpdate() {
+        auto &transform = getComponent<TransformComponent>();
+        transform.position[0] += 1;
+        std::cout << "update x: " << x << ", " << transform.position[0] << ", name: "
+                  << getComponent<NameComponent>().name << std::endl;
     }
 };
 
@@ -27,8 +30,8 @@ int main() {
     Entity entity = scene.createEntity();
     entity.addComponent<NativeScriptComponent>().bind<Test>();
 
-    NativeScriptComponent nsc;
-    nsc.bind<Test>();
+    Entity entity2 = scene.createEntity("my entity");
+    entity2.addComponent<NativeScriptComponent>().bind<Test>();
 
     app.run();
 }

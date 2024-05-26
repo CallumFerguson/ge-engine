@@ -7,6 +7,10 @@ struct TransformComponent {
     glm::vec3 position;
 };
 
+struct NameComponent {
+    std::string name;
+};
+
 // Helper to detect if a class has a specific member function
 #define HAS_MEMBER_FUNCTION(func, name)                                    \
 template<typename T, typename = std::void_t<>>                             \
@@ -19,17 +23,30 @@ HAS_MEMBER_FUNCTION(onUpdate, hasOnUpdate)
 HAS_MEMBER_FUNCTION(onFirstUpdate, hasOnFirstUpdate)
 
 struct NativeScriptComponent {
-    int x = 5;
+    ScriptableEntity *instance = nullptr;
+
+    std::function<void()> instantiate;
+
+    std::function<void(ScriptableEntity *passedInstance)> onFirstUpdate;
+    std::function<void(ScriptableEntity *passedInstance)> onUpdate;
+
+    ~NativeScriptComponent() {
+        delete instance;
+    }
 
     template<typename T>
     void bind() {
-        T *t = new T();
-        if constexpr (hasOnFirstUpdate<T>::value) {
-            t->onFirstUpdate();
-        }
-        if constexpr (hasOnUpdate<T>::value) {
-            t->onUpdate();
-        }
-        delete t;
+        instantiate = [&]() { instance = new T(); };
+
+        onFirstUpdate = [](ScriptableEntity *passedInstance) {
+            if constexpr (hasOnFirstUpdate<T>::value) {
+                ((T *) passedInstance)->onFirstUpdate();
+            }
+        };
+        onUpdate = [](ScriptableEntity *passedInstance) {
+            if constexpr (hasOnUpdate<T>::value) {
+                ((T *) passedInstance)->onUpdate();
+            }
+        };
     }
 };

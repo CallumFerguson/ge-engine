@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.hpp"
+#include "Window.hpp"
 
 class App {
 public:
@@ -8,6 +9,9 @@ public:
 
     void run();
 
+    void onUpdate();
+
 private:
     Scene m_scene;
+    Window m_window;
 };

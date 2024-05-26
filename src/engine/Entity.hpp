@@ -16,8 +16,18 @@ public:
     }
 
     template<typename T>
+    bool hasComponent() {
+        return m_scene->m_registry.all_of<T>(m_enttEntity);
+    }
+
+    template<typename T>
     T &getComponent() {
         return m_scene->m_registry.get<T>(m_enttEntity);
+    }
+
+    template<typename T>
+    void removeComponent() {
+        m_scene->m_registry.remove<T>(m_enttEntity);
     }
 
 private:
