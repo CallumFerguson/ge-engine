@@ -56,6 +56,7 @@ set(
         src/sandbox/SandboxApp.cpp
         src/sandbox/TestScript.cpp
         src/sandbox/TestRenderer.cpp
+        src/rendering/backends/webgpu/WebGPURenderer.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp

@@ -1,4 +1,5 @@
 #include "App.hpp"
+#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
 
 Scene &App::getActiveScene() {
     return m_scene;
@@ -12,5 +13,7 @@ void App::run() {
     while (!m_window.shouldClose()) {
         m_window.onUpdate();
         onUpdate();
+
+//        WebGPURenderer::doStuff();
     }
 }
