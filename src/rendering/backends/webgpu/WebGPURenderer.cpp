@@ -2,38 +2,38 @@
 
 #include <iostream>
 
-static std::function<void(bool success)> m_readyCallback;
+static std::function<void(bool success)> s_readyCallback;
 
-static wgpu::Instance m_instance;
-static wgpu::Adapter m_adapter;
-static wgpu::Device m_device;
+static wgpu::Instance s_instance;
+static wgpu::Adapter s_adapter;
+static wgpu::Device s_device;
 
 void WebGPURenderer::init(const std::function<void(bool success)> &readyCallback) {
-    m_readyCallback = readyCallback;
+    s_readyCallback = readyCallback;
 
-    m_instance = wgpu::CreateInstance();
+    s_instance = wgpu::CreateInstance();
     getAdapter();
 }
 
 void WebGPURenderer::getAdapter() {
     wgpu::RequestAdapterOptions options = {};
     options.powerPreference = wgpu::PowerPreference::HighPerformance;
-    m_instance.RequestAdapter(&options, getAdapterCallback, nullptr);
+    s_instance.RequestAdapter(&options, getAdapterCallback, nullptr);
 }
 
 void WebGPURenderer::getAdapterCallback(
         WGPURequestAdapterStatus status, WGPUAdapter adapterHandle, const char *message, void *userdata) {
     if (status != WGPURequestAdapterStatus_Success) {
         std::cout << "getAdapterCallback status not success" << std::endl;
-        m_readyCallback(false);
+        s_readyCallback(false);
         return;
     }
-    m_adapter = wgpu::Adapter::Acquire(adapterHandle);
+    s_adapter = wgpu::Adapter::Acquire(adapterHandle);
 
-    size_t numFeatures = m_adapter.EnumerateFeatures(nullptr);
+    size_t numFeatures = s_adapter.EnumerateFeatures(nullptr);
     std::vector<wgpu::FeatureName> features(numFeatures);
     if (numFeatures > 0) {
-        m_adapter.EnumerateFeatures(features.data());
+        s_adapter.EnumerateFeatures(features.data());
     }
 
     std::vector<wgpu::FeatureName> requiredFeatures;
@@ -57,15 +57,15 @@ void WebGPURenderer::getAdapterCallback(
     deviceDescriptor.deviceLostCallbackInfo = deviceLostCallbackInfo;
 #endif
 
-    m_adapter.RequestDevice(&deviceDescriptor, getDeviceCallback, nullptr);
+    s_adapter.RequestDevice(&deviceDescriptor, getDeviceCallback, nullptr);
 }
 
 void WebGPURenderer::getDeviceCallback(
         WGPURequestDeviceStatus status, WGPUDevice cDevice, const char *message, void *userdata) {
-    m_device = wgpu::Device::Acquire(cDevice);
-    m_device.SetUncapturedErrorCallback(errorCallback, nullptr);
+    s_device = wgpu::Device::Acquire(cDevice);
+    s_device.SetUncapturedErrorCallback(errorCallback, nullptr);
 
-    m_readyCallback(true);
+    s_readyCallback(true);
 }
 
 #ifndef __EMSCRIPTEN__
@@ -102,5 +102,5 @@ void WebGPURenderer::deviceLostCallback(
 
 void WebGPURenderer::errorCallback(WGPUErrorType type, const char *message, void *userdata) {
     std::cout << "Error: " << type << " - message: " << message << std::endl;
-    m_readyCallback(false);
+    s_readyCallback(false);
 }

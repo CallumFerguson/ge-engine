@@ -38,3 +38,7 @@ void Window::onUpdate() {
 //        ImGui_ImplWGPU_CreateDeviceObjects();
     }
 }
+
+double Window::getWindowTime() {
+    return glfwGetTime();
+}

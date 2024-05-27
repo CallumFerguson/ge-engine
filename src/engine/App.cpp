@@ -1,5 +1,6 @@
 #include "App.hpp"
 #include "../rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "Time.hpp"
 
 Scene &App::getActiveScene() {
     return m_scene;
@@ -11,7 +12,7 @@ void App::onUpdate() {
 
 void App::run() {
     m_window.init();
-    
+
     WebGPURenderer::init([&](bool success) {
         try {
             if (success) {
@@ -30,9 +31,8 @@ void App::run() {
 
 void App::runMainLoop() {
     while (!m_window.shouldClose()) {
+        Time::onUpdate();
         m_window.onUpdate();
         onUpdate();
-
-//        WebGPURenderer::doStuff();
     }
 }

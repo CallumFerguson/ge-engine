@@ -14,4 +14,8 @@ private:
     GLFWwindow *m_glfwWindow = nullptr;
     int m_renderSurfaceWidth = 512;
     int m_renderSurfaceHeight = 512;
+
+    static double getWindowTime();
+
+    friend class Time;
 };
