@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Window::Window() {
+void Window::init() {
     if (!glfwInit()) {
         std::cout << "could not glfwInit" << std::endl;
         return;

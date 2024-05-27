@@ -4,7 +4,7 @@
 
 class Window {
 public:
-    Window();
+    void init();
 
     bool shouldClose();
 
