@@ -14,10 +14,6 @@ Scene &App::getActiveScene() {
     return m_scene;
 }
 
-void App::onUpdate() {
-    getActiveScene().onUpdate();
-}
-
 static std::function<void()> mainLoop;
 
 #ifdef __EMSCRIPTEN__
@@ -75,7 +71,7 @@ void App::run() {
 
         WebGPURenderer::startFrame();
 
-        onUpdate();
+        getActiveScene().onUpdate();
 
         WebGPURenderer::endFrame();
 
