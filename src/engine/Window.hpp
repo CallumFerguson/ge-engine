@@ -1,10 +1,11 @@
 #pragma once
 
+#include <functional>
 #include <GLFW/glfw3.h>
 
 class Window {
 public:
-    void init();
+    void init(const std::function<void()> &rerenderRequiredCallback);
 
     bool shouldClose();
 

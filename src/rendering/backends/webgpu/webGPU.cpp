@@ -2,13 +2,11 @@
 
 #include <iostream>
 #include <fstream>
-#include <algorithm>
 #include <random>
 #include <optional>
 #include <cmath>
 #include <chrono>
 #include <stdexcept>
-
 #include <webgpu/webgpu_cpp.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -164,21 +162,21 @@ void draw() {
 }
 
 void mainLoop() {
-    glfwPollEvents();
-
-    // React to changes in screen size
-    int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
-    glfwGetFramebufferSize(window, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);
-    if (currentRenderSurfaceWidth == 0 || currentRenderSurfaceHeight == 0) {
-        return;
-    }
-    if (currentRenderSurfaceWidth != renderSurfaceWidth || currentRenderSurfaceHeight != renderSurfaceHeight) {
-        ImGui_ImplWGPU_InvalidateDeviceObjects();
-        renderSurfaceWidth = currentRenderSurfaceWidth;
-        renderSurfaceHeight = currentRenderSurfaceHeight;
-        configureSurface();
-        ImGui_ImplWGPU_CreateDeviceObjects();
-    }
+//    glfwPollEvents();
+//
+//    // React to changes in screen size
+//    int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
+//    glfwGetFramebufferSize(window, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);
+//    if (currentRenderSurfaceWidth == 0 || currentRenderSurfaceHeight == 0) {
+//        return;
+//    }
+//    if (currentRenderSurfaceWidth != renderSurfaceWidth || currentRenderSurfaceHeight != renderSurfaceHeight) {
+//        ImGui_ImplWGPU_InvalidateDeviceObjects();
+//        renderSurfaceWidth = currentRenderSurfaceWidth;
+//        renderSurfaceHeight = currentRenderSurfaceHeight;
+//        configureSurface();
+//        ImGui_ImplWGPU_CreateDeviceObjects();
+//    }
 
     drawImGui();
     draw();
@@ -204,23 +202,23 @@ void framebufferSizeCallback(GLFWwindow*, int width, int height) {
 #endif
 
 void mainWebGPU() {
-    if (!glfwInit()) {
-        std::cout << "could not glfwInit" << std::endl;
-        return;
-    }
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    window = glfwCreateWindow(renderSurfaceWidth, renderSurfaceHeight, "WebGPU window", nullptr, nullptr);
-    if (!window) {
-        std::cout << "failed to create window" << std::endl;
-        return;
-    }
-
-    // in a browser, glfwCreateWindow will ignore the passed width and height,
-    // so get the actual size which is based on the canvas size
-#ifdef __EMSCRIPTEN__
-    glfwGetWindowSize(window, &renderSurfaceWidth, &renderSurfaceHeight);
-#endif
+//    if (!glfwInit()) {
+//        std::cout << "could not glfwInit" << std::endl;
+//        return;
+//    }
+//
+//    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+//    window = glfwCreateWindow(renderSurfaceWidth, renderSurfaceHeight, "WebGPU window", nullptr, nullptr);
+//    if (!window) {
+//        std::cout << "failed to create window" << std::endl;
+//        return;
+//    }
+//
+//    // in a browser, glfwCreateWindow will ignore the passed width and height,
+//    // so get the actual size which is based on the canvas size
+//#ifdef __EMSCRIPTEN__
+//    glfwGetWindowSize(window, &renderSurfaceWidth, &renderSurfaceHeight);
+//#endif
 
 #ifdef __EMSCRIPTEN__
     wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDescriptor = {};
@@ -234,26 +232,26 @@ void mainWebGPU() {
     surface = wgpu::glfw::CreateSurfaceForWindow(instance, window);
 #endif
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-
-    // this is only needed for emscripten, but to keep things consistent, just do it for all platforms.
-    // if init file is needed later, it can be added to emscripten by preloading/file packing it
-    io.IniFilename = nullptr;
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOther(window, true);
-
-#ifdef __EMSCRIPTEN__
-    ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
-#else
-    glfwSetWindowPosCallback(window, windowPosCallback);
-    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-#endif
+//    IMGUI_CHECKVERSION();
+//    ImGui::CreateContext();
+//    ImGuiIO& io = ImGui::GetIO();
+//    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+//    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+//
+//    // this is only needed for emscripten, but to keep things consistent, just do it for all platforms.
+//    // if init file is needed later, it can be added to emscripten by preloading/file packing it
+//    io.IniFilename = nullptr;
+//
+//    ImGui::StyleColorsDark();
+//
+//    ImGui_ImplGlfw_InitForOther(window, true);
+//
+//#ifdef __EMSCRIPTEN__
+//    ImGui_ImplGlfw_InstallEmscriptenCanvasResizeCallback("#canvas");
+//#else
+//    glfwSetWindowPosCallback(window, windowPosCallback);
+//    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+//#endif
 
     presentationFormat = surface.GetPreferredFormat(adapter);
 

@@ -21,7 +21,7 @@ static std::function<void()> mainLoop;
 
 #ifdef __EMSCRIPTEN__
 
-static void mainLoopEmscripten() {
+static void mainLoopStatic() {
     try {
         mainLoop();
     } catch (const std::exception &e) {
@@ -34,10 +34,28 @@ static void mainLoopEmscripten() {
     }
 }
 
+#else
+
+// the main loop for native builds does not need to be static, but since Emscripten does require a static callback,
+// also make the native main loop static to keep code cleaner
+static bool mainLoopStatic() {
+    try {
+        mainLoop();
+        return true;
+    } catch (const std::exception &e) {
+        std::cout << "Caught exception:" << std::endl;
+        std::cerr << e.what() << std::endl;
+        return false;
+    } catch (...) {
+        std::cerr << "Caught an unknown exception" << std::endl;
+        return false;
+    }
+}
+
 #endif
 
 void App::run() {
-    m_window.init();
+    m_window.init(mainLoopStatic);
     WebGPURenderer::init();
 
     mainLoop = [&]() {
@@ -54,17 +72,10 @@ void App::run() {
     };
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(mainLoopEmscripten, 0, true);
+    emscripten_set_main_loop(mainLoopStatic, 0, true);
 #else
     while (!m_window.shouldClose()) {
-        try {
-            mainLoop();
-        } catch (const std::exception &e) {
-            std::cout << "Caught exception:" << std::endl;
-            std::cerr << e.what() << std::endl;
-            break;
-        } catch (...) {
-            std::cerr << "Caught an unknown exception" << std::endl;
+        if (!mainLoopStatic()) {
             break;
         }
     }
