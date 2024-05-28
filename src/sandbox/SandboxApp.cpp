@@ -4,6 +4,7 @@
 #include "TestScript.hpp"
 #include "TestRenderer.hpp"
 #include "TrackFramerate.hpp"
+#include "ImGuiDemoWindow.hpp"
 
 SandboxApp::SandboxApp() {
     Scene &scene = m_app.getActiveScene();
@@ -19,6 +20,9 @@ SandboxApp::SandboxApp() {
 
     Entity trackFPS = scene.createEntity();
     trackFPS.addComponent<NativeScriptComponent>().bind<TrackFramerate>();
+
+//    Entity imGuiDemoWindow = scene.createEntity();
+//    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();
 }
 
 void SandboxApp::run() {
