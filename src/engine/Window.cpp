@@ -2,9 +2,10 @@
 
 #include <iostream>
 #include <functional>
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_wgpu.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_wgpu.h>
+#include "../utility/utility.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -40,6 +41,10 @@ void Window::init(const std::function<void()> &rerenderRequiredCallback) {
         std::cout << "failed to create window" << std::endl;
         return;
     }
+
+#ifndef __EMSCRIPTEN__
+    setWindowIcon(m_glfwWindow, "assets/app-icon.png");
+#endif
 
     // in a browser, glfwCreateWindow will ignore the passed width and height,
     // so get the actual size which is based on the canvas size
