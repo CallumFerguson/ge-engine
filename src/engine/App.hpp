@@ -14,6 +14,4 @@ public:
 private:
     Scene m_scene;
     Window m_window;
-
-    void runMainLoop();
 };

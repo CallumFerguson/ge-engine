@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 #include "Entity.hpp"
 #include "Components.hpp"
+#include <iostream>
 
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);

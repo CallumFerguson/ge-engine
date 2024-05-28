@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../engine/App.hpp"
+#include <iostream>
 
 class SandboxApp {
 public:

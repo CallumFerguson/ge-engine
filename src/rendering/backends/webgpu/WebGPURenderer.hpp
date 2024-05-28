@@ -5,7 +5,11 @@
 
 class WebGPURenderer {
 public:
-    static void init(const std::function<void(bool success)> &readyCallback);
+    static void init();
+
+    static bool initFinished();
+
+    static bool initSuccessful();
 
 private:
     static void getAdapter();

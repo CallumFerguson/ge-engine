@@ -1,6 +1,7 @@
 #include "TestScript.hpp"
 
 #include "../engine/Components.hpp"
+#include <iostream>
 
 void TestScript::onStart() {
     auto &transform = getComponent<TransformComponent>();

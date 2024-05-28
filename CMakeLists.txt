@@ -58,6 +58,7 @@ set(
         src/sandbox/TestRenderer.cpp
         src/rendering/backends/webgpu/WebGPURenderer.cpp
         src/engine/Time.cpp
+        src/sandbox/TrackFramerate.cpp
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp

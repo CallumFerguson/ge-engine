@@ -1,4 +1,5 @@
 #include "TestRenderer.hpp"
+#include <iostream>
 
 void TestRenderer::onStart() {
     std::cout << "start" << std::endl;

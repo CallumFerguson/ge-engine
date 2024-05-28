@@ -2,17 +2,25 @@
 
 #include <iostream>
 
-static std::function<void(bool success)> s_readyCallback;
+static bool s_initFinished;
+static bool s_initializedSuccessfully;
 
 static wgpu::Instance s_instance;
 static wgpu::Adapter s_adapter;
 static wgpu::Device s_device;
 
-void WebGPURenderer::init(const std::function<void(bool success)> &readyCallback) {
-    s_readyCallback = readyCallback;
-
+void WebGPURenderer::init() {
+    s_initFinished = false;
     s_instance = wgpu::CreateInstance();
     getAdapter();
+}
+
+bool WebGPURenderer::initFinished() {
+    return s_initFinished;
+}
+
+bool WebGPURenderer::initSuccessful() {
+    return s_initializedSuccessfully;
 }
 
 void WebGPURenderer::getAdapter() {
@@ -25,7 +33,8 @@ void WebGPURenderer::getAdapterCallback(
         WGPURequestAdapterStatus status, WGPUAdapter adapterHandle, const char *message, void *userdata) {
     if (status != WGPURequestAdapterStatus_Success) {
         std::cout << "getAdapterCallback status not success" << std::endl;
-        s_readyCallback(false);
+        s_initializedSuccessfully = false;
+        s_initFinished = true;
         return;
     }
     s_adapter = wgpu::Adapter::Acquire(adapterHandle);
@@ -65,7 +74,8 @@ void WebGPURenderer::getDeviceCallback(
     s_device = wgpu::Device::Acquire(cDevice);
     s_device.SetUncapturedErrorCallback(errorCallback, nullptr);
 
-    s_readyCallback(true);
+    s_initializedSuccessfully = true;
+    s_initFinished = true;
 }
 
 #ifndef __EMSCRIPTEN__
@@ -102,5 +112,6 @@ void WebGPURenderer::deviceLostCallback(
 
 void WebGPURenderer::errorCallback(WGPUErrorType type, const char *message, void *userdata) {
     std::cout << "Error: " << type << " - message: " << message << std::endl;
-    s_readyCallback(false);
+    s_initializedSuccessfully = false;
+    s_initFinished = true;
 }

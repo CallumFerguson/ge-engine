@@ -164,23 +164,6 @@ void draw() {
 }
 
 void mainLoop() {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    static std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>> lastTime = std::nullopt;
-    if(!startTime) {
-        startTime = currentTime;
-    }
-//    std::chrono::duration<double> timeSinceStartDuration = currentTime - startTime.value();
-//    double timeSinceStart = timeSinceStartDuration.count();
-
-    if (lastTime.has_value()) {
-        std::chrono::duration<double> deltaTimeDuration = currentTime - lastTime.value();
-        deltaTime = deltaTimeDuration.count();
-    } else {
-        deltaTime = 1.0 / 60;
-    }
-
-    fpsRollingAverage.addSample(1 / deltaTime);
-
     glfwPollEvents();
 
     // React to changes in screen size
@@ -208,8 +191,6 @@ void mainLoop() {
     surface.Present();
     instance.ProcessEvents();
 #endif
-
-    lastTime = currentTime;
 }
 
 #ifndef __EMSCRIPTEN__
@@ -394,7 +375,7 @@ void mainWebGPU() {
     renderPassDescriptor.colorAttachments = &colorAttachment;
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(mainLoop, 0, false); // TODO: try simulate loop, also animation loop variables? or just use c++ stuff to get current time
+    emscripten_set_main_loop(mainLoop, 0, false); // TODO: try simulate loop
 #else
     while (!glfwWindowShouldClose(window)) {
         mainLoop();
