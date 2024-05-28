@@ -45,7 +45,6 @@ set(
         SOURCE_FILES
         src/main.cpp
         src/assets/gltfloader.cpp
-        src/rendering/backends/webgpu/webGPU.cpp
         src/utility/RollingAverage.cpp
         src/utility/utility.cpp
         src/engine/Entity.cpp

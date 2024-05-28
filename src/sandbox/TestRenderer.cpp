@@ -1,10 +1,9 @@
 #include "TestRenderer.hpp"
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <imgui.h>
-#include <GLFW/glfw3.h>
+#include <imgui_memory_editor.h>
 #include "../rendering/backends/webgpu/WebGPURenderer.hpp"
 #include "../assets/gltfloader.hpp"
 #include "../utility/utility.hpp"
@@ -126,6 +125,9 @@ void TestRenderer::onImGui() {
         WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, 16);
     }
     ImGui::End();
+
+//    static MemoryEditor mem_edit;
+//    mem_edit.DrawWindow("Memory Editor", m_uniformBufferData, 16);
 }
 
 void TestRenderer::onRender() {
