@@ -39,7 +39,7 @@ wgpu::Surface surface;
 wgpu::RenderPipeline pipeline;
 wgpu::BindGroup bindGroup0;
 wgpu::Buffer uniformBuffer;
-float uniformBufferData[4] = { 0.25, 0, 0, 1};
+float uniformBufferData[4] = {0.25, 0, 0, 1};
 wgpu::Buffer positionBuffer;
 wgpu::Buffer indexBuffer;
 
@@ -50,7 +50,7 @@ wgpu::TextureFormat presentationFormat;
 
 size_t numIndices;
 
-GLFWwindow* window;
+GLFWwindow *window;
 
 #ifdef __EMSCRIPTEN__
 wgpu::SwapChain swapChain;
@@ -108,12 +108,14 @@ void drawImGui() {
 
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoTitleBar);
     ImGui::Text("fps: %d", static_cast<int>(std::round(fpsRollingAverage.average())));
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Controls", nullptr,
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     if (ImGui::Button("Randomize color")) {
         randomizeColor(uniformBufferData);
         device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, 16);
@@ -253,115 +255,115 @@ void mainWebGPU() {
 //    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 //#endif
 
-    presentationFormat = surface.GetPreferredFormat(adapter);
+//    presentationFormat = surface.GetPreferredFormat(adapter);
+//
+//    configureSurface();
+//
+//    ImGui_ImplWGPU_InitInfo init_info;
+//    init_info.Device = device.Get();
+//    init_info.NumFramesInFlight = 3;
+//    init_info.RenderTargetFormat = (WGPUTextureFormat)presentationFormat;
+//    init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
+//    ImGui_ImplWGPU_Init(&init_info);
 
-    configureSurface();
-
-    ImGui_ImplWGPU_InitInfo init_info;
-    init_info.Device = device.Get();
-    init_info.NumFramesInFlight = 3;
-    init_info.RenderTargetFormat = (WGPUTextureFormat)presentationFormat;
-    init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
-    ImGui_ImplWGPU_Init(&init_info);
-
-    std::ifstream shaderFile("shaders/unlit_color.wgsl", std::ios::binary);
-    if (!shaderFile) {
-        throw std::runtime_error("Could not open shader file");
-    }
-    std::stringstream shaderBuffer;
-    shaderBuffer << shaderFile.rdbuf();
-    auto shaderString = shaderBuffer.str();
-
-    wgpu::ShaderModuleWGSLDescriptor wgslDescriptor{};
-    wgslDescriptor.code = shaderString.c_str();
-
-    wgpu::ShaderModuleDescriptor shaderModuleDescriptor = {};
-    shaderModuleDescriptor.nextInChain = &wgslDescriptor;
-    auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
-
-    wgpu::ColorTargetState colorTargetState = {};
-    colorTargetState.format = presentationFormat;
-
-    wgpu::BufferBindingLayout bindGroupLayoutGroup0Entry0BufferBindingLayout = {};
-    bindGroupLayoutGroup0Entry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
-
-    wgpu::BindGroupLayoutEntry bindGroupLayoutGroup0Entry0 = {};
-    bindGroupLayoutGroup0Entry0.binding = 0;
-    bindGroupLayoutGroup0Entry0.visibility = wgpu::ShaderStage::Fragment;
-    bindGroupLayoutGroup0Entry0.buffer = bindGroupLayoutGroup0Entry0BufferBindingLayout;
-
-    wgpu::BindGroupLayoutDescriptor bindGroupLayoutGroup0Descriptor = {};
-    bindGroupLayoutGroup0Descriptor.entryCount = 1;
-    bindGroupLayoutGroup0Descriptor.entries = &bindGroupLayoutGroup0Entry0;
-    auto bindGroupLayoutGroup0 = device.CreateBindGroupLayout(&bindGroupLayoutGroup0Descriptor);
-
-    wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor = {};
-    pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
-    pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
-    auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
-
-    auto model = loadModel("assets/sphere.glb");
-    if(!model.has_value()) {
-        throw std::runtime_error("no model");
-    }
-
-    numIndices = model->numIndices;
-
-    positionBuffer = createBuffer(device, model->positions, model->numPositions * 4 * 3, wgpu::BufferUsage::Vertex);
-    indexBuffer = createBuffer(device, model->indices, model->numIndices * 2, wgpu::BufferUsage::Index);
-
-    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
-
-    pipelineDescriptor.layout = pipelineLayout;
-
-    wgpu::FragmentState fragment = {};
-    fragment.module = shaderModule;
-    fragment.entryPoint = "frag";
-    fragment.targetCount = 1;
-    fragment.targets = &colorTargetState;
-
-    wgpu::VertexAttribute vertexBuffer0Attribute0 = {};
-    vertexBuffer0Attribute0.shaderLocation = 0;
-    vertexBuffer0Attribute0.offset = 0;
-    vertexBuffer0Attribute0.format = wgpu::VertexFormat::Float32x3;
-
-    wgpu::VertexBufferLayout positionBufferLayout = {};
-    positionBufferLayout.arrayStride = 3 * 4;
-    positionBufferLayout.attributeCount = 1;
-    positionBufferLayout.attributes = &vertexBuffer0Attribute0;
-
-    wgpu::VertexState vertex = {};
-    vertex.module = shaderModule;
-    vertex.entryPoint = "vert";
-    vertex.bufferCount = 1;
-    vertex.buffers = &positionBufferLayout;
-
-    pipelineDescriptor.vertex = vertex;
-    pipelineDescriptor.fragment = &fragment;
-
-    pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
-    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::None;
-
-    pipelineDescriptor.multisample.count = 1;
-
-    pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
-
-    wgpu::BufferDescriptor uniformBufferDescriptor = {};
-    uniformBufferDescriptor.size = 16;
-    uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
-    uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
-    device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, uniformBufferDescriptor.size);
-
-    wgpu::BindGroupEntry bindGroupDescriptor0Entry0 = {};
-    bindGroupDescriptor0Entry0.binding = 0;
-    bindGroupDescriptor0Entry0.buffer = uniformBuffer;
-
-    wgpu::BindGroupDescriptor bindGroupDescriptor0 = {};
-    bindGroupDescriptor0.layout = bindGroupLayoutGroup0;
-    bindGroupDescriptor0.entryCount = 1;
-    bindGroupDescriptor0.entries = &bindGroupDescriptor0Entry0;
-
-    bindGroup0 = device.CreateBindGroup(&bindGroupDescriptor0);
+//    std::ifstream shaderFile("shaders/unlit_color.wgsl", std::ios::binary);
+//    if (!shaderFile) {
+//        throw std::runtime_error("Could not open shader file");
+//    }
+//    std::stringstream shaderBuffer;
+//    shaderBuffer << shaderFile.rdbuf();
+//    auto shaderString = shaderBuffer.str();
+//
+//    wgpu::ShaderModuleWGSLDescriptor wgslDescriptor{};
+//    wgslDescriptor.code = shaderString.c_str();
+//
+//    wgpu::ShaderModuleDescriptor shaderModuleDescriptor = {};
+//    shaderModuleDescriptor.nextInChain = &wgslDescriptor;
+//    auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
+//
+//    wgpu::ColorTargetState colorTargetState = {};
+//    colorTargetState.format = presentationFormat;
+//
+//    wgpu::BufferBindingLayout bindGroupLayoutGroup0Entry0BufferBindingLayout = {};
+//    bindGroupLayoutGroup0Entry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
+//
+//    wgpu::BindGroupLayoutEntry bindGroupLayoutGroup0Entry0 = {};
+//    bindGroupLayoutGroup0Entry0.binding = 0;
+//    bindGroupLayoutGroup0Entry0.visibility = wgpu::ShaderStage::Fragment;
+//    bindGroupLayoutGroup0Entry0.buffer = bindGroupLayoutGroup0Entry0BufferBindingLayout;
+//
+//    wgpu::BindGroupLayoutDescriptor bindGroupLayoutGroup0Descriptor = {};
+//    bindGroupLayoutGroup0Descriptor.entryCount = 1;
+//    bindGroupLayoutGroup0Descriptor.entries = &bindGroupLayoutGroup0Entry0;
+//    auto bindGroupLayoutGroup0 = device.CreateBindGroupLayout(&bindGroupLayoutGroup0Descriptor);
+//
+//    wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor = {};
+//    pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
+//    pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
+//    auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
+//
+//    auto model = loadModel("assets/sphere.glb");
+//    if(!model.has_value()) {
+//        throw std::runtime_error("no model");
+//    }
+//
+//    numIndices = model->numIndices;
+//
+//    positionBuffer = createBuffer(device, model->positions, model->numPositions * 4 * 3, wgpu::BufferUsage::Vertex);
+//    indexBuffer = createBuffer(device, model->indices, model->numIndices * 2, wgpu::BufferUsage::Index);
+//
+//    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+//
+//    pipelineDescriptor.layout = pipelineLayout;
+//
+//    wgpu::FragmentState fragment = {};
+//    fragment.module = shaderModule;
+//    fragment.entryPoint = "frag";
+//    fragment.targetCount = 1;
+//    fragment.targets = &colorTargetState;
+//
+//    wgpu::VertexAttribute vertexBuffer0Attribute0 = {};
+//    vertexBuffer0Attribute0.shaderLocation = 0;
+//    vertexBuffer0Attribute0.offset = 0;
+//    vertexBuffer0Attribute0.format = wgpu::VertexFormat::Float32x3;
+//
+//    wgpu::VertexBufferLayout positionBufferLayout = {};
+//    positionBufferLayout.arrayStride = 3 * 4;
+//    positionBufferLayout.attributeCount = 1;
+//    positionBufferLayout.attributes = &vertexBuffer0Attribute0;
+//
+//    wgpu::VertexState vertex = {};
+//    vertex.module = shaderModule;
+//    vertex.entryPoint = "vert";
+//    vertex.bufferCount = 1;
+//    vertex.buffers = &positionBufferLayout;
+//
+//    pipelineDescriptor.vertex = vertex;
+//    pipelineDescriptor.fragment = &fragment;
+//
+//    pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
+//    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::None;
+//
+//    pipelineDescriptor.multisample.count = 1;
+//
+//    pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
+//
+//    wgpu::BufferDescriptor uniformBufferDescriptor = {};
+//    uniformBufferDescriptor.size = 16;
+//    uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
+//    uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
+//    device.GetQueue().WriteBuffer(uniformBuffer, 0, uniformBufferData, uniformBufferDescriptor.size);
+//
+//    wgpu::BindGroupEntry bindGroupDescriptor0Entry0 = {};
+//    bindGroupDescriptor0Entry0.binding = 0;
+//    bindGroupDescriptor0Entry0.buffer = uniformBuffer;
+//
+//    wgpu::BindGroupDescriptor bindGroupDescriptor0 = {};
+//    bindGroupDescriptor0.layout = bindGroupLayoutGroup0;
+//    bindGroupDescriptor0.entryCount = 1;
+//    bindGroupDescriptor0.entries = &bindGroupDescriptor0Entry0;
+//
+//    bindGroup0 = device.CreateBindGroup(&bindGroupDescriptor0);
 
     colorAttachment = {};
     colorAttachment.loadOp = wgpu::LoadOp::Clear;

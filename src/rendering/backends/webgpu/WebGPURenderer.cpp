@@ -25,7 +25,7 @@ static wgpu::Surface s_surface;
 static wgpu::SwapChain s_swapChain;
 #endif
 
-static wgpu::TextureFormat s_presentationFormat;
+static wgpu::TextureFormat s_mainSurfacePreferredFormat;
 
 static wgpu::RenderPassColorAttachment s_colorAttachment;
 static wgpu::RenderPassDescriptor s_renderPassDescriptor;
@@ -107,13 +107,13 @@ void WebGPURenderer::getDeviceCallback(
 
 void WebGPURenderer::finishInit() {
     createSurface();
-    s_presentationFormat = s_surface.GetPreferredFormat(s_adapter);
+    s_mainSurfacePreferredFormat = s_surface.GetPreferredFormat(s_adapter);
     configureSurface();
 
     ImGui_ImplWGPU_InitInfo init_info;
     init_info.Device = s_device.Get();
     init_info.NumFramesInFlight = 3;
-    init_info.RenderTargetFormat = (WGPUTextureFormat) s_presentationFormat;
+    init_info.RenderTargetFormat = (WGPUTextureFormat) s_mainSurfacePreferredFormat;
     init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
     ImGui_ImplWGPU_Init(&init_info);
 
@@ -184,7 +184,7 @@ void WebGPURenderer::configureSurface() {
 #ifdef __EMSCRIPTEN__
     wgpu::SwapChainDescriptor swapChainDescriptor = {};
     swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
-    swapChainDescriptor.format = s_presentationFormat;
+    swapChainDescriptor.format = s_mainSurfacePreferredFormat;
     swapChainDescriptor.width = s_window->renderSurfaceWidth();
     swapChainDescriptor.height = s_window->renderSurfaceHeight();
     swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
@@ -192,7 +192,7 @@ void WebGPURenderer::configureSurface() {
 #else
     wgpu::SurfaceConfiguration surfaceConfiguration = {};
     surfaceConfiguration.device = s_device;
-    surfaceConfiguration.format = s_presentationFormat;
+    surfaceConfiguration.format = s_mainSurfacePreferredFormat;
     surfaceConfiguration.width = s_window->renderSurfaceWidth();
     surfaceConfiguration.height = s_window->renderSurfaceHeight();
     s_surface.Configure(&surfaceConfiguration);
@@ -240,4 +240,16 @@ void WebGPURenderer::endFrame() {
 
     auto commandBuffer = s_commandEncoder.Finish();
     s_device.GetQueue().Submit(1, &commandBuffer);
+}
+
+wgpu::TextureFormat WebGPURenderer::mainSurfacePreferredFormat() {
+    return s_mainSurfacePreferredFormat;
+}
+
+wgpu::Device WebGPURenderer::device() {
+    return s_device;
+}
+
+wgpu::RenderPassEncoder WebGPURenderer::renderPassEncoder() {
+    return s_renderPassEncoder;
 }

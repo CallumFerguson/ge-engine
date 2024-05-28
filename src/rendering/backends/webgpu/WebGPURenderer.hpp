@@ -21,6 +21,12 @@ public:
 
     static void endFrame();
 
+    static wgpu::TextureFormat mainSurfacePreferredFormat();
+
+    static wgpu::Device device();
+
+    static wgpu::RenderPassEncoder renderPassEncoder();
+
 private:
     static void getAdapter();
 

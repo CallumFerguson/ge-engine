@@ -14,8 +14,8 @@ SandboxApp::SandboxApp() {
 //    Entity entity2 = scene.createEntity("my entity");
 //    entity2.addComponent<NativeScriptComponent>().bind<TestScript>();
 
-//    Entity renderingEntity = scene.createEntity();
-//    renderingEntity.addComponent<NativeScriptComponent>().bind<TestRenderer>();
+    Entity renderingEntity = scene.createEntity();
+    renderingEntity.addComponent<NativeScriptComponent>().bind<TestRenderer>();
 
     Entity trackFPS = scene.createEntity();
     trackFPS.addComponent<NativeScriptComponent>().bind<TrackFramerate>();
