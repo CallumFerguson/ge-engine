@@ -9,12 +9,12 @@ public:
 
     bool shouldClose();
 
-    void onUpdate();
+    bool onUpdate();
 
 private:
     GLFWwindow *m_glfwWindow = nullptr;
-    int m_renderSurfaceWidth = 512;
-    int m_renderSurfaceHeight = 512;
+    int m_renderSurfaceWidth = 960;
+    int m_renderSurfaceHeight = 540;
 
     static double getWindowTime();
 

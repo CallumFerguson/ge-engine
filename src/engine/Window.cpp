@@ -73,15 +73,14 @@ bool Window::shouldClose() {
     return glfwWindowShouldClose(m_glfwWindow);
 }
 
-void Window::onUpdate() {
+bool Window::onUpdate() {
     glfwPollEvents();
 
-    // React to changes in screen size
     int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
     glfwGetFramebufferSize(m_glfwWindow, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);
     if (currentRenderSurfaceWidth == 0 || currentRenderSurfaceHeight == 0) {
-        std::cout << "TODO: don't render if surface is 0 width or height. maybe also if minimized" << std::endl;
-        return;
+        // TODO: maybe engine should keep running but just not render size is invalid or window is minimized
+        return false;
     }
     if (currentRenderSurfaceWidth != m_renderSurfaceWidth || currentRenderSurfaceHeight != m_renderSurfaceHeight) {
 //        ImGui_ImplWGPU_InvalidateDeviceObjects();
@@ -90,6 +89,8 @@ void Window::onUpdate() {
 //        configureSurface();
 //        ImGui_ImplWGPU_CreateDeviceObjects();
     }
+
+    return true;
 }
 
 double Window::getWindowTime() {

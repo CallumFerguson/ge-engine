@@ -66,9 +66,13 @@ void App::run() {
             throw std::runtime_error("failed to initialize WebGPURenderer");
         }
 
+        if (!m_window.onUpdate()) {
+            return;
+        }
+
         Time::onUpdate();
-        m_window.onUpdate();
         onUpdate();
+
     };
 
 #ifdef __EMSCRIPTEN__
