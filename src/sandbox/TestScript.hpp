@@ -6,4 +6,8 @@ struct TestScript : public ScriptableEntity {
     void onStart();
 
     void onUpdate();
+
+    void onImGui();
+
+    void onRender();
 };

@@ -28,6 +28,10 @@ void Scene::onUpdate() {
     });
 
     m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+        nsc.onImGui(nsc.instance);
+    });
+
+    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
         nsc.onRender(nsc.instance);
     });
 }

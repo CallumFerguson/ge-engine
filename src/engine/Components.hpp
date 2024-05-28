@@ -21,6 +21,7 @@ struct name<T, std::void_t<decltype(std::declval<T>().func())>> : std::true_type
 
 HAS_MEMBER_FUNCTION(onStart, hasOnStart)
 HAS_MEMBER_FUNCTION(onUpdate, hasOnUpdate)
+HAS_MEMBER_FUNCTION(onImGui, hasOnImGui)
 HAS_MEMBER_FUNCTION(onRender, hasOnRender)
 
 struct NativeScriptComponent {
@@ -30,6 +31,7 @@ struct NativeScriptComponent {
 
     std::function<void(ScriptableEntity *passedInstance)> onStart;
     std::function<void(ScriptableEntity *passedInstance)> onUpdate;
+    std::function<void(ScriptableEntity *passedInstance)> onImGui;
     std::function<void(ScriptableEntity *passedInstance)> onRender;
 
     ~NativeScriptComponent() {
@@ -48,6 +50,11 @@ struct NativeScriptComponent {
         onUpdate = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnUpdate<T>::value) {
                 ((T *) passedInstance)->onUpdate();
+            }
+        };
+        onImGui = [](ScriptableEntity *passedInstance) {
+            if constexpr (hasOnImGui<T>::value) {
+                ((T *) passedInstance)->onImGui();
             }
         };
         onRender = [](ScriptableEntity *passedInstance) {

@@ -3,13 +3,23 @@
 #include <functional>
 #include <webgpu/webgpu_cpp.h>
 
+class Window;
+
 class WebGPURenderer {
 public:
-    static void init();
+    static void init(Window *window);
 
     static bool initFinished();
 
     static bool initSuccessful();
+
+    static void configureSurface();
+
+    static void present();
+
+    static void startFrame();
+
+    static void endFrame();
 
 private:
     static void getAdapter();
@@ -19,6 +29,10 @@ private:
 
     static void getDeviceCallback(
             WGPURequestDeviceStatus status, WGPUDevice cDevice, const char *message, void *userdata);
+
+    static void finishInit();
+
+    static void createSurface();
 
 #ifndef __EMSCRIPTEN__
 

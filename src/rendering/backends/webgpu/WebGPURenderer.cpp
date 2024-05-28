@@ -1,15 +1,40 @@
 #include "WebGPURenderer.hpp"
 
 #include <iostream>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_wgpu.h>
+#include "../../../engine/Window.hpp"
+
+#ifndef __EMSCRIPTEN__
+
+#include <webgpu/webgpu_glfw.h>
+
+#endif
 
 static bool s_initFinished;
 static bool s_initializedSuccessfully;
 
+static Window *s_window;
+
 static wgpu::Instance s_instance;
 static wgpu::Adapter s_adapter;
 static wgpu::Device s_device;
+static wgpu::Surface s_surface;
+#ifdef __EMSCRIPTEN__
+static wgpu::SwapChain s_swapChain;
+#endif
 
-void WebGPURenderer::init() {
+static wgpu::TextureFormat s_presentationFormat;
+
+static wgpu::RenderPassColorAttachment s_colorAttachment;
+static wgpu::RenderPassDescriptor s_renderPassDescriptor;
+
+static wgpu::RenderPassEncoder s_renderPassEncoder;
+static wgpu::CommandEncoder s_commandEncoder;
+
+void WebGPURenderer::init(Window *window) {
+    s_window = window;
     s_initFinished = false;
     s_instance = wgpu::CreateInstance();
     getAdapter();
@@ -74,8 +99,46 @@ void WebGPURenderer::getDeviceCallback(
     s_device = wgpu::Device::Acquire(cDevice);
     s_device.SetUncapturedErrorCallback(errorCallback, nullptr);
 
+    finishInit();
+
     s_initializedSuccessfully = true;
     s_initFinished = true;
+}
+
+void WebGPURenderer::finishInit() {
+    createSurface();
+    s_presentationFormat = s_surface.GetPreferredFormat(s_adapter);
+    configureSurface();
+
+    ImGui_ImplWGPU_InitInfo init_info;
+    init_info.Device = s_device.Get();
+    init_info.NumFramesInFlight = 3;
+    init_info.RenderTargetFormat = (WGPUTextureFormat) s_presentationFormat;
+    init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
+    ImGui_ImplWGPU_Init(&init_info);
+
+    s_colorAttachment = {};
+    s_colorAttachment.loadOp = wgpu::LoadOp::Clear;
+    s_colorAttachment.storeOp = wgpu::StoreOp::Store;
+    s_colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
+
+    s_renderPassDescriptor = {};
+    s_renderPassDescriptor.colorAttachmentCount = 1;
+    s_renderPassDescriptor.colorAttachments = &s_colorAttachment;
+}
+
+void WebGPURenderer::createSurface() {
+#ifdef __EMSCRIPTEN__
+    wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDescriptor = {};
+    canvasDescriptor.selector = "#canvas";
+
+    wgpu::SurfaceDescriptor surfaceDescriptor = {};
+    surfaceDescriptor.nextInChain = &canvasDescriptor;
+
+    s_surface = s_instance.CreateSurface(&surfaceDescriptor);
+#else
+    s_surface = wgpu::glfw::CreateSurfaceForWindow(s_instance, s_window->m_glfwWindow);
+#endif
 }
 
 #ifndef __EMSCRIPTEN__
@@ -114,4 +177,67 @@ void WebGPURenderer::errorCallback(WGPUErrorType type, const char *message, void
     std::cout << "Error: " << type << " - message: " << message << std::endl;
     s_initializedSuccessfully = false;
     s_initFinished = true;
+}
+
+void WebGPURenderer::configureSurface() {
+    // TODO: use configure api for both https://github.com/emscripten-core/emscripten/pull/21939
+#ifdef __EMSCRIPTEN__
+    wgpu::SwapChainDescriptor swapChainDescriptor = {};
+    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
+    swapChainDescriptor.format = s_presentationFormat;
+    swapChainDescriptor.width = s_window->renderSurfaceWidth();
+    swapChainDescriptor.height = s_window->renderSurfaceHeight();
+    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
+    s_swapChain = s_device.CreateSwapChain(s_surface, &swapChainDescriptor);
+#else
+    wgpu::SurfaceConfiguration surfaceConfiguration = {};
+    surfaceConfiguration.device = s_device;
+    surfaceConfiguration.format = s_presentationFormat;
+    surfaceConfiguration.width = s_window->renderSurfaceWidth();
+    surfaceConfiguration.height = s_window->renderSurfaceHeight();
+    s_surface.Configure(&surfaceConfiguration);
+#endif
+}
+
+void WebGPURenderer::present() {
+#ifndef __EMSCRIPTEN__
+    s_surface.Present();
+    s_instance.ProcessEvents();
+#endif
+}
+
+void WebGPURenderer::startFrame() {
+    ImGui_ImplWGPU_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+#ifndef __EMSCRIPTEN__
+    // Tick needs to be called in Dawn to display validation errors
+    // https://github.com/ocornut/imgui/blob/master/examples/example_glfw_wgpu/main.cpp
+    s_device.Tick();
+#endif
+
+#ifdef __EMSCRIPTEN__
+    auto currentSurfaceTextureView = s_swapChain.GetCurrentTextureView();
+#else
+    wgpu::SurfaceTexture currentSurfaceTexture;
+    s_surface.GetCurrentTexture(&currentSurfaceTexture);
+    auto currentSurfaceTextureView = currentSurfaceTexture.texture.CreateView();
+#endif
+
+    s_colorAttachment.view = currentSurfaceTextureView;
+
+    s_commandEncoder = s_device.CreateCommandEncoder();
+
+    s_renderPassEncoder = s_commandEncoder.BeginRenderPass(&s_renderPassDescriptor);
+}
+
+void WebGPURenderer::endFrame() {
+    ImGui::Render();
+    ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), s_renderPassEncoder.Get());
+
+    s_renderPassEncoder.End();
+
+    auto commandBuffer = s_commandEncoder.Finish();
+    s_device.GetQueue().Submit(1, &commandBuffer);
 }

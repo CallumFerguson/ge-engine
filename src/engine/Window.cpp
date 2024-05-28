@@ -6,6 +6,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
 #include "../utility/utility.hpp"
+#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -88,14 +89,22 @@ bool Window::onUpdate() {
         return false;
     }
     if (currentRenderSurfaceWidth != m_renderSurfaceWidth || currentRenderSurfaceHeight != m_renderSurfaceHeight) {
-//        ImGui_ImplWGPU_InvalidateDeviceObjects();
+        ImGui_ImplWGPU_InvalidateDeviceObjects();
         m_renderSurfaceWidth = currentRenderSurfaceWidth;
         m_renderSurfaceHeight = currentRenderSurfaceHeight;
-//        configureSurface();
-//        ImGui_ImplWGPU_CreateDeviceObjects();
+        WebGPURenderer::configureSurface();
+        ImGui_ImplWGPU_CreateDeviceObjects();
     }
 
     return true;
+}
+
+int Window::renderSurfaceWidth() const {
+    return m_renderSurfaceWidth;
+}
+
+int Window::renderSurfaceHeight() const {
+    return m_renderSurfaceHeight;
 }
 
 double Window::getWindowTime() {

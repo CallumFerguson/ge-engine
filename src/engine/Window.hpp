@@ -3,6 +3,8 @@
 #include <functional>
 #include <GLFW/glfw3.h>
 
+class WebGPURenderer;
+
 class Window {
 public:
     void init(const std::function<void()> &rerenderRequiredCallback);
@@ -10,6 +12,10 @@ public:
     bool shouldClose();
 
     bool onUpdate();
+
+    [[nodiscard]] int renderSurfaceWidth() const;
+
+    [[nodiscard]] int renderSurfaceHeight() const;
 
 private:
     GLFWwindow *m_glfwWindow = nullptr;
@@ -19,4 +25,6 @@ private:
     static double getWindowTime();
 
     friend class Time;
+
+    friend class WebGPURenderer;
 };

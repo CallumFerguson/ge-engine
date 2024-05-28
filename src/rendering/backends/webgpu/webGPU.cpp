@@ -77,6 +77,7 @@ void randomizeColor(float color[4]) {
 }
 
 void configureSurface() {
+    // TODO: use configure api for both https://github.com/emscripten-core/emscripten/pull/21939
 #ifdef __EMSCRIPTEN__
     wgpu::SwapChainDescriptor swapChainDescriptor = {};
     swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
@@ -112,7 +113,6 @@ void drawImGui() {
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-//    ImGui::SetNextWindowFocus();
     ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     if (ImGui::Button("Randomize color")) {
         randomizeColor(uniformBufferData);
@@ -191,15 +191,15 @@ void mainLoop() {
 #endif
 }
 
-#ifndef __EMSCRIPTEN__
-void windowPosCallback(GLFWwindow*, int xpos, int ypos) {
-    mainLoop();
-}
-
-void framebufferSizeCallback(GLFWwindow*, int width, int height) {
-    mainLoop();
-}
-#endif
+//#ifndef __EMSCRIPTEN__
+//void windowPosCallback(GLFWwindow*, int xpos, int ypos) {
+//    mainLoop();
+//}
+//
+//void framebufferSizeCallback(GLFWwindow*, int width, int height) {
+//    mainLoop();
+//}
+//#endif
 
 void mainWebGPU() {
 //    if (!glfwInit()) {

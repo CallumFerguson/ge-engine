@@ -6,6 +6,7 @@
 #ifdef __EMSCRIPTEN__
 
 #include <emscripten.h>
+#include "../utility/emscriptenUtility.hpp"
 
 #endif
 
@@ -56,7 +57,7 @@ static bool mainLoopStatic() {
 
 void App::run() {
     m_window.init(mainLoopStatic);
-    WebGPURenderer::init();
+    WebGPURenderer::init(&m_window);
 
     mainLoop = [&]() {
         if (!WebGPURenderer::initFinished()) {
@@ -71,8 +72,18 @@ void App::run() {
         }
 
         Time::onUpdate();
+
+        WebGPURenderer::startFrame();
+
         onUpdate();
 
+        WebGPURenderer::endFrame();
+
+#ifdef __EMSCRIPTEN__
+        updateCursor();
+#endif
+
+        WebGPURenderer::present();
     };
 
 #ifdef __EMSCRIPTEN__
