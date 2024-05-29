@@ -1,6 +1,5 @@
-#include "sandbox/SandboxApp.hpp"
+#include "sandbox/sandboxApp.hpp"
 
 int main() {
-    SandboxApp app;
-    app.run();
+    runSandboxApp();
 }

@@ -1,7 +1,8 @@
-#include "SandboxApp.hpp"
+#include "sandboxApp.hpp"
 
 #include <memory>
 #include <utility>
+#include "../engine/App.hpp"
 #include "../engine/Entity.hpp"
 #include "../engine/Components.hpp"
 #include "TestScript.hpp"
@@ -9,8 +10,10 @@
 #include "TrackFramerate.hpp"
 #include "ImGuiDemoWindow.hpp"
 
-SandboxApp::SandboxApp() {
-    Scene &scene = m_app.getActiveScene();
+void runSandboxApp() {
+    App app;
+
+    Scene &scene = app.getActiveScene();
 
 //    Entity entity = scene.createEntity();
 //    entity.addComponent<NativeScriptComponent>().bind<TestScript>();
@@ -28,8 +31,6 @@ SandboxApp::SandboxApp() {
 
 //    Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();
-}
 
-void SandboxApp::run() {
-    m_app.run();
+    app.run();
 }

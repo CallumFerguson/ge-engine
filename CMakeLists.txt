@@ -58,7 +58,7 @@ set(
         src/engine/Time.cpp
         src/engine/Random.cpp
 
-        src/sandbox/SandboxApp.cpp
+        src/sandbox/sandboxApp.cpp
         src/sandbox/TestScript.cpp
         src/sandbox/TestRenderer.cpp
         src/sandbox/TrackFramerate.cpp
