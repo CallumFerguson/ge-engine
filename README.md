@@ -19,7 +19,13 @@ following options listed under [Build Instructions](#build-instructions) are off
 
 ```
 git clone https://github.com/CallumFerguson/GameEngine
-cd GameEngine
+```
+
+- Open Visual Studio
+- On the menu bar, select Tools > Command Line > Developer Command Prompt or Developer PowerShell.
+- cd into GameEngine
+
+```
 cmake -B build -G Ninja
 cmake --build build
 cd build/dist
@@ -44,8 +50,7 @@ http-server -p 8080
 
 ### Building Windows native in CLion
 
-Project should be able to build Windows native using CLion without any additional setup
-
+- Select Visual Studio for the CMake Toolchain
 - Press build or run
 
 ### Building WASM on windows in CLion
