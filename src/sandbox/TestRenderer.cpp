@@ -9,6 +9,7 @@
 #include "../assets/gltfloader.hpp"
 #include "../utility/utility.hpp"
 #include "../engine/Random.hpp"
+#include "../engine/Input.hpp"
 
 TestRenderer::TestRenderer(std::shared_ptr<WebGPUShader> shader): m_shader(std::move(shader)) {}
 
@@ -101,7 +102,12 @@ void TestRenderer::onStart() {
 }
 
 void TestRenderer::onUpdate() {
-
+    if(Input::getKeyDown(KeyCode::Space)) {
+        randomizeColor();
+    }
+    if(Input::getKey(KeyCode::R)) {
+        randomizeColor();
+    }
 }
 
 void TestRenderer::onImGui() {
@@ -110,7 +116,6 @@ void TestRenderer::onImGui() {
                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     if (ImGui::Button("Randomize color")) {
         randomizeColor();
-        WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, 16);
     }
     ImGui::End();
 
@@ -131,4 +136,5 @@ void TestRenderer::randomizeColor() {
     m_uniformBufferData[0] = Random::value();
     m_uniformBufferData[1] = Random::value();
     m_uniformBufferData[2] = Random::value();
+    WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, 16);
 }

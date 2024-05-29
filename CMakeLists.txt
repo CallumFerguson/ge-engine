@@ -57,6 +57,7 @@ set(
         src/engine/ScriptableEntity.cpp
         src/engine/Time.cpp
         src/engine/Random.cpp
+        src/engine/Input.cpp
 
         src/sandbox/sandboxApp.cpp
         src/sandbox/TestScript.cpp

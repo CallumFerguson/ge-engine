@@ -27,4 +27,6 @@ private:
     friend class Time;
 
     friend class WebGPURenderer;
+
+    friend class Input;
 };

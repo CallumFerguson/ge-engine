@@ -7,6 +7,7 @@
 #include <imgui_impl_wgpu.h>
 #include "../utility/utility.hpp"
 #include "../rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "Input.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -73,6 +74,8 @@ void Window::init(const std::function<void()> &rerenderRequiredCallback) {
     glfwSetWindowPosCallback(m_glfwWindow, windowPosCallback);
     glfwSetFramebufferSizeCallback(m_glfwWindow, framebufferSizeCallback);
 #endif
+
+    Input::s_window = this;
 }
 
 bool Window::shouldClose() {
