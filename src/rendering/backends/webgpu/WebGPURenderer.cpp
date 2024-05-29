@@ -253,10 +253,10 @@ wgpu::TextureFormat WebGPURenderer::mainSurfacePreferredFormat() {
     return s_mainSurfacePreferredFormat;
 }
 
-wgpu::Device WebGPURenderer::device() {
+wgpu::Device &WebGPURenderer::device() {
     return s_device;
 }
 
-wgpu::RenderPassEncoder WebGPURenderer::renderPassEncoder() {
+wgpu::RenderPassEncoder &WebGPURenderer::renderPassEncoder() {
     return s_renderPassEncoder;
 }

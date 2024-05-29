@@ -19,9 +19,9 @@ public:
 
     static wgpu::TextureFormat mainSurfacePreferredFormat();
 
-    static wgpu::Device device();
+    static wgpu::Device &device();
 
-    static wgpu::RenderPassEncoder renderPassEncoder();
+    static wgpu::RenderPassEncoder &renderPassEncoder();
 
 private:
     static void getAdapter();
