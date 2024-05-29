@@ -28,6 +28,7 @@ struct NativeScriptComponent {
     ScriptableEntity *instance = nullptr;
 
     std::function<void()> instantiate;
+    std::function<void()> destroyInstance;
 
     std::function<void(ScriptableEntity *passedInstance)> onStart;
     std::function<void(ScriptableEntity *passedInstance)> onUpdate;
@@ -35,12 +36,20 @@ struct NativeScriptComponent {
     std::function<void(ScriptableEntity *passedInstance)> onRender;
 
     ~NativeScriptComponent() {
+        destroyInstance();
         delete instance;
     }
 
-    template<typename T>
-    void bind() {
-        instantiate = [&]() { instance = new T(); };
+    template<typename T, typename... Args>
+    void bind(Args &&... args) {
+        instantiate = [this, args...]() {
+            instance = new T(args...);
+        };
+
+        destroyInstance = [&]() {
+            delete (T *) instance;
+            instance = nullptr;
+        };
 
         onStart = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnStart<T>::value) {

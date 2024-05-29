@@ -22,7 +22,7 @@ if (EMSCRIPTEN)
     #    append_linker_flags("--preload-file ../assets")
     #    append_linker_flags("--preload-file ../shaders")
     #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
-    #    append_linker_flags("-sASYNCIFY=1")
+    append_linker_flags("-sASYNCIFY")
     append_linker_flags("-sUSE_WEBGPU=1")
     append_linker_flags("-sUSE_GLFW=3")
 
@@ -44,22 +44,29 @@ endif ()
 set(
         SOURCE_FILES
         src/main.cpp
+
         src/assets/gltfloader.cpp
+
         src/utility/RollingAverage.cpp
         src/utility/utility.cpp
+
         src/engine/Entity.cpp
         src/engine/App.cpp
         src/engine/Scene.cpp
         src/engine/Window.cpp
         src/engine/ScriptableEntity.cpp
+        src/engine/Time.cpp
+        src/engine/Random.cpp
+
         src/sandbox/SandboxApp.cpp
         src/sandbox/TestScript.cpp
         src/sandbox/TestRenderer.cpp
-        src/rendering/backends/webgpu/WebGPURenderer.cpp
-        src/engine/Time.cpp
         src/sandbox/TrackFramerate.cpp
-        src/engine/Random.cpp
         src/sandbox/ImGuiDemoWindow.cpp
+
+        src/rendering/backends/webgpu/WebGPURenderer.cpp
+        src/rendering/backends/webgpu/WebGPUShader.cpp
+
         Dependencies/imgui/src/imgui.cpp
         Dependencies/imgui/src/imgui_demo.cpp
         Dependencies/imgui/src/imgui_draw.cpp

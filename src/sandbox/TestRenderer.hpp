@@ -1,10 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <webgpu/webgpu_cpp.h>
 #include "../engine/ScriptableEntity.hpp"
+#include "../rendering/backends/webgpu/WebGPUShader.hpp"
 
 struct TestRenderer : public ScriptableEntity {
 public:
+    explicit TestRenderer(std::shared_ptr<WebGPUShader> shader);
+
     void onStart();
 
     void onUpdate();
@@ -14,7 +18,9 @@ public:
     void onRender();
 
 private:
-    size_t m_numIndices;
+    std::shared_ptr<WebGPUShader> m_shader;
+
+    size_t m_numIndices = 0;
 
     wgpu::Buffer m_positionBuffer;
     wgpu::Buffer m_indexBuffer;

@@ -5,9 +5,11 @@
 
 class App {
 public:
-    Scene &getActiveScene();
+    void init();
 
     void run();
+
+    Scene &getActiveScene();
 
 private:
     Scene m_scene;

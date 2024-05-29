@@ -10,10 +10,6 @@
 
 #endif
 
-Scene &App::getActiveScene() {
-    return m_scene;
-}
-
 static std::function<void()> mainLoop;
 
 #ifdef __EMSCRIPTEN__
@@ -51,18 +47,13 @@ static bool mainLoopStatic() {
 
 #endif
 
-void App::run() {
+void App::init() {
     m_window.init(mainLoopStatic);
     WebGPURenderer::init(&m_window);
+}
 
+void App::run() {
     mainLoop = [&]() {
-        if (!WebGPURenderer::initFinished()) {
-            return;
-        }
-        if (!WebGPURenderer::initSuccessful()) {
-            throw std::runtime_error("failed to initialize WebGPURenderer");
-        }
-
         if (!m_window.onUpdate()) {
             return;
         }
@@ -91,4 +82,8 @@ void App::run() {
         }
     }
 #endif
+}
+
+Scene &App::getActiveScene() {
+    return m_scene;
 }

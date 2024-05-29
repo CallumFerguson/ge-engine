@@ -6,7 +6,11 @@
 #include <imgui_impl_wgpu.h>
 #include "../../../engine/Window.hpp"
 
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+
+#include <emscripten.h>
+
+#else
 
 #include <webgpu/webgpu_glfw.h>
 
@@ -38,6 +42,20 @@ void WebGPURenderer::init(Window *window) {
     s_initFinished = false;
     s_instance = wgpu::CreateInstance();
     getAdapter();
+
+#ifdef __EMSCRIPTEN__
+    for (int i = 0; i < 10; i++) {
+//        std::cout << WebGPURenderer::initFinished() << std::endl;
+        emscripten_sleep(100);
+    }
+#endif
+
+    if (!WebGPURenderer::initFinished()) { // make these local only, no getter
+        return;
+    }
+    if (!WebGPURenderer::initSuccessful()) {
+        throw std::runtime_error("failed to initialize WebGPURenderer");
+    }
 }
 
 bool WebGPURenderer::initFinished() {

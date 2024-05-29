@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <utility>
 #include <imgui.h>
 #include <imgui_memory_editor.h>
 #include "../rendering/backends/webgpu/WebGPURenderer.hpp"
@@ -9,23 +10,10 @@
 #include "../utility/utility.hpp"
 #include "../engine/Random.hpp"
 
+TestRenderer::TestRenderer(std::shared_ptr<WebGPUShader> shader): m_shader(std::move(shader)) {}
+
 void TestRenderer::onStart() {
     auto device = WebGPURenderer::device();
-
-    std::ifstream shaderFile("shaders/unlit_color.wgsl", std::ios::binary);
-    if (!shaderFile) {
-        throw std::runtime_error("Could not open shader file");
-    }
-    std::stringstream shaderBuffer;
-    shaderBuffer << shaderFile.rdbuf();
-    auto shaderString = shaderBuffer.str();
-
-    wgpu::ShaderModuleWGSLDescriptor wgslDescriptor{};
-    wgslDescriptor.code = shaderString.c_str();
-
-    wgpu::ShaderModuleDescriptor shaderModuleDescriptor = {};
-    shaderModuleDescriptor.nextInChain = &wgslDescriptor;
-    auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
 
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = WebGPURenderer::mainSurfacePreferredFormat();
@@ -63,7 +51,7 @@ void TestRenderer::onStart() {
     pipelineDescriptor.layout = pipelineLayout;
 
     wgpu::FragmentState fragment = {};
-    fragment.module = shaderModule;
+    fragment.module = m_shader->shaderModule();
     fragment.entryPoint = "frag";
     fragment.targetCount = 1;
     fragment.targets = &colorTargetState;
@@ -79,7 +67,7 @@ void TestRenderer::onStart() {
     positionBufferLayout.attributes = &vertexBuffer0Attribute0;
 
     wgpu::VertexState vertex = {};
-    vertex.module = shaderModule;
+    vertex.module = m_shader->shaderModule();
     vertex.entryPoint = "vert";
     vertex.bufferCount = 1;
     vertex.buffers = &positionBufferLayout;
