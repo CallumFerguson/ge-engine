@@ -235,16 +235,20 @@ void WebGPURenderer::startFrame() {
     s_colorAttachment.view = currentSurfaceTextureView;
 
     s_commandEncoder = s_device.CreateCommandEncoder();
+}
 
+void WebGPURenderer::startMainRenderPass() {
     s_renderPassEncoder = s_commandEncoder.BeginRenderPass(&s_renderPassDescriptor);
 }
 
-void WebGPURenderer::endFrame() {
+void WebGPURenderer::endMainRenderPass() {
     ImGui::Render();
     ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), s_renderPassEncoder.Get());
 
     s_renderPassEncoder.End();
+}
 
+void WebGPURenderer::endFrame() {
     auto commandBuffer = s_commandEncoder.Finish();
     s_device.GetQueue().Submit(1, &commandBuffer);
 }
@@ -259,4 +263,8 @@ wgpu::Device &WebGPURenderer::device() {
 
 wgpu::RenderPassEncoder &WebGPURenderer::renderPassEncoder() {
     return s_renderPassEncoder;
+}
+
+wgpu::CommandEncoder &WebGPURenderer::commandEncoder() {
+    return s_commandEncoder;
 }

@@ -25,7 +25,3 @@ void TestScript::onImGui() {
     }
     ImGui::End();
 }
-
-void TestScript::onRender() {
-
-}

@@ -15,7 +15,7 @@ public:
 
     void onImGui();
 
-    void onRender();
+    void onMainRenderPass();
 
 private:
     std::shared_ptr<WebGPUShader> m_shader;

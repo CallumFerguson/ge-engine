@@ -118,7 +118,7 @@ void TestRenderer::onImGui() {
 //    mem_edit.DrawWindow("Memory Editor", m_uniformBufferData, 16);
 }
 
-void TestRenderer::onRender() {
+void TestRenderer::onMainRenderPass() {
     auto renderPassEncoder = WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(m_pipeline);
     renderPassEncoder.SetBindGroup(0, m_bindGroup0);

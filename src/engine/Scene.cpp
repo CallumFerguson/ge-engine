@@ -1,7 +1,9 @@
 #include "Scene.hpp"
+
+#include <iostream>
 #include "Entity.hpp"
 #include "Components.hpp"
-#include <iostream>
+#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
 
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);
@@ -32,6 +34,14 @@ void Scene::onUpdate() {
     });
 
     m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
-        nsc.onRender(nsc.instance);
+        nsc.onCustomRenderPass(nsc.instance);
     });
+
+    WebGPURenderer::startMainRenderPass();
+
+    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+        nsc.onMainRenderPass(nsc.instance);
+    });
+
+    WebGPURenderer::endMainRenderPass();
 }

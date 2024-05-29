@@ -22,7 +22,8 @@ struct name<T, std::void_t<decltype(std::declval<T>().func())>> : std::true_type
 HAS_MEMBER_FUNCTION(onStart, hasOnStart)
 HAS_MEMBER_FUNCTION(onUpdate, hasOnUpdate)
 HAS_MEMBER_FUNCTION(onImGui, hasOnImGui)
-HAS_MEMBER_FUNCTION(onRender, hasOnRender)
+HAS_MEMBER_FUNCTION(onCustomRenderPass, hasOnCustomRenderPass)
+HAS_MEMBER_FUNCTION(onMainRenderPass, hasOnMainRenderPass)
 
 struct NativeScriptComponent {
     ScriptableEntity *instance = nullptr;
@@ -33,11 +34,13 @@ struct NativeScriptComponent {
     std::function<void(ScriptableEntity *passedInstance)> onStart;
     std::function<void(ScriptableEntity *passedInstance)> onUpdate;
     std::function<void(ScriptableEntity *passedInstance)> onImGui;
-    std::function<void(ScriptableEntity *passedInstance)> onRender;
+    std::function<void(ScriptableEntity *passedInstance)> onCustomRenderPass;
+    std::function<void(ScriptableEntity *passedInstance)> onMainRenderPass;
 
     ~NativeScriptComponent() {
-        destroyInstance();
-        delete instance;
+        if (destroyInstance) {
+            destroyInstance();
+        }
     }
 
     template<typename T, typename... Args>
@@ -66,9 +69,14 @@ struct NativeScriptComponent {
                 ((T *) passedInstance)->onImGui();
             }
         };
-        onRender = [](ScriptableEntity *passedInstance) {
-            if constexpr (hasOnRender<T>::value) {
-                ((T *) passedInstance)->onRender();
+        onCustomRenderPass = [](ScriptableEntity *passedInstance) {
+            if constexpr (hasOnCustomRenderPass<T>::value) {
+                ((T *) passedInstance)->onCustomRenderPass();
+            }
+        };
+        onMainRenderPass = [](ScriptableEntity *passedInstance) {
+            if constexpr (hasOnMainRenderPass<T>::value) {
+                ((T *) passedInstance)->onMainRenderPass();
             }
         };
     }

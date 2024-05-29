@@ -8,6 +8,4 @@ struct TestScript : public ScriptableEntity {
     void onUpdate();
 
     void onImGui();
-
-    void onRender();
 };
