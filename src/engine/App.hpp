@@ -5,7 +5,7 @@
 
 class App {
 public:
-    void init();
+    App();
 
     void run();
 

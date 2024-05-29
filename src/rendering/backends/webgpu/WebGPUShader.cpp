@@ -22,9 +22,6 @@ WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
     shaderModuleDescriptor.nextInChain = &wgslDescriptor;
 
     m_shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
-//    auto shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
-//    std::cout << shaderModule.Get() << std::endl;
-
 }
 
 wgpu::ShaderModule &WebGPUShader::shaderModule() {

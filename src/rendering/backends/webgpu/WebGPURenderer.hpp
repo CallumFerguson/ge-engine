@@ -9,10 +9,6 @@ class WebGPURenderer {
 public:
     static void init(Window *window);
 
-    static bool initFinished();
-
-    static bool initSuccessful();
-
     static void configureSurface();
 
     static void present();

@@ -10,8 +10,6 @@
 #include "ImGuiDemoWindow.hpp"
 
 SandboxApp::SandboxApp() {
-    m_app.init();
-
     Scene &scene = m_app.getActiveScene();
 
 //    Entity entity = scene.createEntity();

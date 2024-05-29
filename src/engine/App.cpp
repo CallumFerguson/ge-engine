@@ -47,7 +47,7 @@ static bool mainLoopStatic() {
 
 #endif
 
-void App::init() {
+App::App() {
     m_window.init(mainLoopStatic);
     WebGPURenderer::init(&m_window);
 }

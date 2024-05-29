@@ -44,26 +44,15 @@ void WebGPURenderer::init(Window *window) {
     getAdapter();
 
 #ifdef __EMSCRIPTEN__
-    for (int i = 0; i < 10; i++) {
-//        std::cout << WebGPURenderer::initFinished() << std::endl;
-        emscripten_sleep(100);
+    while (!s_initFinished) {
+        emscripten_sleep(10);
     }
 #endif
 
-    if (!WebGPURenderer::initFinished()) { // make these local only, no getter
-        return;
-    }
-    if (!WebGPURenderer::initSuccessful()) {
+    if (!s_initializedSuccessfully) {
+        std::cout << "failed to initialize WebGPURenderer" << std::endl;
         throw std::runtime_error("failed to initialize WebGPURenderer");
     }
-}
-
-bool WebGPURenderer::initFinished() {
-    return s_initFinished;
-}
-
-bool WebGPURenderer::initSuccessful() {
-    return s_initializedSuccessfully;
 }
 
 void WebGPURenderer::getAdapter() {
