@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../src/engine/App.hpp"
+#include "GameEngine.hpp"
 
 int main() {
     std::cout << "Test tool." << std::endl;
