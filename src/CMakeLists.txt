@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.24)
 project(GameEngine)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist)
 
 #TODO: separate vulkan/webgpu build and within webgpu build option for wasm or native webgpu, then use included glfw for vulkan
 #link_directories(Dependencies/GLFW/lib)
