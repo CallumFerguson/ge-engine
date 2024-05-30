@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <webgpu/webgpu_cpp.h>
-#include "../engine/ScriptableEntity.hpp"
-#include "../rendering/backends/webgpu/WebGPUShader.hpp"
+#include "webgpu/webgpu_cpp.h"
+#include "../../src/engine/ScriptableEntity.hpp"
+#include "../../src/rendering/backends/webgpu/WebGPUShader.hpp"
 
 struct TestRenderer : public ScriptableEntity {
 public:

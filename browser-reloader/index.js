@@ -30,7 +30,7 @@ async function main() {
 
   const httpServer = spawn(
     "http-server",
-    ["../cmake-build-debug-emscripten/dist", "-p 3002", "-c-1"],
+    ["../cmake-build-debug-emscripten/sandbox/dist", "-p 3002", "-c-1"],
     { shell: true }
   );
 

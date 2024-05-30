@@ -2,13 +2,13 @@
 
 #include <memory>
 #include <utility>
-#include "../engine/App.hpp"
-#include "../engine/Entity.hpp"
-#include "../engine/Components.hpp"
-#include "TestScript.hpp"
-#include "TestRenderer.hpp"
-#include "TrackFramerate.hpp"
-#include "ImGuiDemoWindow.hpp"
+#include "../src/engine/App.hpp"
+#include "../src/engine/Entity.hpp"
+#include "../src/engine/Components.hpp"
+#include "scripts/TestScript.hpp"
+#include "scripts/TestRenderer.hpp"
+#include "scripts/TrackFramerate.hpp"
+#include "scripts/ImGuiDemoWindow.hpp"
 
 void runSandboxApp() {
     App app;

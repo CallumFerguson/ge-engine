@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../engine/ScriptableEntity.hpp"
+#include "../../src/engine/ScriptableEntity.hpp"
 
 class ImGuiDemoWindow : public ScriptableEntity {
 public:

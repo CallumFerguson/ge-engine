@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../engine/ScriptableEntity.hpp"
+#include "../../src/engine/ScriptableEntity.hpp"
 
 struct TestScript : public ScriptableEntity {
     void onStart();

@@ -1,4 +1,4 @@
-#include "sandbox/sandboxApp.hpp"
+#include "sandboxApp.hpp"
 
 int main() {
     runSandboxApp();

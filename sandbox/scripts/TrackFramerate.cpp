@@ -1,8 +1,8 @@
 #include "TrackFramerate.hpp"
 
 #include <cmath>
-#include <imgui.h>
-#include "../engine/Time.hpp"
+#include "imgui.h"
+#include "../../src/engine/Time.hpp"
 
 void TrackFramerate::onImGui() {
     m_fpsRollingAverage.addSample(1.0 / Time::deltaTime());

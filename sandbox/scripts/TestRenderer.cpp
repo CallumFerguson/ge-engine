@@ -3,13 +3,13 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
-#include <imgui.h>
-#include <imgui_memory_editor.h>
-#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
-#include "../assets/gltfloader.hpp"
-#include "../utility/utility.hpp"
-#include "../engine/Random.hpp"
-#include "../engine/Input.hpp"
+#include "imgui.h"
+#include "imgui_memory_editor.h"
+#include "../../src/rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "../../src/assets/gltfloader.hpp"
+#include "../../src/utility/utility.hpp"
+#include "../../src/engine/Random.hpp"
+#include "../../src/engine/Input.hpp"
 
 TestRenderer::TestRenderer(std::shared_ptr<WebGPUShader> shader): m_shader(std::move(shader)) {}
 
