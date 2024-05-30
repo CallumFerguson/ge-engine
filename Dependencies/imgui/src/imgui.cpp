@@ -2683,9 +2683,9 @@ bool ImGuiTextFilter::PassFilter(const char* text, const char* text_end) const
 // va_copy is the 'correct' way to copy a va_list but Visual Studio prior to 2013 doesn't have it.
 #ifndef va_copy
 #if defined(__GNUC__) || defined(__clang__)
-#define va_copy(dest, src) __builtin_va_copy(dest, src)
+#define va_copy(dest, GameEngine) __builtin_va_copy(dest, GameEngine)
 #else
-#define va_copy(dest, src) (dest = src)
+#define va_copy(dest, GameEngine) (dest = GameEngine)
 #endif
 #endif
 

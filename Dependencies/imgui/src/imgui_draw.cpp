@@ -3770,7 +3770,7 @@ void ImFont::AddRemapChar(ImWchar dst, ImWchar src, bool overwrite_dst)
 
     if (dst < index_size && IndexLookup.Data[dst] == (ImWchar)-1 && !overwrite_dst) // 'dst' already exists
         return;
-    if (src >= index_size && dst >= index_size) // both 'dst' and 'src' don't exist -> no-op
+    if (src >= index_size && dst >= index_size) // both 'dst' and 'GameEngine' don't exist -> no-op
         return;
 
     GrowIndex(dst + 1);

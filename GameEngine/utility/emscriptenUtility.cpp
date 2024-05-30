@@ -1,6 +1,6 @@
 #include "emscriptenUtility.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
 #include <emscripten.h>
 
 void updateCursor() {

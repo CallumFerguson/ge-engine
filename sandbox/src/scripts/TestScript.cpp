@@ -1,8 +1,8 @@
 #include "TestScript.hpp"
 
 #include <iostream>
-#include "imgui.h"
-#include "../../../src/engine/Components.hpp"
+#include <imgui.h>
+#include "GameEngine.hpp"
 
 void TestScript::onStart() {
     auto &transform = getComponent<TransformComponent>();

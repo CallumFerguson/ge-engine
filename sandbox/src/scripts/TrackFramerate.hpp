@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../../../src/engine/ScriptableEntity.hpp"
-#include "../../../src/utility/RollingAverage.hpp"
+#include "GameEngine.hpp"
 
 class TrackFramerate : public ScriptableEntity {
 public:

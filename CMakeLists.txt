@@ -3,6 +3,6 @@ project(GameEngineProject)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(src)
+add_subdirectory(GameEngine)
 add_subdirectory(sandbox)
 add_subdirectory(tools)

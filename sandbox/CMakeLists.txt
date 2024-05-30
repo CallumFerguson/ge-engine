@@ -56,7 +56,7 @@ target_link_libraries(Sandbox PRIVATE GameEngine)
 
 target_include_directories(
         Sandbox PUBLIC
-        ../src
+        ../GameEngine
 )
 
 function(copy_file_relative NEW_TARGET_NAME PATH TARGET)

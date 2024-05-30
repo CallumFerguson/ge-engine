@@ -47,7 +47,7 @@ if (EMSCRIPTEN)
 else ()
     list(
             APPEND SOURCE_FILES
-            #            src/webGPUDawn.cpp
+            #            GameEngine/webGPUDawn.cpp
     )
 endif ()
 
