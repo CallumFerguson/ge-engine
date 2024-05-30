@@ -2,9 +2,12 @@
 
 #include <memory>
 #include <utility>
-#include "../../src/engine/App.hpp"
-#include "../../src/engine/Entity.hpp"
-#include "../../src/engine/Components.hpp"
+
+#include "GameEngine.hpp"
+
+//#include "../../src/engine/App.hpp"
+//#include "../../src/engine/Entity.hpp"
+//#include "../../src/engine/Components.hpp"
 #include "scripts/TestScript.hpp"
 #include "scripts/TestRenderer.hpp"
 #include "scripts/TrackFramerate.hpp"

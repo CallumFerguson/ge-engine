@@ -54,6 +54,11 @@ add_executable(
 
 target_link_libraries(Sandbox PRIVATE GameEngine)
 
+target_include_directories(
+        Sandbox PUBLIC
+        ../src
+)
+
 function(copy_file_relative NEW_TARGET_NAME PATH TARGET)
     set(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/webBuildStuff/${PATH})
     set(DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist/${PATH})
