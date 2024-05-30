@@ -37,14 +37,14 @@ endif ()
 set(
         SOURCE_FILES
 
-        main.cpp
+        src/main.cpp
 
-        sandboxApp.cpp
+        src/sandboxApp.cpp
 
-        scripts/TestScript.cpp
-        scripts/TestRenderer.cpp
-        scripts/TrackFramerate.cpp
-        scripts/ImGuiDemoWindow.cpp
+        src/scripts/TestScript.cpp
+        src/scripts/TestRenderer.cpp
+        src/scripts/TrackFramerate.cpp
+        src/scripts/ImGuiDemoWindow.cpp
 )
 
 add_executable(
@@ -55,7 +55,7 @@ add_executable(
 target_link_libraries(Sandbox PRIVATE GameEngine)
 
 function(copy_file_relative NEW_TARGET_NAME PATH TARGET)
-    set(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../${PATH})
+    set(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/webBuildStuff/${PATH})
     set(DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist/${PATH})
 
     add_custom_command(

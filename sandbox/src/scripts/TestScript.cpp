@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "imgui.h"
-#include "../../src/engine/Components.hpp"
+#include "../../../src/engine/Components.hpp"
 
 void TestScript::onStart() {
     auto &transform = getComponent<TransformComponent>();
