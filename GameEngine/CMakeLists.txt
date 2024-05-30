@@ -27,8 +27,8 @@ set(
         src/GameEngine/Engine/Random.cpp
         src/GameEngine/Engine/Input.cpp
 
-        src/GameEngine/Rendering/backends/webgpu/WebGPURenderer.cpp
-        src/GameEngine/Rendering/backends/webgpu/WebGPUShader.cpp
+        src/GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.cpp
+        src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp
 
         ../Dependencies/imgui/src/imgui.cpp
         ../Dependencies/imgui/src/imgui_demo.cpp

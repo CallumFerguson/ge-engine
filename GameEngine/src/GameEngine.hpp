@@ -15,8 +15,8 @@
 #include "GameEngine/Engine/Time.hpp"
 #include "GameEngine/Engine/Window.hpp"
 
-#include "GameEngine/Rendering/backends/webgpu/WebGPURenderer.hpp"
-#include "GameEngine/Rendering/backends/webgpu/WebGPUShader.hpp"
+#include "GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.hpp"
+#include "GameEngine/Rendering/Backends/WebGPU/WebGPUShader.hpp"
 
 #include "GameEngine/Utility/emscriptenUtility.hpp"
 #include "GameEngine/Utility/RollingAverage.hpp"

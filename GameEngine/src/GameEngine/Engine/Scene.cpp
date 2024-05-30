@@ -2,7 +2,7 @@
 
 #include "Entity.hpp"
 #include "Components.hpp"
-#include "../Rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);

@@ -7,7 +7,7 @@
 #include <imgui_impl_wgpu.h>
 #include "Input.hpp"
 #include "../Utility/utility.hpp"
-#include "../Rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 
 #ifdef __EMSCRIPTEN__
 

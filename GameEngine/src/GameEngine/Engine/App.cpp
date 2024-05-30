@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "Time.hpp"
-#include "../Rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 
 #ifdef __EMSCRIPTEN__
 
