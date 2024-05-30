@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
-#include "../../../engine/Window.hpp"
+#include "../../../Engine/Window.hpp"
 
 #ifdef __EMSCRIPTEN__
 

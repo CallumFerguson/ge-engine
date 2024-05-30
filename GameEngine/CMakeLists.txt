@@ -13,22 +13,22 @@ endif ()
 set(
         SOURCE_FILES
 
-        assets/gltfloader.cpp
+        src/GameEngine/Assets/gltfloader.cpp
 
-        utility/RollingAverage.cpp
-        utility/utility.cpp
+        src/GameEngine/Utility/RollingAverage.cpp
+        src/GameEngine/Utility/utility.cpp
 
-        engine/Entity.cpp
-        engine/App.cpp
-        engine/Scene.cpp
-        engine/Window.cpp
-        engine/ScriptableEntity.cpp
-        engine/Time.cpp
-        engine/Random.cpp
-        engine/Input.cpp
+        src/GameEngine/Engine/Entity.cpp
+        src/GameEngine/Engine/App.cpp
+        src/GameEngine/Engine/Scene.cpp
+        src/GameEngine/Engine/Window.cpp
+        src/GameEngine/Engine/ScriptableEntity.cpp
+        src/GameEngine/Engine/Time.cpp
+        src/GameEngine/Engine/Random.cpp
+        src/GameEngine/Engine/Input.cpp
 
-        rendering/backends/webgpu/WebGPURenderer.cpp
-        rendering/backends/webgpu/WebGPUShader.cpp
+        src/GameEngine/Rendering/backends/webgpu/WebGPURenderer.cpp
+        src/GameEngine/Rendering/backends/webgpu/WebGPUShader.cpp
 
         ../Dependencies/imgui/src/imgui.cpp
         ../Dependencies/imgui/src/imgui_demo.cpp
@@ -42,7 +42,7 @@ set(
 if (EMSCRIPTEN)
     list(
             APPEND SOURCE_FILES
-            utility/emscriptenUtility.cpp
+            src/GameEngine/Utility/emscriptenUtility.cpp
     )
 else ()
     list(

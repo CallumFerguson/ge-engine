@@ -19,17 +19,11 @@ if (EMSCRIPTEN)
 
     append_linker_flags("--use-preload-cache")
     append_linker_flags("-sFORCE_FILESYSTEM")
-    #    append_linker_flags("--preload-file ../assets")
-    #    append_linker_flags("--preload-file ../shaders")
     #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
     append_linker_flags("-sASYNCIFY")
     append_linker_flags("-sUSE_WEBGPU=1")
     append_linker_flags("-sUSE_GLFW=3")
-
 else ()
-    #    file(COPY assets DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
-    #    file(COPY shaders DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dist")
-
     #    append_linker_flags("-static-libstdc++")
     #    append_linker_flags("-static-libgcc")
 endif ()
@@ -56,7 +50,7 @@ target_link_libraries(Sandbox PRIVATE GameEngine)
 
 target_include_directories(
         Sandbox PUBLIC
-        ../GameEngine
+        ../GameEngine/src
 )
 
 function(copy_file_relative NEW_TARGET_NAME PATH TARGET)

@@ -2,7 +2,7 @@
 
 #include <string>
 #include <optional>
-#include "tiny_gltf.h"
+#include <tiny_gltf.h>
 
 struct Model {
     tinygltf::Model model;

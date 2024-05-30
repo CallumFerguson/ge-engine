@@ -1,9 +1,7 @@
 #include "sandboxApp.hpp"
 
 #include <memory>
-
 #include "GameEngine.hpp"
-
 #include "scripts/TestScript.hpp"
 #include "scripts/TestRenderer.hpp"
 #include "scripts/TrackFramerate.hpp"

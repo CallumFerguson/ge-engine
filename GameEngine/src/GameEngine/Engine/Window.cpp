@@ -5,9 +5,9 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
-#include "../utility/utility.hpp"
-#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
 #include "Input.hpp"
+#include "../Utility/utility.hpp"
+#include "../Rendering/backends/webgpu/WebGPURenderer.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -88,7 +88,7 @@ bool Window::onUpdate() {
     int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
     glfwGetFramebufferSize(m_glfwWindow, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);
     if (currentRenderSurfaceWidth == 0 || currentRenderSurfaceHeight == 0) {
-        // TODO: maybe engine should keep running but just not render size is invalid or window is minimized
+        // TODO: maybe Engine should keep running but just not render size is invalid or window is minimized
         return false;
     }
     if (currentRenderSurfaceWidth != m_renderSurfaceWidth || currentRenderSurfaceHeight != m_renderSurfaceHeight) {

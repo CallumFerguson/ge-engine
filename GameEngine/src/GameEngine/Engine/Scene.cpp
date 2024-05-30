@@ -1,9 +1,8 @@
 #include "Scene.hpp"
 
-#include <iostream>
 #include "Entity.hpp"
 #include "Components.hpp"
-#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
+#include "../Rendering/backends/webgpu/WebGPURenderer.hpp"
 
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);

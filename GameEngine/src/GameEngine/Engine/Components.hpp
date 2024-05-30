@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ScriptableEntity.hpp"
 #include <glm/glm.hpp>
+#include "ScriptableEntity.hpp"
 
 struct TransformComponent {
     glm::vec3 position;

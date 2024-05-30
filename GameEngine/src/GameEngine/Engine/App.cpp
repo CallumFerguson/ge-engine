@@ -1,12 +1,13 @@
 #include "App.hpp"
-#include "../rendering/backends/webgpu/WebGPURenderer.hpp"
-#include "Time.hpp"
+
 #include <iostream>
+#include "Time.hpp"
+#include "../Rendering/backends/webgpu/WebGPURenderer.hpp"
 
 #ifdef __EMSCRIPTEN__
 
 #include <emscripten.h>
-#include "../utility/emscriptenUtility.hpp"
+#include "../Utility/emscriptenUtility.hpp"
 
 #endif
 

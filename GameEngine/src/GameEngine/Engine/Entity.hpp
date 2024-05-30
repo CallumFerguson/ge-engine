@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Scene.hpp"
 #include <entt/entt.hpp>
+#include "Scene.hpp"
 
 class Entity {
 public:
