@@ -17,15 +17,16 @@ set(
 
         src/GameEngine/Utility/RollingAverage.cpp
         src/GameEngine/Utility/utility.cpp
+        src/GameEngine/Utility/Random.cpp
 
-        src/GameEngine/Engine/Entity.cpp
         src/GameEngine/Engine/App.cpp
-        src/GameEngine/Engine/Scene.cpp
         src/GameEngine/Engine/Window.cpp
-        src/GameEngine/Engine/ScriptableEntity.cpp
         src/GameEngine/Engine/Time.cpp
-        src/GameEngine/Engine/Random.cpp
         src/GameEngine/Engine/Input.cpp
+
+        src/GameEngine/Scene/Scene.cpp
+        src/GameEngine/Scene/Entity.cpp
+        src/GameEngine/Scene/ScriptableEntity.cpp
 
         src/GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.cpp
         src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp

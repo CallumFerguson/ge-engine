@@ -5,13 +5,13 @@
 #include "GameEngine/Assets/gltfloader.hpp"
 
 #include "GameEngine/Engine/App.hpp"
-#include "GameEngine/Engine/Components.hpp"
-#include "GameEngine/Engine/Entity.hpp"
+#include "GameEngine/Scene/Components.hpp"
+#include "GameEngine/Scene/Entity.hpp"
 #include "GameEngine/Engine/Input.hpp"
 #include "GameEngine/Engine/KeyCode.hpp"
-#include "GameEngine/Engine/Random.hpp"
-#include "GameEngine/Engine/Scene.hpp"
-#include "GameEngine/Engine/ScriptableEntity.hpp"
+#include "GameEngine/Utility/Random.hpp"
+#include "GameEngine/Scene/Scene.hpp"
+#include "GameEngine/Scene/ScriptableEntity.hpp"
 #include "GameEngine/Engine/Time.hpp"
 #include "GameEngine/Engine/Window.hpp"
 
