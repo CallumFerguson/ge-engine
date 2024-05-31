@@ -19,6 +19,8 @@ following options listed under [Build Instructions](#build-instructions) are off
 
 ```
 git clone https://github.com/CallumFerguson/GameEngine
+cd GameEngine
+git submodule update --init
 ```
 
 - Open Visual Studio
@@ -50,11 +52,25 @@ http-server -p 8080
 
 ### Building Windows native in CLion
 
+```
+git clone https://github.com/CallumFerguson/GameEngine
+cd GameEngine
+git submodule update --init
+```
+
+- Open project in CLion
 - Select Visual Studio for the CMake Toolchain
 - Press build or run
 
 ### Building WASM on windows in CLion
 
+```
+git clone https://github.com/CallumFerguson/GameEngine
+cd GameEngine
+git submodule update --init
+```
+
+- Open project in CLion
 - create a .env file and add emscripten_cmake_path=C:\Program Files\JetBrains\CLion [version]
   \bin\cmake\win\x64\bin\cmake.exe
 - Go to "File" > "Settings", then "Build, Execution, Deployment" > "Toolchains"
