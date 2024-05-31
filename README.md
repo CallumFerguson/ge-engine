@@ -29,7 +29,7 @@ git submodule update --init
 
 ```
 cmake -B build -G Ninja
-cmake --build build
+cmake --build build --target Sandbox
 cd build/dist
 .\GameEngine.exe
 ```
@@ -40,7 +40,7 @@ cd build/dist
 git clone https://github.com/CallumFerguson/GameEngine
 cd GameEngine
 emcmake cmake -B build-wasm -G Ninja -DEMSDK_PATH=C:\path\to\emsdk
-cmake --build build-wasm
+cmake --build build-wasm --target Sandbox
 cd build-wasm/dist
 ```
 
@@ -60,6 +60,7 @@ git submodule update --init
 
 - Open project in CLion
 - Select Visual Studio for the CMake Toolchain
+- Select the Sandbox run configuration
 - Press build or run
 
 ### Building WASM on windows in CLion
@@ -80,9 +81,9 @@ git submodule update --init
 - Duplicate "Debug" and name it "Debug-Emscripten"
 - Select "Emscripten" for "Toolchain"
 - Add -DEMSDK_PATH=C:\path\to\emsdk to CMake Options
-- Close settings and select the GameEngine-Emscripten | Debug-Emscripten run configuration
+- Close settings and select the Sandbox-Emscripten | Debug-Emscripten run configuration
 - Go to "Run" > "Edit Configurations..."
-- Select "CMake Application" > "GameEngine-Emscripten"
+- Select "CMake Application" > "Sandbox-Emscripten"
 - Set Executable to the included start-http-server.bat
 - cd into browser-reloader and run "npm install"
 - Press run and go to http://127.0.0.1:3002
