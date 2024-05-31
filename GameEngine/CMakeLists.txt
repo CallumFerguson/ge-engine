@@ -19,10 +19,10 @@ set(
         src/GameEngine/Utility/utility.cpp
         src/GameEngine/Utility/Random.cpp
 
-        src/GameEngine/Engine/App.cpp
-        src/GameEngine/Engine/Window.cpp
-        src/GameEngine/Engine/Time.cpp
-        src/GameEngine/Engine/Input.cpp
+        src/GameEngine/Core/App.cpp
+        src/GameEngine/Core/Window.cpp
+        src/GameEngine/Core/Time.cpp
+        src/GameEngine/Core/Input.cpp
 
         src/GameEngine/Scene/Scene.cpp
         src/GameEngine/Scene/Entity.cpp
