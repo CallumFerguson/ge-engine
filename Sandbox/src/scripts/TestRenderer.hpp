@@ -4,9 +4,9 @@
 #include <webgpu/webgpu_cpp.h>
 #include "GameEngine.hpp"
 
-struct TestRenderer : public ScriptableEntity {
+struct TestRenderer : public GameEngine::ScriptableEntity {
 public:
-    explicit TestRenderer(std::shared_ptr<WebGPUShader> shader);
+    explicit TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader);
 
     void onStart();
 
@@ -17,7 +17,7 @@ public:
     void onMainRenderPass();
 
 private:
-    std::shared_ptr<WebGPUShader> m_shader;
+    std::shared_ptr<GameEngine::WebGPUShader> m_shader;
 
     size_t m_numIndices = 0;
 

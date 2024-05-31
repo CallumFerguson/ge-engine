@@ -15,6 +15,8 @@
 
 #endif
 
+namespace GameEngine {
+
 static std::function<void()> s_rerenderRequiredCallback;
 
 #ifndef __EMSCRIPTEN__
@@ -112,4 +114,6 @@ int Window::renderSurfaceHeight() const {
 
 double Window::getWindowTime() {
     return glfwGetTime();
+}
+
 }

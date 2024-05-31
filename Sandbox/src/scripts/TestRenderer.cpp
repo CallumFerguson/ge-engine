@@ -5,13 +5,13 @@
 #include <imgui.h>
 #include <imgui_memory_editor.h>
 
-TestRenderer::TestRenderer(std::shared_ptr<WebGPUShader> shader): m_shader(std::move(shader)) {}
+TestRenderer::TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader): m_shader(std::move(shader)) {}
 
 void TestRenderer::onStart() {
-    auto device = WebGPURenderer::device();
+    auto device = GameEngine::WebGPURenderer::device();
 
     wgpu::ColorTargetState colorTargetState = {};
-    colorTargetState.format = WebGPURenderer::mainSurfacePreferredFormat();
+    colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
 
     wgpu::BufferBindingLayout bindGroupLayoutGroup0Entry0BufferBindingLayout = {};
     bindGroupLayoutGroup0Entry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
@@ -31,15 +31,15 @@ void TestRenderer::onStart() {
     pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
     auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
 
-    auto model = loadModel("assets/sphere.glb");
+    auto model = GameEngine::loadModel("assets/sphere.glb");
     if(!model.has_value()) {
         throw std::runtime_error("no model");
     }
 
     m_numIndices = model->numIndices;
 
-    m_positionBuffer = createWebGPUBuffer(device, model->positions, model->numPositions * 4 * 3, wgpu::BufferUsage::Vertex);
-    m_indexBuffer = createWebGPUBuffer(device, model->indices, model->numIndices * 2, wgpu::BufferUsage::Index);
+    m_positionBuffer = GameEngine::createWebGPUBuffer(device, model->positions, model->numPositions * 4 * 3, wgpu::BufferUsage::Vertex);
+    m_indexBuffer = GameEngine::createWebGPUBuffer(device, model->indices, model->numIndices * 2, wgpu::BufferUsage::Index);
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
@@ -96,10 +96,10 @@ void TestRenderer::onStart() {
 }
 
 void TestRenderer::onUpdate() {
-    if(Input::getKeyDown(KeyCode::Space)) {
+    if(GameEngine::Input::getKeyDown(GameEngine::KeyCode::Space)) {
         randomizeColor();
     }
-    if(Input::getKey(KeyCode::R)) {
+    if(GameEngine::Input::getKey(GameEngine::KeyCode::R)) {
         randomizeColor();
     }
 }
@@ -118,7 +118,7 @@ void TestRenderer::onImGui() {
 }
 
 void TestRenderer::onMainRenderPass() {
-    auto renderPassEncoder = WebGPURenderer::renderPassEncoder();
+    auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(m_pipeline);
     renderPassEncoder.SetBindGroup(0, m_bindGroup0);
     renderPassEncoder.SetVertexBuffer(0, m_positionBuffer);
@@ -127,8 +127,8 @@ void TestRenderer::onMainRenderPass() {
 }
 
 void TestRenderer::randomizeColor() {
-    m_uniformBufferData[0] = Random::value();
-    m_uniformBufferData[1] = Random::value();
-    m_uniformBufferData[2] = Random::value();
-    WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, 16);
+    m_uniformBufferData[0] = GameEngine::Random::value();
+    m_uniformBufferData[1] = GameEngine::Random::value();
+    m_uniformBufferData[2] = GameEngine::Random::value();
+    GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, 16);
 }

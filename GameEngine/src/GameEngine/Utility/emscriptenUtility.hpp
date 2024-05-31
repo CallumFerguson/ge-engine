@@ -2,4 +2,8 @@
 
 #include <webgpu/webgpu_cpp.h>
 
+namespace GameEngine {
+
 void updateCursor();
+
+}

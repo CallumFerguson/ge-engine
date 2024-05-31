@@ -3,6 +3,8 @@
 #include <functional>
 #include <GLFW/glfw3.h>
 
+namespace GameEngine {
+
 class WebGPURenderer;
 
 class Window {
@@ -30,3 +32,5 @@ private:
 
     friend class Input;
 };
+
+}

@@ -2,6 +2,8 @@
 
 #include "Window.hpp"
 
+namespace GameEngine {
+
 static double s_startTime = -1;
 static double s_lastTime = -1;
 static double s_time;
@@ -30,4 +32,6 @@ void Time::onUpdate() {
         s_deltaTime = s_time - s_lastTime;
     }
     s_lastTime = s_time;
+}
+
 }

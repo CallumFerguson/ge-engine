@@ -3,6 +3,8 @@
 #include "KeyCode.hpp"
 #include "Window.hpp"
 
+namespace GameEngine {
+
 class Input {
 public:
     static bool getKey(KeyCode keyCode);
@@ -14,3 +16,5 @@ private:
 
     friend class Window;
 };
+
+}

@@ -3,6 +3,8 @@
 #include <entt/entt.hpp>
 #include "Scene.hpp"
 
+namespace GameEngine {
+
 class Entity {
 public:
     Entity() = default;
@@ -36,3 +38,5 @@ private:
     entt::entity m_enttEntity = entt::null;
     Scene *m_scene = nullptr;
 };
+
+}

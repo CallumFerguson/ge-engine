@@ -10,6 +10,8 @@
 // #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #include <tiny_gltf.h>
 
+namespace GameEngine {
+
 tinygltf::TinyGLTF loader;
 
 std::optional<Model> loadModel(const std::string &filename) {
@@ -98,4 +100,6 @@ std::optional<Model> loadModel(const std::string &filename) {
 //    } else {
 //        std::cout << "No textures found in the model." << std::endl;
 //    }
+}
+
 }

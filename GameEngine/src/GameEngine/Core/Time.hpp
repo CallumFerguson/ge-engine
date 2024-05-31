@@ -1,5 +1,7 @@
 #pragma once
 
+namespace GameEngine {
+
 class Time {
 public:
     static double time();
@@ -11,3 +13,5 @@ private:
 
     friend class App;
 };
+
+}

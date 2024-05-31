@@ -2,6 +2,8 @@
 
 #include <entt/entt.hpp>
 
+namespace GameEngine {
+
 class Entity;
 
 class Scene {
@@ -17,3 +19,5 @@ private:
 
     friend class Entity;
 };
+
+}

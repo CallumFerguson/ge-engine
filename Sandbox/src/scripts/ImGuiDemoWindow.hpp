@@ -2,7 +2,7 @@
 
 #include "GameEngine.hpp"
 
-class ImGuiDemoWindow : public ScriptableEntity {
+class ImGuiDemoWindow : public GameEngine::ScriptableEntity {
 public:
     void onImGui();
 

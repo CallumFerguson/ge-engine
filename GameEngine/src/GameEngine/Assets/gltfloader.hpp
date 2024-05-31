@@ -4,6 +4,8 @@
 #include <optional>
 #include <tiny_gltf.h>
 
+namespace GameEngine {
+
 struct Model {
     tinygltf::Model model;
     size_t numPositions;
@@ -14,3 +16,5 @@ struct Model {
 };
 
 std::optional<Model> loadModel(const std::string &filename);
+
+}

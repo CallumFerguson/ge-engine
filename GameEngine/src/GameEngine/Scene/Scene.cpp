@@ -4,6 +4,8 @@
 #include "Components.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 
+namespace GameEngine {
+
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);
     entity.addComponent<TransformComponent>();
@@ -43,4 +45,6 @@ void Scene::onUpdate() {
     });
 
     WebGPURenderer::endMainRenderPass();
+}
+
 }

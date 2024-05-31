@@ -3,6 +3,8 @@
 #include "imgui.h"
 #include <emscripten.h>
 
+namespace GameEngine {
+
 void updateCursor() {
     ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
     switch (cursor) {
@@ -40,4 +42,6 @@ void updateCursor() {
             EM_ASM({ document.body.style.cursor = "default"; });
             break;
     }
+}
+
 }

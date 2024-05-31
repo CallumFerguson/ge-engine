@@ -2,6 +2,8 @@
 
 // based on: https://github.com/TheCherno/Hazel/blob/1feb70572fa87fa1c4ba784a2cfeada5b4a500db/Hazel/src/Hazel/Core/KeyCodes.h#L1
 
+namespace GameEngine {
+
 enum class KeyCode : int {
     // From glfw3.h
     Space = 32,
@@ -135,3 +137,5 @@ enum class KeyCode : int {
     RightSuper = 347,
     Menu = 348
 };
+
+}

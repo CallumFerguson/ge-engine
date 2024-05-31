@@ -2,6 +2,8 @@
 
 #include <queue>
 
+namespace GameEngine {
+
 class RollingAverage {
 public:
     explicit RollingAverage(int numSamples = 100);
@@ -16,3 +18,5 @@ private:
     double m_total = 0;
     double m_average = 0;
 };
+
+}

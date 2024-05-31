@@ -3,6 +3,8 @@
 #include <functional>
 #include <webgpu/webgpu_cpp.h>
 
+namespace GameEngine {
+
 class Window;
 
 class WebGPURenderer {
@@ -51,3 +53,5 @@ private:
 
     static void errorCallback(WGPUErrorType type, const char *message, void *userdata);
 };
+
+}

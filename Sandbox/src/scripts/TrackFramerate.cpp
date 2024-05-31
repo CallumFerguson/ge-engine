@@ -5,7 +5,7 @@
 #include "GameEngine.hpp"
 
 void TrackFramerate::onImGui() {
-    m_fpsRollingAverage.addSample(1.0 / Time::deltaTime());
+    m_fpsRollingAverage.addSample(1.0 / GameEngine::Time::deltaTime());
 
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));

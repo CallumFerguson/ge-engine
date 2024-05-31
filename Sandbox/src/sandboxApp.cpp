@@ -8,9 +8,9 @@
 #include "scripts/ImGuiDemoWindow.hpp"
 
 void runSandboxApp() {
-    App app;
+    GameEngine::App app;
 
-    Scene &scene = app.getActiveScene();
+    GameEngine::Scene &scene = app.getActiveScene();
 
 //    Entity entity = scene.createEntity();
 //    entity.addComponent<NativeScriptComponent>().bind<TestScript>();
@@ -18,13 +18,13 @@ void runSandboxApp() {
 //    Entity entity2 = scene.createEntity("my entity");
 //    entity2.addComponent<NativeScriptComponent>().bind<TestScript>();
 
-    auto unlitShader = std::make_shared<WebGPUShader>("shaders/unlit_color.wgsl");
+    auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 
-    Entity renderingEntity = scene.createEntity();
-    renderingEntity.addComponent<NativeScriptComponent>().bind<TestRenderer>(unlitShader);
+    GameEngine::Entity renderingEntity = scene.createEntity();
+    renderingEntity.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader);
 
-    Entity trackFPS = scene.createEntity();
-    trackFPS.addComponent<NativeScriptComponent>().bind<TrackFramerate>();
+    GameEngine::Entity trackFPS = scene.createEntity();
+    trackFPS.addComponent<GameEngine::NativeScriptComponent>().bind<TrackFramerate>();
 
 //    Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();

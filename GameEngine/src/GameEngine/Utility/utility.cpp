@@ -2,6 +2,8 @@
 
 #include "stb_image.h"
 
+namespace GameEngine {
+
 wgpu::Buffer createWebGPUBuffer(wgpu::Device &device, void *data, uint64_t byteLength, wgpu::BufferUsage usage) {
     wgpu::BufferDescriptor bufferDescriptor = {};
     bufferDescriptor.size = byteLength;
@@ -36,4 +38,6 @@ void setWindowIcon(GLFWwindow *window, const char *iconPath) {
 
     // Free the image memory
     stbi_image_free(pixels);
+}
+
 }

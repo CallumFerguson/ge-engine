@@ -4,6 +4,8 @@
 #include <sstream>
 #include "WebGPURenderer.hpp"
 
+namespace GameEngine {
+
 WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
     auto device = WebGPURenderer::device();
 
@@ -26,4 +28,6 @@ WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
 
 wgpu::ShaderModule &WebGPUShader::shaderModule() {
     return m_shaderModule;
+}
+
 }

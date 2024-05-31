@@ -11,6 +11,8 @@
 
 #endif
 
+namespace GameEngine {
+
 static std::function<void()> mainLoop;
 
 #ifdef __EMSCRIPTEN__
@@ -87,4 +89,6 @@ void App::run() {
 
 Scene &App::getActiveScene() {
     return m_scene;
+}
+
 }

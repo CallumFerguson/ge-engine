@@ -16,6 +16,8 @@
 
 #endif
 
+namespace GameEngine {
+
 static bool s_initFinished;
 static bool s_initializedSuccessfully;
 
@@ -267,4 +269,6 @@ wgpu::RenderPassEncoder &WebGPURenderer::renderPassEncoder() {
 
 wgpu::CommandEncoder &WebGPURenderer::commandEncoder() {
     return s_commandEncoder;
+}
+
 }

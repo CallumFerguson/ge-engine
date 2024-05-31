@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+namespace GameEngine {
+
 RollingAverage::RollingAverage(int numSamples) : m_numSamples(numSamples) {
     if (numSamples < 1) {
         throw std::runtime_error("numSamples should be larger than 0");
@@ -21,4 +23,6 @@ void RollingAverage::addSample(double sample) {
 
 double RollingAverage::average() const {
     return m_average;
+}
+
 }

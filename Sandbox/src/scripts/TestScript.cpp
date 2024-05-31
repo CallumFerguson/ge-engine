@@ -5,15 +5,15 @@
 #include "GameEngine.hpp"
 
 void TestScript::onStart() {
-    auto &transform = getComponent<TransformComponent>();
+    auto &transform = getComponent<GameEngine::TransformComponent>();
     std::cout << "start: " << transform.position[0] << std::endl;
 }
 
 void TestScript::onUpdate() {
-    auto &transform = getComponent<TransformComponent>();
+    auto &transform = getComponent<GameEngine::TransformComponent>();
     transform.position[0] += 1;
     std::cout << "update: " << transform.position[0] << ", name: "
-              << getComponent<NameComponent>().name << std::endl;
+              << getComponent<GameEngine::NameComponent>().name << std::endl;
 }
 
 void TestScript::onImGui() {

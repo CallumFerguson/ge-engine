@@ -2,6 +2,8 @@
 
 #include "Entity.hpp"
 
+namespace GameEngine {
+
 class ScriptableEntity {
 public:
     template<typename T, typename... Args>
@@ -32,3 +34,5 @@ private:
 
     friend class Scene;
 };
+
+}

@@ -3,6 +3,8 @@
 #include "../Scene/Scene.hpp"
 #include "Window.hpp"
 
+namespace GameEngine {
+
 class App {
 public:
     App();
@@ -15,3 +17,5 @@ private:
     Scene m_scene;
     Window m_window;
 };
+
+}

@@ -2,10 +2,10 @@
 
 #include "GameEngine.hpp"
 
-class TrackFramerate : public ScriptableEntity {
+class TrackFramerate : public GameEngine::ScriptableEntity {
 public:
     void onImGui();
 
 private:
-    RollingAverage m_fpsRollingAverage;
+    GameEngine::RollingAverage m_fpsRollingAverage;
 };

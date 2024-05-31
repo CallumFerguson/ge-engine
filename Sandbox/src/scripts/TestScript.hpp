@@ -2,7 +2,7 @@
 
 #include "GameEngine.hpp"
 
-struct TestScript : public ScriptableEntity {
+struct TestScript : public GameEngine::ScriptableEntity {
     void onStart();
 
     void onUpdate();

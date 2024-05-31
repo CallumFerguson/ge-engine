@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <GLFW/glfw3.h>
 
+namespace GameEngine {
+
 Window *Input::s_window;
 
 static std::unordered_map<KeyCode, bool> s_previousKeyStates;
@@ -16,4 +18,6 @@ bool Input::getKeyDown(KeyCode keyCode) {
     bool previousState = s_previousKeyStates[keyCode];
     s_previousKeyStates[keyCode] = currentState;
     return currentState && !previousState;
+}
+
 }

@@ -3,6 +3,8 @@
 #include <string>
 #include <webgpu/webgpu_cpp.h>
 
+namespace GameEngine {
+
 class WebGPUShader {
 public:
     explicit WebGPUShader(const std::string &shaderFilePath);
@@ -12,3 +14,5 @@ public:
 private:
     wgpu::ShaderModule m_shaderModule;
 };
+
+}

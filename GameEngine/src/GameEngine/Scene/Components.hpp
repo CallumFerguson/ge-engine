@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include "ScriptableEntity.hpp"
 
+namespace GameEngine {
+
 struct TransformComponent {
     glm::vec3 position;
 };
@@ -31,11 +33,11 @@ struct NativeScriptComponent {
     std::function<void()> instantiate;
     std::function<void()> destroyInstance;
 
-    std::function<void(ScriptableEntity *passedInstance)> onStart;
-    std::function<void(ScriptableEntity *passedInstance)> onUpdate;
-    std::function<void(ScriptableEntity *passedInstance)> onImGui;
-    std::function<void(ScriptableEntity *passedInstance)> onCustomRenderPass;
-    std::function<void(ScriptableEntity *passedInstance)> onMainRenderPass;
+    std::function<void(ScriptableEntity * passedInstance)> onStart;
+    std::function<void(ScriptableEntity * passedInstance)> onUpdate;
+    std::function<void(ScriptableEntity * passedInstance)> onImGui;
+    std::function<void(ScriptableEntity * passedInstance)> onCustomRenderPass;
+    std::function<void(ScriptableEntity * passedInstance)> onMainRenderPass;
 
     ~NativeScriptComponent() {
         if (destroyInstance) {
@@ -81,3 +83,5 @@ struct NativeScriptComponent {
         };
     }
 };
+
+}
