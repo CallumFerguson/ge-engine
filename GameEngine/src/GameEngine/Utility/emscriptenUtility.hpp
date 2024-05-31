@@ -6,4 +6,6 @@ namespace GameEngine {
 
 void updateCursor();
 
+void resetCanvas();
+
 }

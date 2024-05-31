@@ -44,4 +44,16 @@ void updateCursor() {
     }
 }
 
+void resetCanvas() {
+    EM_ASM({
+               const newCanvas = document.createElement("canvas");
+               newCanvas.id = "canvas";
+
+               const oldCanvas = Module.canvas;
+
+               oldCanvas.parentElement.replaceChild(newCanvas, oldCanvas);
+               Module.canvas = newCanvas;
+           });
+}
+
 }

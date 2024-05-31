@@ -9,6 +9,11 @@ class App {
 public:
     App();
 
+    ~App() {
+        std::cout << "app bye" << std::endl;
+        
+    }
+
     void run();
 
     Scene &getActiveScene();

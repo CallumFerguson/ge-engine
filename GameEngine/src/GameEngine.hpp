@@ -9,6 +9,7 @@
 #include "GameEngine/Core/KeyCode.hpp"
 #include "GameEngine/Core/Time.hpp"
 #include "GameEngine/Core/Window.hpp"
+#include "GameEngine/Core/Exit.hpp"
 
 #include "GameEngine/Scene/Components.hpp"
 #include "GameEngine/Scene/Entity.hpp"
