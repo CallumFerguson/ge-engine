@@ -23,9 +23,6 @@ if (EMSCRIPTEN)
     append_linker_flags("-sASYNCIFY")
     append_linker_flags("-sUSE_WEBGPU=1")
     append_linker_flags("-sUSE_GLFW=3")
-else ()
-    #    append_linker_flags("-static-libstdc++")
-    #    append_linker_flags("-static-libgcc")
 endif ()
 
 set(
