@@ -33,7 +33,7 @@ void TestRenderer::onStart() {
 
     auto model = GameEngine::loadModel("assets/sphere.glb");
     if(!model.has_value()) {
-        throw std::runtime_error("no model");
+        GameEngine::exitApp("no model");
     }
 
     m_numIndices = model->numIndices;

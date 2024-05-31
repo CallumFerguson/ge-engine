@@ -5,6 +5,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
 #include "../../../Core/Window.hpp"
+#include "../../../Core/Exit.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -52,8 +53,7 @@ void WebGPURenderer::init(Window *window) {
 #endif
 
     if (!s_initializedSuccessfully) {
-        std::cout << "failed to initialize WebGPURenderer" << std::endl;
-        throw std::runtime_error("failed to initialize WebGPURenderer");
+        exitApp("failed to initialize WebGPURenderer");
     }
 }
 

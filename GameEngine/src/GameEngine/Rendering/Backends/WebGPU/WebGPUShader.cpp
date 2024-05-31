@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include "WebGPURenderer.hpp"
+#include "../../../Core/Exit.hpp"
 
 namespace GameEngine {
 
@@ -11,7 +12,7 @@ WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
 
     std::ifstream shaderFile(shaderFilePath, std::ios::binary);
     if (!shaderFile) {
-        throw std::runtime_error("Could not open shader file: " + shaderFilePath);
+        exitApp("Could not open shader file: " + shaderFilePath);
     }
     std::stringstream shaderBuffer;
     shaderBuffer << shaderFile.rdbuf();

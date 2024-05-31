@@ -1,12 +1,13 @@
 #include "RollingAverage.hpp"
 
 #include <stdexcept>
+#include "../Core/Exit.hpp"
 
 namespace GameEngine {
 
 RollingAverage::RollingAverage(int numSamples) : m_numSamples(numSamples) {
     if (numSamples < 1) {
-        throw std::runtime_error("numSamples should be larger than 0");
+        exitApp("numSamples should be larger than 0");
     }
 }
 

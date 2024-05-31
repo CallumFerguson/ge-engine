@@ -60,12 +60,7 @@ add_library(
 )
 
 if (EMSCRIPTEN)
-    target_compile_options(GameEngine PUBLIC -fexceptions)
-    target_link_options(
-            GameEngine PUBLIC
-            -fexceptions
-            -sEXIT_RUNTIME
-    )
+    target_link_options(GameEngine PUBLIC -sEXIT_RUNTIME)
 endif ()
 
 target_precompile_headers(GameEngine PRIVATE src/gepch.hpp)
