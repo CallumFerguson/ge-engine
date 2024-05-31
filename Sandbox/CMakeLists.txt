@@ -4,27 +4,6 @@ project(Sandbox)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist)
 
-# macros from https://github.com/juj/wasm_webgpu/blob/main/samples/CMakeLists.txt
-macro(append_compiler_flags FLAGS)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-endmacro()
-
-macro(append_linker_flags FLAGS)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
-endmacro()
-
-if (EMSCRIPTEN)
-    append_compiler_flags("-fexceptions")
-
-    append_linker_flags("--use-preload-cache")
-    append_linker_flags("-sFORCE_FILESYSTEM")
-    #    append_linker_flags("-sALLOW_MEMORY_GROWTH")
-    append_linker_flags("-sASYNCIFY")
-    append_linker_flags("-sUSE_WEBGPU=1")
-    append_linker_flags("-sUSE_GLFW=3")
-endif ()
-
 set(
         SOURCE_FILES
 
@@ -42,6 +21,17 @@ add_executable(
         Sandbox
         ${SOURCE_FILES}
 )
+
+if (EMSCRIPTEN)
+    target_link_options(
+            Sandbox PRIVATE
+            --use-preload-cache
+            -sFORCE_FILESYSTEM
+            -sASYNCIFY
+            -sUSE_WEBGPU=1
+            -sUSE_GLFW=3
+    )
+endif ()
 
 target_precompile_headers(Sandbox REUSE_FROM GameEngine)
 

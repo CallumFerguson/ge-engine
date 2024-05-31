@@ -3,20 +3,6 @@ project(GameEngine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# macros from https://github.com/juj/wasm_webgpu/blob/main/samples/CMakeLists.txt
-macro(append_compiler_flags FLAGS)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-endmacro()
-
-macro(append_linker_flags FLAGS)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
-endmacro()
-
-if (EMSCRIPTEN)
-    append_compiler_flags("-fexceptions")
-endif ()
-
 #TODO: separate vulkan/webgpu build and within webgpu build option for wasm or native webgpu, then use included glfw for vulkan
 #link_directories(Dependencies/GLFW/lib)
 
@@ -71,6 +57,11 @@ add_library(
         STATIC
         ${SOURCE_FILES}
 )
+
+if (EMSCRIPTEN)
+    target_compile_options(GameEngine PUBLIC -fexceptions)
+    target_link_options(GameEngine PUBLIC -fexceptions)
+endif ()
 
 target_precompile_headers(GameEngine PRIVATE src/gepch.hpp)
 
