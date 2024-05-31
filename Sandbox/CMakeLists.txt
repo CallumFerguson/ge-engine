@@ -46,6 +46,8 @@ add_executable(
         ${SOURCE_FILES}
 )
 
+target_precompile_headers(Sandbox REUSE_FROM GameEngine)
+
 target_link_libraries(Sandbox PRIVATE GameEngine)
 
 target_include_directories(

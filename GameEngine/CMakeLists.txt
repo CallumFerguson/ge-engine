@@ -58,6 +58,8 @@ add_library(
         ${SOURCE_FILES}
 )
 
+target_precompile_headers(GameEngine PRIVATE src/gepch.hpp)
+
 target_include_directories(
         GameEngine PUBLIC
         ../Dependencies/glm/include
