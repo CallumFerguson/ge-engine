@@ -67,8 +67,6 @@ git submodule update --init
 
 ```
 git clone https://github.com/CallumFerguson/GameEngine
-cd GameEngine
-git submodule update --init
 ```
 
 - Open project in CLion
