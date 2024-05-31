@@ -4,8 +4,8 @@ project(Sandbox)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist)
 
-set(
-        SOURCE_FILES
+add_executable(
+        Sandbox
 
         src/main.cpp
 
@@ -15,11 +15,6 @@ set(
         src/scripts/TestRenderer.cpp
         src/scripts/TrackFramerate.cpp
         src/scripts/ImGuiDemoWindow.cpp
-)
-
-add_executable(
-        Sandbox
-        ${SOURCE_FILES}
 )
 
 if (EMSCRIPTEN)

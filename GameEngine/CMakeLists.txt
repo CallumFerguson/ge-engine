@@ -10,9 +10,9 @@ if (NOT EMSCRIPTEN)
     link_directories(${CMAKE_CURRENT_BINARY_DIR}/dawn/third_party/glfw/src)
 endif ()
 
-set(
-        SOURCE_FILES
-
+add_library(
+        GameEngine
+        STATIC
         src/GameEngine/Assets/gltfloader.cpp
 
         src/GameEngine/Utility/RollingAverage.cpp
@@ -42,22 +42,18 @@ set(
 )
 
 if (EMSCRIPTEN)
-    list(
-            APPEND SOURCE_FILES
+    target_sources(
+            GameEngine
+            PUBLIC
             src/GameEngine/Utility/emscriptenUtility.cpp
     )
 else ()
-    list(
-            APPEND SOURCE_FILES
-            #            GameEngine/webGPUDawn.cpp
-    )
+    #    target_sources(
+    #            GameEngine
+    #            PUBLIC
+    #
+    #    )
 endif ()
-
-add_library(
-        GameEngine
-        STATIC
-        ${SOURCE_FILES}
-)
 
 if (EMSCRIPTEN)
     target_link_options(GameEngine PUBLIC -sEXIT_RUNTIME)
