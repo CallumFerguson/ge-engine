@@ -2,19 +2,22 @@
 
 #include <string>
 #include <optional>
+#include <memory>
 #include <tiny_gltf.h>
 
 namespace GameEngine {
 
-struct Model {
-    tinygltf::Model model;
-    size_t numPositions;
-    void *positions;
-    size_t numIndices;
-    void *indices;
-    int indicesComponentType;
+struct MeshAsset {
+    std::vector<int32_t> indices;
+    std::vector<float> positions;
+
+    MeshAsset() = delete;
+
+    explicit MeshAsset(const std::string &inputFilePath);
 };
 
-std::optional<Model> loadModel(const std::string &filename);
+bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::string &outputFilePath);
+
+void readGLTFMesh(const std::string &outputFilePath);
 
 }

@@ -31,15 +31,15 @@ void TestRenderer::onStart() {
     pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
     auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
 
-    auto model = GameEngine::loadModel("assets/sphere.glb");
-    if(!model.has_value()) {
+    GameEngine::MeshAsset meshAsset("assets/sphere.glb.asset");
+    if(meshAsset.indices.empty()) {
         GameEngine::exitApp("no model");
     }
 
-    m_numIndices = model->numIndices;
+    m_numIndices = meshAsset.indices.size();
 
-    m_positionBuffer = GameEngine::createWebGPUBuffer(device, model->positions, model->numPositions * 4 * 3, wgpu::BufferUsage::Vertex);
-    m_indexBuffer = GameEngine::createWebGPUBuffer(device, model->indices, model->numIndices * 2, wgpu::BufferUsage::Index);
+    m_positionBuffer = GameEngine::createWebGPUBuffer(device, meshAsset.positions.data(), meshAsset.positions.size() * sizeof(float) * 3, wgpu::BufferUsage::Vertex);
+    m_indexBuffer = GameEngine::createWebGPUBuffer(device, meshAsset.indices.data(), meshAsset.indices.size() * sizeof(uint32_t), wgpu::BufferUsage::Index);
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
@@ -122,7 +122,7 @@ void TestRenderer::onMainRenderPass() {
     renderPassEncoder.SetPipeline(m_pipeline);
     renderPassEncoder.SetBindGroup(0, m_bindGroup0);
     renderPassEncoder.SetVertexBuffer(0, m_positionBuffer);
-    renderPassEncoder.SetIndexBuffer(m_indexBuffer, wgpu::IndexFormat::Uint16);
+    renderPassEncoder.SetIndexBuffer(m_indexBuffer, wgpu::IndexFormat::Uint32);
     renderPassEncoder.DrawIndexed(m_numIndices);
 }
 

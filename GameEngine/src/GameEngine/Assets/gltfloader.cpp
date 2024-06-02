@@ -1,62 +1,42 @@
 #include "gltfloader.hpp"
 
 #include <iostream>
-#include <optional>
 
-// Define these only in *one* .cc file.
+// I don't know why this is needed
+#ifdef APIENTRY
+#undef APIENTRY
+#endif
+
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-// #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
+
 #include <tiny_gltf.h>
 
 namespace GameEngine {
 
-tinygltf::TinyGLTF loader;
-
-std::optional<Model> loadModel(const std::string &filename) {
-    tinygltf::Model model;
-    std::string err;
-    std::string warn;
-
-    bool result = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
-    if (!warn.empty()) {
-        std::cout << "loadModel warning: " << warn << std::endl;
-    }
-    if (!err.empty()) {
-        std::cerr << "loadModel error: " << err << std::endl;
-    }
-    if (!result) {
-        std::cerr << "loadModel ailed to load GLTF model." << std::endl;
-        return std::nullopt;
-    }
-
-    if (model.meshes.empty()) {
-        std::cout << "Model does not contain any meshes." << std::endl;
-        return std::nullopt;
-    }
-
-    auto &mesh = model.meshes[0];
+bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::string &outputFilePath) {
     if (mesh.primitives.empty()) {
         std::cout << "First mesh does not contain any primitives." << std::endl;
-        return std::nullopt;
+        return false;
     }
 
     const tinygltf::Primitive &primitive = mesh.primitives[0];
     auto it = primitive.attributes.find("POSITION");
     if (it == primitive.attributes.end()) {
         std::cout << "Primitive does not contain POSITION attribute." << std::endl;
-        return std::nullopt;
+        return false;
     }
 
     const tinygltf::Accessor &positionAccessor = model.accessors[it->second];
     auto &positionBufferView = model.bufferViews[positionAccessor.bufferView];
     auto &positionBuffer = model.buffers[positionBufferView.buffer];
-    void *positions = &positionBuffer.data[positionBufferView.byteOffset + positionAccessor.byteOffset];
+    auto *positions = &positionBuffer.data[positionBufferView.byteOffset + positionAccessor.byteOffset];
+    int32_t numPositions = positionAccessor.count;
 
     if (positionBufferView.byteStride != 0) {
         std::cout << "positions are not tightly packed which is not supported yet" << std::endl;
-        return std::nullopt;
+        return false;
     }
 //    std::cout << positionBufferView.byteStride << std::endl;
 //    std::cout << positionAccessor.ByteStride(positionBufferView) << std::endl;
@@ -64,42 +44,71 @@ std::optional<Model> loadModel(const std::string &filename) {
 
     if (primitive.indices < 0) {
         std::cout << "Primitive does not contain indices." << std::endl;
-        return std::nullopt;
+        return false;
     }
 
     const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
     auto &indexBufferView = model.bufferViews[indexAccessor.bufferView];
     auto &indexBuffer = model.buffers[indexBufferView.buffer];
-    void *indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
+    auto *indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
 
     if (indexBufferView.byteStride != 0) {
         std::cout << "indices are not tightly packed which is not supported yet" << std::endl;
-        return std::nullopt;
+        return false;
     }
-//    std::cout << indexBufferView.byteStride << std::endl;
-//    std::cout << indexAccessor.ByteStride(indexBufferView) << std::endl;
 
-    Model returnModel;
-    returnModel.model = std::move(model);
-    returnModel.numPositions = positionAccessor.count;
-    returnModel.positions = positions;
-    returnModel.numIndices = indexAccessor.count;
-    returnModel.indices = indices;
-    returnModel.indicesComponentType = indexAccessor.componentType;
-    return returnModel;
+    std::vector<uint32_t> indicesVector;
+    if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+        indicesVector.resize(indexAccessor.count);
+        for (size_t i = 0; i < indexAccessor.count; i++) {
+            indicesVector[i] = static_cast<uint32_t>(reinterpret_cast<const uint16_t *>(indices)[i]);
+        }
+        indices = reinterpret_cast<const unsigned char *>(indicesVector.data());
+    } else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+        //
+    } else {
+        std::cout << "unknown indexAccessor componentType" << std::endl;
+        return false;
+    }
+    int32_t numIndices = indexAccessor.count;
 
-    // Access the first image used as a texture
-//    if (!model.textures.empty()) {
-//        const tinygltf::Texture &texture = model.textures.front();
-//        if (texture.source >= 0) {
-//            const tinygltf::Image &image = model.images[texture.source];
-//            std::cout << "Width: " << image.width << ", Height: " << image.height << std::endl;
-//        } else {
-//            std::cout << "Texture source is invalid." << std::endl;
-//        }
-//    } else {
-//        std::cout << "No textures found in the model." << std::endl;
-//    }
+    std::ofstream outputFile(outputFilePath, std::ios::out | std::ios::binary);
+    if (!outputFile) {
+        std::cerr << "Error: Could not open file for writing!" << std::endl;
+        return false;
+    }
+
+    outputFile.write(reinterpret_cast<const char *>(&numIndices), sizeof(numIndices));
+    outputFile.write(reinterpret_cast<const char *>(indices), numIndices * sizeof(uint32_t));
+
+    outputFile.write(reinterpret_cast<char *>(&numPositions), sizeof(numPositions));
+    outputFile.write(reinterpret_cast<const char *>(positions), numPositions * sizeof(float) * 3);
+
+    // Check if the write was successful
+    if (!outputFile) {
+        std::cerr << "Error: Failed to write data to file!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+MeshAsset::MeshAsset(const std::string &inputFilePath) {
+    std::ifstream inputFile(inputFilePath, std::ios::in | std::ios::binary);
+    if (!inputFile) {
+        std::cerr << "Error: Could not open file for reading!" << std::endl;
+        return;
+    }
+
+    int32_t numIndices;
+    inputFile.read(reinterpret_cast<char *>(&numIndices), sizeof(numIndices));
+    indices.resize(numIndices);
+    inputFile.read(reinterpret_cast<char *>(indices.data()), numIndices * sizeof(uint32_t));
+
+    int32_t numPositions;
+    inputFile.read(reinterpret_cast<char *>(&numPositions), sizeof(numPositions));
+    positions.resize(numPositions * 3);
+    inputFile.read(reinterpret_cast<char *>(positions.data()), numPositions * sizeof(float) * 3);
 }
 
 }
