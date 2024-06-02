@@ -93,22 +93,4 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
     return true;
 }
 
-MeshAsset::MeshAsset(const std::string &inputFilePath) {
-    std::ifstream inputFile(inputFilePath, std::ios::in | std::ios::binary);
-    if (!inputFile) {
-        std::cerr << "Error: Could not open file for reading!" << std::endl;
-        return;
-    }
-
-    int32_t numIndices;
-    inputFile.read(reinterpret_cast<char *>(&numIndices), sizeof(numIndices));
-    indices.resize(numIndices);
-    inputFile.read(reinterpret_cast<char *>(indices.data()), numIndices * sizeof(uint32_t));
-
-    int32_t numPositions;
-    inputFile.read(reinterpret_cast<char *>(&numPositions), sizeof(numPositions));
-    positions.resize(numPositions * 3);
-    inputFile.read(reinterpret_cast<char *>(positions.data()), numPositions * sizeof(float) * 3);
-}
-
 }
