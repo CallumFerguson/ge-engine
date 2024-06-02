@@ -20,8 +20,10 @@ void runSandboxApp() {
 
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 
+    auto mesh = std::make_shared<GameEngine::Mesh>("assets/sphere.glb.asset");
+
     GameEngine::Entity renderingEntity = scene.createEntity();
-    renderingEntity.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader);
+    renderingEntity.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader, mesh);
 
     GameEngine::Entity trackFPS = scene.createEntity();
     trackFPS.addComponent<GameEngine::NativeScriptComponent>().bind<TrackFramerate>();

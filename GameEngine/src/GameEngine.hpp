@@ -18,6 +18,7 @@
 
 #include "GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 #include "GameEngine/Rendering/Backends/WebGPU/WebGPUShader.hpp"
+#include "GameEngine/Rendering/Mesh.hpp"
 
 #include "GameEngine/Utility/emscriptenUtility.hpp"
 #include "GameEngine/Utility/RollingAverage.hpp"

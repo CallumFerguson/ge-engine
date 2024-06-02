@@ -31,6 +31,7 @@ add_library(
 
         src/GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.cpp
         src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp
+        src/GameEngine/Rendering/Mesh.cpp
 
         ../Dependencies/imgui/src/imgui.cpp
         ../Dependencies/imgui/src/imgui_demo.cpp

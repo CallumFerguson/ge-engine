@@ -4,15 +4,19 @@
 
 namespace GameEngine {
 
-wgpu::Buffer createWebGPUBuffer(wgpu::Device &device, void *data, uint64_t byteLength, wgpu::BufferUsage usage) {
+wgpu::Buffer createMappedWebGPUBuffer(wgpu::Device &device, uint64_t byteLength, wgpu::BufferUsage usage) {
     wgpu::BufferDescriptor bufferDescriptor = {};
     bufferDescriptor.size = byteLength;
     bufferDescriptor.usage = usage;
     bufferDescriptor.mappedAtCreation = true;
-    auto buffer = device.CreateBuffer(&bufferDescriptor);
+    return device.CreateBuffer(&bufferDescriptor);
+}
+
+wgpu::Buffer createWebGPUBuffer(wgpu::Device &device, void *data, uint64_t byteLength, wgpu::BufferUsage usage) {
+    auto buffer = createMappedWebGPUBuffer(device, byteLength, usage);
 
     auto mappedRange = buffer.GetMappedRange();
-    std::memcpy(mappedRange, data, bufferDescriptor.size);
+    std::memcpy(mappedRange, data, byteLength);
     buffer.Unmap();
 
     return buffer;

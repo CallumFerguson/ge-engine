@@ -6,7 +6,7 @@
 
 struct TestRenderer : public GameEngine::ScriptableEntity {
 public:
-    explicit TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader);
+    explicit TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader, std::shared_ptr<GameEngine::Mesh> mesh);
 
     void onStart();
 
@@ -18,11 +18,8 @@ public:
 
 private:
     std::shared_ptr<GameEngine::WebGPUShader> m_shader;
+    std::shared_ptr<GameEngine::Mesh> m_mesh;
 
-    size_t m_numIndices = 0;
-
-    wgpu::Buffer m_positionBuffer;
-    wgpu::Buffer m_indexBuffer;
     wgpu::Buffer m_uniformBuffer;
 
     float m_uniformBufferData[4] = {0.25, 0, 0, 1};

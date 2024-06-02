@@ -5,7 +5,7 @@
 #include <imgui.h>
 #include <imgui_memory_editor.h>
 
-TestRenderer::TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader): m_shader(std::move(shader)) {}
+TestRenderer::TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader, std::shared_ptr<GameEngine::Mesh> mesh): m_shader(std::move(shader)), m_mesh(std::move(mesh)) {}
 
 void TestRenderer::onStart() {
     auto device = GameEngine::WebGPURenderer::device();
@@ -30,16 +30,6 @@ void TestRenderer::onStart() {
     pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
     pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
     auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
-
-    GameEngine::MeshAsset meshAsset("assets/sphere.glb.asset");
-    if(meshAsset.indices.empty()) {
-        GameEngine::exitApp("no model");
-    }
-
-    m_numIndices = meshAsset.indices.size();
-
-    m_positionBuffer = GameEngine::createWebGPUBuffer(device, meshAsset.positions.data(), meshAsset.positions.size() * sizeof(float) * 3, wgpu::BufferUsage::Vertex);
-    m_indexBuffer = GameEngine::createWebGPUBuffer(device, meshAsset.indices.data(), meshAsset.indices.size() * sizeof(uint32_t), wgpu::BufferUsage::Index);
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
@@ -121,9 +111,9 @@ void TestRenderer::onMainRenderPass() {
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(m_pipeline);
     renderPassEncoder.SetBindGroup(0, m_bindGroup0);
-    renderPassEncoder.SetVertexBuffer(0, m_positionBuffer);
-    renderPassEncoder.SetIndexBuffer(m_indexBuffer, wgpu::IndexFormat::Uint32);
-    renderPassEncoder.DrawIndexed(m_numIndices);
+    renderPassEncoder.SetVertexBuffer(0, m_mesh->positionBuffer());
+    renderPassEncoder.SetIndexBuffer(m_mesh->indexBuffer(), wgpu::IndexFormat::Uint32);
+    renderPassEncoder.DrawIndexed(m_mesh->indexCount());
 }
 
 void TestRenderer::randomizeColor() {
