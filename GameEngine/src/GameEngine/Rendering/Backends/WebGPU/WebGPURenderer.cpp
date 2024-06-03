@@ -327,9 +327,9 @@ void WebGPURenderer::setUpCameraBindGroup() {
 }
 
 void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection) {
-    float data[32];
+    uint8_t data[128];
     std::memcpy(data, glm::value_ptr(view), 64);
-    std::memcpy(data + 16, glm::value_ptr(projection), 64);
+    std::memcpy(data + 64, glm::value_ptr(projection), 64);
     device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 128);
 }
 
