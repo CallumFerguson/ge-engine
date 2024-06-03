@@ -9,6 +9,10 @@ class WebGPURenderer;
 
 class Window {
 public:
+    Window();
+
+    static const Window &mainWindow();
+
     void init(const std::function<void()> &rerenderRequiredCallback);
 
     bool shouldClose();
@@ -18,6 +22,8 @@ public:
     [[nodiscard]] int renderSurfaceWidth() const;
 
     [[nodiscard]] int renderSurfaceHeight() const;
+
+    [[nodiscard]] float aspectRatio() const;
 
 private:
     GLFWwindow *m_glfwWindow = nullptr;

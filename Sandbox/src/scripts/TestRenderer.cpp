@@ -26,9 +26,11 @@ void TestRenderer::onStart() {
     bindGroupLayoutGroup0Descriptor.entries = &bindGroupLayoutGroup0Entry0;
     auto bindGroupLayoutGroup0 = device.CreateBindGroupLayout(&bindGroupLayoutGroup0Descriptor);
 
+    wgpu::BindGroupLayout bindGroupLayouts[2] = {GameEngine::WebGPURenderer::cameraDataBindGroupLayout(), bindGroupLayoutGroup0};
+
     wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor = {};
-    pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
-    pipelineLayoutDescriptor.bindGroupLayouts = &bindGroupLayoutGroup0;
+    pipelineLayoutDescriptor.bindGroupLayoutCount = 2;
+    pipelineLayoutDescriptor.bindGroupLayouts = bindGroupLayouts;
     auto pipelineLayout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
@@ -61,7 +63,7 @@ void TestRenderer::onStart() {
     pipelineDescriptor.fragment = &fragment;
 
     pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
-    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::None;
+    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
 
     pipelineDescriptor.multisample.count = 1;
 
@@ -110,7 +112,8 @@ void TestRenderer::onImGui() {
 void TestRenderer::onMainRenderPass() {
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(m_pipeline);
-    renderPassEncoder.SetBindGroup(0, m_bindGroup0);
+    renderPassEncoder.SetBindGroup(0, GameEngine::WebGPURenderer::cameraDataBindGroup());
+    renderPassEncoder.SetBindGroup(1, m_bindGroup0);
     renderPassEncoder.SetVertexBuffer(0, m_mesh->positionBuffer());
     renderPassEncoder.SetIndexBuffer(m_mesh->indexBuffer(), wgpu::IndexFormat::Uint32);
     renderPassEncoder.DrawIndexed(m_mesh->indexCount());

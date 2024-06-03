@@ -10,8 +10,7 @@ add_executable(
         src/main.cpp
 
         src/sandboxApp.cpp
-
-        src/scripts/TestScript.cpp
+        
         src/scripts/TestRenderer.cpp
         src/scripts/TrackFramerate.cpp
         src/scripts/ImGuiDemoWindow.cpp

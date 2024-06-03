@@ -57,7 +57,8 @@ App::App() {
 
 void App::run() {
     mainLoop = [&]() {
-        if (!m_window.onUpdate()) {
+        bool frameCanBeRendered = m_window.onUpdate();
+        if (!frameCanBeRendered) {
             return;
         }
 

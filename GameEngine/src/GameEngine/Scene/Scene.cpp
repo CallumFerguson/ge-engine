@@ -18,6 +18,10 @@ Entity Scene::createEntity() {
 }
 
 void Scene::onUpdate() {
+    m_registry.view<CameraComponent>().each([](auto &cameraComponent) {
+//        WebGPURenderer::setProj
+    });
+
     m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
         if (!nsc.instance) {
             nsc.instantiate();
@@ -26,21 +30,21 @@ void Scene::onUpdate() {
         }
     });
 
-    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+    m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         nsc.onUpdate(nsc.instance);
     });
 
-    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+    m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         nsc.onImGui(nsc.instance);
     });
 
-    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+    m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         nsc.onCustomRenderPass(nsc.instance);
     });
 
     WebGPURenderer::startMainRenderPass();
 
-    m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
+    m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         nsc.onMainRenderPass(nsc.instance);
     });
 

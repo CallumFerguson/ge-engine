@@ -6,11 +6,25 @@
 namespace GameEngine {
 
 struct TransformComponent {
-    glm::vec3 position;
+    glm::mat4 localModel;
 };
 
 struct NameComponent {
     std::string name;
+};
+
+class CameraComponent {
+public:
+    explicit CameraComponent(float fieldOfView);
+
+    const glm::mat4 &projection();
+
+private:
+    glm::mat4 m_projection{};
+    float m_aspectRatio;
+    float m_fov;
+    float m_nearClippingPlane = 0.1;
+    float m_farClippingPlane = 1000;
 };
 
 // Helper to detect if a class has a specific member function
@@ -33,11 +47,11 @@ struct NativeScriptComponent {
     std::function<void()> instantiate;
     std::function<void()> destroyInstance;
 
-    std::function<void(ScriptableEntity * passedInstance)> onStart;
-    std::function<void(ScriptableEntity * passedInstance)> onUpdate;
-    std::function<void(ScriptableEntity * passedInstance)> onImGui;
-    std::function<void(ScriptableEntity * passedInstance)> onCustomRenderPass;
-    std::function<void(ScriptableEntity * passedInstance)> onMainRenderPass;
+    std::function<void(ScriptableEntity *passedInstance)> onStart;
+    std::function<void(ScriptableEntity *passedInstance)> onUpdate;
+    std::function<void(ScriptableEntity *passedInstance)> onImGui;
+    std::function<void(ScriptableEntity *passedInstance)> onCustomRenderPass;
+    std::function<void(ScriptableEntity *passedInstance)> onMainRenderPass;
 
     ~NativeScriptComponent() {
         if (destroyInstance) {

@@ -17,6 +17,7 @@
 
 namespace GameEngine {
 
+static Window *s_mainWindow;
 static std::function<void()> s_rerenderRequiredCallback;
 
 #ifndef __EMSCRIPTEN__
@@ -114,6 +115,18 @@ int Window::renderSurfaceHeight() const {
 
 double Window::getWindowTime() {
     return glfwGetTime();
+}
+
+const Window &Window::mainWindow() {
+    return *s_mainWindow;
+}
+
+Window::Window() {
+    s_mainWindow = this;
+}
+
+float Window::aspectRatio() const {
+    return static_cast<float>(m_renderSurfaceWidth) / static_cast<float>(m_renderSurfaceHeight);
 }
 
 }

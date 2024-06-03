@@ -31,6 +31,12 @@ public:
 
     static wgpu::CommandEncoder &commandEncoder();
 
+    static const wgpu::Buffer &cameraDataBuffer();
+
+    static const wgpu::BindGroupLayout &cameraDataBindGroupLayout();
+
+    static const wgpu::BindGroup &cameraDataBindGroup();
+
 private:
     static void getAdapter();
 

@@ -4,8 +4,11 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_wgpu.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "../../../Core/Window.hpp"
 #include "../../../Core/Exit.hpp"
+#include "../../../Utility/utility.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -39,6 +42,10 @@ static wgpu::RenderPassDescriptor s_renderPassDescriptor;
 
 static wgpu::RenderPassEncoder s_renderPassEncoder;
 static wgpu::CommandEncoder s_commandEncoder;
+
+static wgpu::Buffer s_cameraDataBuffer;
+static wgpu::BindGroupLayout s_cameraDataBindGroupLayout;
+static wgpu::BindGroup s_cameraDataBindGroup;
 
 void WebGPURenderer::init(Window *window) {
     s_window = window;
@@ -134,6 +141,40 @@ void WebGPURenderer::finishInit() {
     s_renderPassDescriptor = {};
     s_renderPassDescriptor.colorAttachmentCount = 1;
     s_renderPassDescriptor.colorAttachments = &s_colorAttachment;
+
+    // camera
+
+    wgpu::BufferBindingLayout cameraDataBindGroupLayoutEntry0BufferBindingLayout = {};
+    cameraDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
+
+    wgpu::BindGroupLayoutEntry cameraDataBindGroupLayoutEntry0 = {};
+    cameraDataBindGroupLayoutEntry0.binding = 0;
+    cameraDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
+    cameraDataBindGroupLayoutEntry0.buffer = cameraDataBindGroupLayoutEntry0BufferBindingLayout;
+
+    wgpu::BindGroupLayoutDescriptor cameraDataBindGroupLayoutDescriptor = {};
+    cameraDataBindGroupLayoutDescriptor.entryCount = 1;
+    cameraDataBindGroupLayoutDescriptor.entries = &cameraDataBindGroupLayoutEntry0;
+    s_cameraDataBindGroupLayout = s_device.CreateBindGroupLayout(&cameraDataBindGroupLayoutDescriptor);
+
+    wgpu::BufferDescriptor bufferDescriptor = {};
+    bufferDescriptor.size = 64;
+    bufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
+    bufferDescriptor.mappedAtCreation = false;
+    s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
+    auto mat = glm::perspectiveRH_ZO(90.0f, Window::mainWindow().aspectRatio(), 0.1f, 100.0f);
+    device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, glm::value_ptr(mat), 64);
+
+    wgpu::BindGroupEntry cameraDataBindGroupEntry0 = {};
+    cameraDataBindGroupEntry0.binding = 0;
+    cameraDataBindGroupEntry0.buffer = s_cameraDataBuffer;
+
+    wgpu::BindGroupDescriptor cameraDataBindGroupDescriptor = {};
+    cameraDataBindGroupDescriptor.layout = s_cameraDataBindGroupLayout;
+    cameraDataBindGroupDescriptor.entryCount = 1;
+    cameraDataBindGroupDescriptor.entries = &cameraDataBindGroupEntry0;
+
+    s_cameraDataBindGroup = s_device.CreateBindGroup(&cameraDataBindGroupDescriptor);
 }
 
 void WebGPURenderer::createSurface() {
@@ -269,6 +310,18 @@ wgpu::RenderPassEncoder &WebGPURenderer::renderPassEncoder() {
 
 wgpu::CommandEncoder &WebGPURenderer::commandEncoder() {
     return s_commandEncoder;
+}
+
+const wgpu::Buffer &WebGPURenderer::cameraDataBuffer() {
+    return s_cameraDataBuffer;
+}
+
+const wgpu::BindGroupLayout &WebGPURenderer::cameraDataBindGroupLayout() {
+    return s_cameraDataBindGroupLayout;
+}
+
+const wgpu::BindGroup &WebGPURenderer::cameraDataBindGroup() {
+    return s_cameraDataBindGroup;
 }
 
 }

@@ -2,7 +2,6 @@
 
 #include <memory>
 #include "GameEngine.hpp"
-#include "scripts/TestScript.hpp"
 #include "scripts/TestRenderer.hpp"
 #include "scripts/TrackFramerate.hpp"
 #include "scripts/ImGuiDemoWindow.hpp"
@@ -17,6 +16,9 @@ void runSandboxApp() {
 
 //    Entity entity2 = scene.createEntity("my entity");
 //    entity2.addComponent<NativeScriptComponent>().bind<TestScript>();
+
+    auto camera = scene.createEntity();
+    camera.addComponent<GameEngine::CameraComponent>(90.0);
 
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 
