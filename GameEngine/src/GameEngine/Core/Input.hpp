@@ -14,6 +14,8 @@ public:
 private:
     static Window *s_window;
 
+    static void swapKeyStates();
+
     friend class Window;
 };
 

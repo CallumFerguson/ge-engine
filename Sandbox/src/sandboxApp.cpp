@@ -27,8 +27,12 @@ void runSandboxApp() {
 
     auto mesh = std::make_shared<GameEngine::Mesh>("assets/sphere.glb.asset");
 
-    GameEngine::Entity renderingEntity = scene.createEntity();
+    GameEngine::Entity renderingEntity = scene.createEntity("ball 1");
     renderingEntity.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader, mesh);
+
+    GameEngine::Entity renderingEntity2 = scene.createEntity("ball 2");
+    renderingEntity2.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader, mesh);
+    renderingEntity2.getComponent<GameEngine::TransformComponent>().position[0] = 2.5;
 
     GameEngine::Entity trackFPS = scene.createEntity();
     trackFPS.addComponent<GameEngine::NativeScriptComponent>().bind<TrackFramerate>();

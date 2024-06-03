@@ -7,6 +7,7 @@ namespace GameEngine {
 
 Window *Input::s_window;
 
+static std::unordered_map<KeyCode, bool> s_keyStates;
 static std::unordered_map<KeyCode, bool> s_previousKeyStates;
 
 bool Input::getKey(KeyCode keyCode) {
@@ -15,9 +16,16 @@ bool Input::getKey(KeyCode keyCode) {
 
 bool Input::getKeyDown(KeyCode keyCode) {
     bool currentState = getKey(keyCode);
-    bool previousState = s_previousKeyStates[keyCode];
-    s_previousKeyStates[keyCode] = currentState;
-    return currentState && !previousState;
+    bool keyDown = currentState && currentState != s_previousKeyStates[keyCode];
+
+    s_keyStates[keyCode] = currentState;
+
+    return keyDown;
+}
+
+void Input::swapKeyStates() {
+    s_previousKeyStates = s_keyStates;
+    s_keyStates.clear();
 }
 
 }
