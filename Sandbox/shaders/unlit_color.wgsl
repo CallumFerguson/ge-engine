@@ -1,4 +1,5 @@
 struct CameraData {
+    view: mat4x4f,
     projection: mat4x4f,
 }
 
@@ -17,7 +18,7 @@ struct VertexOutput {
 fn vert(i: VertexInput) -> VertexOutput {
     var o: VertexOutput;
 
-    o.position = cameraData.projection * (i.position + vec4(0, 0, -2.5, 0));
+    o.position = cameraData.projection * cameraData.view * (i.position + vec4(0, 0, -2.5, 0));
 
     return o;
 }

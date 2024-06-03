@@ -1,12 +1,17 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include "ScriptableEntity.hpp"
 
 namespace GameEngine {
 
 struct TransformComponent {
-    glm::mat4 localModel;
+    glm::vec3 position;
+    glm::quat rotation;
+    glm::vec3 scale;
+
+    glm::mat4 localModel();
 };
 
 struct NameComponent {
@@ -18,6 +23,8 @@ public:
     explicit CameraComponent(float fieldOfView);
 
     const glm::mat4 &projection();
+
+    static glm::mat4 transformToView(const TransformComponent &transform);
 
 private:
     glm::mat4 m_projection{};

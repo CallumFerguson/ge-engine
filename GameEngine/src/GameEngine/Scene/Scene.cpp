@@ -18,10 +18,6 @@ Entity Scene::createEntity() {
 }
 
 void Scene::onUpdate() {
-    m_registry.view<CameraComponent>().each([](auto &cameraComponent) {
-//        WebGPURenderer::setProj
-    });
-
     m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
         if (!nsc.instance) {
             nsc.instantiate();
@@ -32,6 +28,10 @@ void Scene::onUpdate() {
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         nsc.onUpdate(nsc.instance);
+    });
+
+    m_registry.view<TransformComponent, CameraComponent>().each([](auto &transform, auto &camera) {
+        WebGPURenderer::updateCameraDataBuffer(CameraComponent::transformToView(transform), camera.projection());
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {

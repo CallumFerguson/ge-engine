@@ -10,10 +10,11 @@ add_executable(
         src/main.cpp
 
         src/sandboxApp.cpp
-        
+
         src/scripts/TestRenderer.cpp
         src/scripts/TrackFramerate.cpp
         src/scripts/ImGuiDemoWindow.cpp
+        src/scripts/CameraController.cpp
 )
 
 if (EMSCRIPTEN)

@@ -144,37 +144,7 @@ void WebGPURenderer::finishInit() {
 
     // camera
 
-    wgpu::BufferBindingLayout cameraDataBindGroupLayoutEntry0BufferBindingLayout = {};
-    cameraDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
-
-    wgpu::BindGroupLayoutEntry cameraDataBindGroupLayoutEntry0 = {};
-    cameraDataBindGroupLayoutEntry0.binding = 0;
-    cameraDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
-    cameraDataBindGroupLayoutEntry0.buffer = cameraDataBindGroupLayoutEntry0BufferBindingLayout;
-
-    wgpu::BindGroupLayoutDescriptor cameraDataBindGroupLayoutDescriptor = {};
-    cameraDataBindGroupLayoutDescriptor.entryCount = 1;
-    cameraDataBindGroupLayoutDescriptor.entries = &cameraDataBindGroupLayoutEntry0;
-    s_cameraDataBindGroupLayout = s_device.CreateBindGroupLayout(&cameraDataBindGroupLayoutDescriptor);
-
-    wgpu::BufferDescriptor bufferDescriptor = {};
-    bufferDescriptor.size = 64;
-    bufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
-    bufferDescriptor.mappedAtCreation = false;
-    s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
-    auto mat = glm::perspectiveRH_ZO(90.0f, Window::mainWindow().aspectRatio(), 0.1f, 100.0f);
-    device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, glm::value_ptr(mat), 64);
-
-    wgpu::BindGroupEntry cameraDataBindGroupEntry0 = {};
-    cameraDataBindGroupEntry0.binding = 0;
-    cameraDataBindGroupEntry0.buffer = s_cameraDataBuffer;
-
-    wgpu::BindGroupDescriptor cameraDataBindGroupDescriptor = {};
-    cameraDataBindGroupDescriptor.layout = s_cameraDataBindGroupLayout;
-    cameraDataBindGroupDescriptor.entryCount = 1;
-    cameraDataBindGroupDescriptor.entries = &cameraDataBindGroupEntry0;
-
-    s_cameraDataBindGroup = s_device.CreateBindGroup(&cameraDataBindGroupDescriptor);
+    setUpCameraBindGroup();
 }
 
 void WebGPURenderer::createSurface() {
@@ -322,6 +292,45 @@ const wgpu::BindGroupLayout &WebGPURenderer::cameraDataBindGroupLayout() {
 
 const wgpu::BindGroup &WebGPURenderer::cameraDataBindGroup() {
     return s_cameraDataBindGroup;
+}
+
+void WebGPURenderer::setUpCameraBindGroup() {
+    wgpu::BufferBindingLayout cameraDataBindGroupLayoutEntry0BufferBindingLayout = {};
+    cameraDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
+
+    wgpu::BindGroupLayoutEntry cameraDataBindGroupLayoutEntry0 = {};
+    cameraDataBindGroupLayoutEntry0.binding = 0;
+    cameraDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
+    cameraDataBindGroupLayoutEntry0.buffer = cameraDataBindGroupLayoutEntry0BufferBindingLayout;
+
+    wgpu::BindGroupLayoutDescriptor cameraDataBindGroupLayoutDescriptor = {};
+    cameraDataBindGroupLayoutDescriptor.entryCount = 1;
+    cameraDataBindGroupLayoutDescriptor.entries = &cameraDataBindGroupLayoutEntry0;
+    s_cameraDataBindGroupLayout = s_device.CreateBindGroupLayout(&cameraDataBindGroupLayoutDescriptor);
+
+    wgpu::BufferDescriptor bufferDescriptor = {};
+    bufferDescriptor.size = 64 * 2;
+    bufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
+    bufferDescriptor.mappedAtCreation = false;
+    s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
+
+    wgpu::BindGroupEntry cameraDataBindGroupEntry0 = {};
+    cameraDataBindGroupEntry0.binding = 0;
+    cameraDataBindGroupEntry0.buffer = s_cameraDataBuffer;
+
+    wgpu::BindGroupDescriptor cameraDataBindGroupDescriptor = {};
+    cameraDataBindGroupDescriptor.layout = s_cameraDataBindGroupLayout;
+    cameraDataBindGroupDescriptor.entryCount = 1;
+    cameraDataBindGroupDescriptor.entries = &cameraDataBindGroupEntry0;
+
+    s_cameraDataBindGroup = s_device.CreateBindGroup(&cameraDataBindGroupDescriptor);
+}
+
+void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection) {
+    float data[32];
+    std::memcpy(data, glm::value_ptr(view), 64);
+    std::memcpy(data + 16, glm::value_ptr(projection), 64);
+    device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 128);
 }
 
 }

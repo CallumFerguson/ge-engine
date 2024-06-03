@@ -5,6 +5,7 @@
 #include "scripts/TestRenderer.hpp"
 #include "scripts/TrackFramerate.hpp"
 #include "scripts/ImGuiDemoWindow.hpp"
+#include "scripts/CameraController.hpp"
 
 void runSandboxApp() {
     GameEngine::App app;
@@ -19,6 +20,7 @@ void runSandboxApp() {
 
     auto camera = scene.createEntity();
     camera.addComponent<GameEngine::CameraComponent>(90.0);
+    camera.addComponent<GameEngine::NativeScriptComponent>().bind<CameraController>();
 
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 

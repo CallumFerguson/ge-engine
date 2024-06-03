@@ -37,6 +37,8 @@ public:
 
     static const wgpu::BindGroup &cameraDataBindGroup();
 
+    static void updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection);
+
 private:
     static void getAdapter();
 
@@ -58,6 +60,8 @@ private:
 #endif
 
     static void errorCallback(WGPUErrorType type, const char *message, void *userdata);
+
+    static void setUpCameraBindGroup();
 };
 
 }
