@@ -44,4 +44,14 @@ void setWindowIcon(GLFWwindow *window, const char *iconPath) {
     stbi_image_free(pixels);
 }
 
+void printMatrix(const glm::mat4 &matrix) {
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+            std::cout << matrix[x][y];
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 }

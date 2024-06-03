@@ -21,6 +21,7 @@ void runSandboxApp() {
     auto camera = scene.createEntity();
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addComponent<GameEngine::NativeScriptComponent>().bind<CameraController>();
+    camera.getComponent<GameEngine::TransformComponent>().position[2] = 2.5;
 
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 

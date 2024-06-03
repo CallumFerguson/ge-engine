@@ -4,6 +4,7 @@
 #include <utility>
 #include <imgui.h>
 #include <imgui_memory_editor.h>
+#include <glm/gtc/type_ptr.hpp>
 
 TestRenderer::TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader, std::shared_ptr<GameEngine::Mesh> mesh): m_shader(std::move(shader)), m_mesh(std::move(mesh)) {}
 
@@ -13,20 +14,20 @@ void TestRenderer::onStart() {
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
 
-    wgpu::BufferBindingLayout bindGroupLayoutGroup0Entry0BufferBindingLayout = {};
-    bindGroupLayoutGroup0Entry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
+    wgpu::BufferBindingLayout objectDataBindGroupLayoutEntry0BufferBindingLayout = {};
+    objectDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
 
-    wgpu::BindGroupLayoutEntry bindGroupLayoutGroup0Entry0 = {};
-    bindGroupLayoutGroup0Entry0.binding = 0;
-    bindGroupLayoutGroup0Entry0.visibility = wgpu::ShaderStage::Fragment;
-    bindGroupLayoutGroup0Entry0.buffer = bindGroupLayoutGroup0Entry0BufferBindingLayout;
+    wgpu::BindGroupLayoutEntry objectDataBindGroupLayoutEntry0 = {};
+    objectDataBindGroupLayoutEntry0.binding = 0;
+    objectDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
+    objectDataBindGroupLayoutEntry0.buffer = objectDataBindGroupLayoutEntry0BufferBindingLayout;
 
-    wgpu::BindGroupLayoutDescriptor bindGroupLayoutGroup0Descriptor = {};
-    bindGroupLayoutGroup0Descriptor.entryCount = 1;
-    bindGroupLayoutGroup0Descriptor.entries = &bindGroupLayoutGroup0Entry0;
-    auto bindGroupLayoutGroup0 = device.CreateBindGroupLayout(&bindGroupLayoutGroup0Descriptor);
+    wgpu::BindGroupLayoutDescriptor objectDataBindGroupLayoutDescriptor = {};
+    objectDataBindGroupLayoutDescriptor.entryCount = 1;
+    objectDataBindGroupLayoutDescriptor.entries = &objectDataBindGroupLayoutEntry0;
+    auto objectDataBindGroupLayout = device.CreateBindGroupLayout(&objectDataBindGroupLayoutDescriptor);
 
-    wgpu::BindGroupLayout bindGroupLayouts[2] = {GameEngine::WebGPURenderer::cameraDataBindGroupLayout(), bindGroupLayoutGroup0};
+    wgpu::BindGroupLayout bindGroupLayouts[2] = {GameEngine::WebGPURenderer::cameraDataBindGroupLayout(), objectDataBindGroupLayout};
 
     wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor = {};
     pipelineLayoutDescriptor.bindGroupLayoutCount = 2;
@@ -70,21 +71,20 @@ void TestRenderer::onStart() {
     m_pipeline = device.CreateRenderPipeline(&pipelineDescriptor);
 
     wgpu::BufferDescriptor uniformBufferDescriptor = {};
-    uniformBufferDescriptor.size = 16;
+    uniformBufferDescriptor.size = 64 + 16;
     uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
     m_uniformBuffer = device.CreateBuffer(&uniformBufferDescriptor);
-    device.GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, uniformBufferDescriptor.size);
 
-    wgpu::BindGroupEntry bindGroupDescriptor0Entry0 = {};
-    bindGroupDescriptor0Entry0.binding = 0;
-    bindGroupDescriptor0Entry0.buffer = m_uniformBuffer;
+    wgpu::BindGroupEntry objectDataBindGroupDescriptorEntry0 = {};
+    objectDataBindGroupDescriptorEntry0.binding = 0;
+    objectDataBindGroupDescriptorEntry0.buffer = m_uniformBuffer;
 
-    wgpu::BindGroupDescriptor bindGroupDescriptor0 = {};
-    bindGroupDescriptor0.layout = bindGroupLayoutGroup0;
-    bindGroupDescriptor0.entryCount = 1;
-    bindGroupDescriptor0.entries = &bindGroupDescriptor0Entry0;
+    wgpu::BindGroupDescriptor objectDataBindGroupDescriptor = {};
+    objectDataBindGroupDescriptor.layout = objectDataBindGroupLayout;
+    objectDataBindGroupDescriptor.entryCount = 1;
+    objectDataBindGroupDescriptor.entries = &objectDataBindGroupDescriptorEntry0;
 
-    m_bindGroup0 = device.CreateBindGroup(&bindGroupDescriptor0);
+    m_objectDataBindGroup = device.CreateBindGroup(&objectDataBindGroupDescriptor);
 }
 
 void TestRenderer::onUpdate() {
@@ -93,6 +93,19 @@ void TestRenderer::onUpdate() {
     }
     if(GameEngine::Input::getKey(GameEngine::KeyCode::R)) {
         randomizeColor();
+    }
+    const float speed = 10;
+    if(GameEngine::Input::getKey(GameEngine::KeyCode::Up)) {
+        getComponent<GameEngine::TransformComponent>().position[1] += GameEngine::Time::deltaTime() * speed;
+    }
+    if(GameEngine::Input::getKey(GameEngine::KeyCode::Down)) {
+        getComponent<GameEngine::TransformComponent>().position[1] -= GameEngine::Time::deltaTime() * speed;
+    }
+    if(GameEngine::Input::getKey(GameEngine::KeyCode::Left)) {
+        getComponent<GameEngine::TransformComponent>().position[0] -= GameEngine::Time::deltaTime() * speed;
+    }
+    if(GameEngine::Input::getKey(GameEngine::KeyCode::Right)) {
+        getComponent<GameEngine::TransformComponent>().position[0] += GameEngine::Time::deltaTime() * speed;
     }
 }
 
@@ -110,18 +123,24 @@ void TestRenderer::onImGui() {
 }
 
 void TestRenderer::onMainRenderPass() {
+    auto& transform = getComponent<GameEngine::TransformComponent>();
+
+    uint8_t data[128];
+    std::memcpy(data, glm::value_ptr(transform.localModel()), 64);
+    std::memcpy(data + 64, glm::value_ptr(m_color), 16);
+    GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, data, 64 + 16);
+
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(m_pipeline);
     renderPassEncoder.SetBindGroup(0, GameEngine::WebGPURenderer::cameraDataBindGroup());
-    renderPassEncoder.SetBindGroup(1, m_bindGroup0);
+    renderPassEncoder.SetBindGroup(1, m_objectDataBindGroup);
     renderPassEncoder.SetVertexBuffer(0, m_mesh->positionBuffer());
     renderPassEncoder.SetIndexBuffer(m_mesh->indexBuffer(), wgpu::IndexFormat::Uint32);
     renderPassEncoder.DrawIndexed(m_mesh->indexCount());
 }
 
 void TestRenderer::randomizeColor() {
-    m_uniformBufferData[0] = GameEngine::Random::value();
-    m_uniformBufferData[1] = GameEngine::Random::value();
-    m_uniformBufferData[2] = GameEngine::Random::value();
-    GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, m_uniformBufferData, 16);
+    m_color[0] = GameEngine::Random::value();
+    m_color[1] = GameEngine::Random::value();
+    m_color[2] = GameEngine::Random::value();
 }

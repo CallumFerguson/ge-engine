@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <webgpu/webgpu_cpp.h>
+#include <glm/glm.hpp>
 #include "GameEngine.hpp"
 
 struct TestRenderer : public GameEngine::ScriptableEntity {
@@ -22,11 +23,11 @@ private:
 
     wgpu::Buffer m_uniformBuffer;
 
-    float m_uniformBufferData[4] = {0.25, 0, 0, 1};
+    glm::vec4 m_color{0.25f, 0.0f, 0.0f, 1.0f};
 
     wgpu::RenderPipeline m_pipeline;
 
-    wgpu::BindGroup m_bindGroup0;
+    wgpu::BindGroup m_objectDataBindGroup;
 
     void randomizeColor();
 };
