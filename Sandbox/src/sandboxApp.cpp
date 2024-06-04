@@ -17,7 +17,7 @@ void runSandboxApp() {
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().position[2] = 2.5;
-
+//
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 
     auto mesh = std::make_shared<GameEngine::Mesh>("assets/sphere.glb.asset");

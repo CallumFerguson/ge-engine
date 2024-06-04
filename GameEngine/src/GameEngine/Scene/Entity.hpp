@@ -35,9 +35,9 @@ public:
     }
 
     template<typename T, typename... Args>
-    T &addScript(Args &&... args) {
+    void addScript(Args &&... args) {
         auto &nsc = m_scene->m_registry.get_or_emplace<NativeScriptComponent>(m_enttEntity);
-        return nsc.bind<T>(std::forward<Args>(args)...);
+        nsc.bind<T>(std::forward<Args>(args)...);
     }
 
     Scene *getScene();

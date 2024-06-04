@@ -73,15 +73,38 @@ struct NativeScriptComponent {
 
         NSCInstanceFunctions &operator=(const NSCInstanceFunctions &) = default;
 
-        NSCInstanceFunctions(NSCInstanceFunctions &&other) noexcept = default;
+        NSCInstanceFunctions(NSCInstanceFunctions &&other) noexcept:
+                instantiated(other.instantiated),
+                instance(std::move(other.instance)),
+                onStart(std::move(other.onStart)),
+                onUpdate(std::move(other.onUpdate)),
+                onImGui(std::move(other.onImGui)),
+                onCustomRenderPass(std::move(other.onCustomRenderPass)),
+                onMainRenderPass(std::move(other.onMainRenderPass)) {
+            other.destroyInstance = nullptr;
+        }
 
-        NSCInstanceFunctions &operator=(NSCInstanceFunctions &&) = default;
+        NSCInstanceFunctions &operator=(NSCInstanceFunctions &&other) {
+            if (this != &other) {
+                instantiated = other.instantiated;
+                instance = std::move(other.instance);
+                destroyInstance = std::move(other.destroyInstance);
+                onStart = std::move(other.onStart);
+                onUpdate = std::move(other.onUpdate);
+                onImGui = std::move(other.onImGui);
+                onCustomRenderPass = std::move(other.onCustomRenderPass);
+                onMainRenderPass = std::move(other.onMainRenderPass);
+
+                other.destroyInstance = nullptr;
+            }
+            return *this;
+        }
     };
 
     std::vector<NSCInstanceFunctions> instancesFunctions;
 
     template<typename T, typename... Args>
-    T &bind(Args &&... args) {
+    void bind(Args &&... args) {
         T *scriptableEntityInstance = new T(args...);
 
         auto &nscInstanceFunctions = instancesFunctions.emplace_back();
@@ -119,7 +142,7 @@ struct NativeScriptComponent {
             }
         };
 
-        return *scriptableEntityInstance;
+//        return *scriptableEntityInstance;
     }
 };
 
