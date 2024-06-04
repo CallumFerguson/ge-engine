@@ -52,7 +52,7 @@ class ScriptableEntity;
 struct NativeScriptComponent {
     struct NSCInstanceFunctions {
         bool instantiated = false;
-        std::function<ScriptableEntity *()> instance;
+        ScriptableEntity *instance = nullptr;
         std::function<void()> destroyInstance;
 
         std::function<void(ScriptableEntity *passedInstance)> onStart;
@@ -69,25 +69,26 @@ struct NativeScriptComponent {
             }
         }
 
-        NSCInstanceFunctions(const NSCInstanceFunctions &) = default;
+        NSCInstanceFunctions(const NSCInstanceFunctions &) = delete;
 
-        NSCInstanceFunctions &operator=(const NSCInstanceFunctions &) = default;
+        NSCInstanceFunctions &operator=(const NSCInstanceFunctions &) = delete;
 
         NSCInstanceFunctions(NSCInstanceFunctions &&other) noexcept:
                 instantiated(other.instantiated),
-                instance(std::move(other.instance)),
+                instance(other.instance),
                 onStart(std::move(other.onStart)),
                 onUpdate(std::move(other.onUpdate)),
                 onImGui(std::move(other.onImGui)),
                 onCustomRenderPass(std::move(other.onCustomRenderPass)),
                 onMainRenderPass(std::move(other.onMainRenderPass)) {
             other.destroyInstance = nullptr;
+            other.instance = nullptr;
         }
 
-        NSCInstanceFunctions &operator=(NSCInstanceFunctions &&other) {
+        NSCInstanceFunctions &operator=(NSCInstanceFunctions &&other) noexcept {
             if (this != &other) {
                 instantiated = other.instantiated;
-                instance = std::move(other.instance);
+                instance = other.instance;
                 destroyInstance = std::move(other.destroyInstance);
                 onStart = std::move(other.onStart);
                 onUpdate = std::move(other.onUpdate);
@@ -96,6 +97,7 @@ struct NativeScriptComponent {
                 onMainRenderPass = std::move(other.onMainRenderPass);
 
                 other.destroyInstance = nullptr;
+                other.instance = nullptr;
             }
             return *this;
         }
@@ -103,15 +105,25 @@ struct NativeScriptComponent {
 
     std::vector<NSCInstanceFunctions> instancesFunctions;
 
+    NativeScriptComponent() = default;
+
+    ~NativeScriptComponent() = default;
+
+    NativeScriptComponent(const NativeScriptComponent &) = delete;
+
+    NativeScriptComponent &operator=(const NativeScriptComponent &) = delete;
+
+    NativeScriptComponent(NativeScriptComponent &&) = default;
+
+    NativeScriptComponent &operator=(NativeScriptComponent &&) = default;
+
     template<typename T, typename... Args>
-    void bind(Args &&... args) {
+    T &bind(Args &&... args) {
         T *scriptableEntityInstance = new T(args...);
 
         auto &nscInstanceFunctions = instancesFunctions.emplace_back();
 
-        nscInstanceFunctions.instance = [scriptableEntityInstance]() {
-            return scriptableEntityInstance;
-        };
+        nscInstanceFunctions.instance = scriptableEntityInstance;
         nscInstanceFunctions.destroyInstance = [scriptableEntityInstance]() mutable {
             delete (T *) scriptableEntityInstance;
             scriptableEntityInstance = nullptr;
@@ -142,7 +154,7 @@ struct NativeScriptComponent {
             }
         };
 
-//        return *scriptableEntityInstance;
+        return *scriptableEntityInstance;
     }
 };
 

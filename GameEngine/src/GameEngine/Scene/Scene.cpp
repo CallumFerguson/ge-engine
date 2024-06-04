@@ -23,16 +23,15 @@ void Scene::onUpdate() {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
             if (!instanceFunctions.instantiated) {
                 instanceFunctions.instantiated = true;
-                ScriptableEntity *instance = instanceFunctions.instance();
-                instance->m_entity = Entity(entity, this);
-                instanceFunctions.onStart(instance);
+                instanceFunctions.instance->m_entity = Entity(entity, this);
+                instanceFunctions.onStart(instanceFunctions.instance);
             }
         }
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
-            instanceFunctions.onUpdate(instanceFunctions.instance());
+            instanceFunctions.onUpdate(instanceFunctions.instance);
         }
     });
 
@@ -42,13 +41,13 @@ void Scene::onUpdate() {
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
-            instanceFunctions.onImGui(instanceFunctions.instance());
+            instanceFunctions.onImGui(instanceFunctions.instance);
         }
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
-            instanceFunctions.onCustomRenderPass(instanceFunctions.instance());
+            instanceFunctions.onCustomRenderPass(instanceFunctions.instance);
         }
     });
 
@@ -56,7 +55,7 @@ void Scene::onUpdate() {
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
-            instanceFunctions.onMainRenderPass(instanceFunctions.instance());
+            instanceFunctions.onMainRenderPass(instanceFunctions.instance);
         }
     });
 
