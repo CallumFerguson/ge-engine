@@ -50,59 +50,76 @@ HAS_MEMBER_FUNCTION(onMainRenderPass, hasOnMainRenderPass)
 class ScriptableEntity;
 
 struct NativeScriptComponent {
-    ScriptableEntity *instance = nullptr;
+    struct NSCInstanceFunctions {
+        bool instantiated = false;
+        std::function<ScriptableEntity *()> instance;
+        std::function<void()> destroyInstance;
 
-    std::function<void()> instantiate;
-    std::function<void()> destroyInstance;
+        std::function<void(ScriptableEntity *passedInstance)> onStart;
+        std::function<void(ScriptableEntity *passedInstance)> onUpdate;
+        std::function<void(ScriptableEntity *passedInstance)> onImGui;
+        std::function<void(ScriptableEntity *passedInstance)> onCustomRenderPass;
+        std::function<void(ScriptableEntity *passedInstance)> onMainRenderPass;
 
-    std::function<void(ScriptableEntity *passedInstance)> onStart;
-    std::function<void(ScriptableEntity *passedInstance)> onUpdate;
-    std::function<void(ScriptableEntity *passedInstance)> onImGui;
-    std::function<void(ScriptableEntity *passedInstance)> onCustomRenderPass;
-    std::function<void(ScriptableEntity *passedInstance)> onMainRenderPass;
+        NSCInstanceFunctions() = default;
 
-    ~NativeScriptComponent() {
-        if (destroyInstance) {
-            destroyInstance();
+        ~NSCInstanceFunctions() {
+            if (destroyInstance) {
+                destroyInstance();
+            }
         }
-    }
+
+        NSCInstanceFunctions(const NSCInstanceFunctions &) = default;
+
+        NSCInstanceFunctions &operator=(const NSCInstanceFunctions &) = default;
+
+        NSCInstanceFunctions(NSCInstanceFunctions &&other) noexcept = default;
+
+        NSCInstanceFunctions &operator=(NSCInstanceFunctions &&) = default;
+    };
+
+    std::vector<NSCInstanceFunctions> instancesFunctions;
 
     template<typename T, typename... Args>
-    void bind(Args &&... args) {
-        instantiate = [this, args...]() {
-            instance = new T(args...);
-        };
+    T &bind(Args &&... args) {
+        T *scriptableEntityInstance = new T(args...);
 
-        destroyInstance = [&]() {
-            delete (T *) instance;
-            instance = nullptr;
-        };
+        auto &nscInstanceFunctions = instancesFunctions.emplace_back();
 
-        onStart = [](ScriptableEntity *passedInstance) {
+        nscInstanceFunctions.instance = [scriptableEntityInstance]() {
+            return scriptableEntityInstance;
+        };
+        nscInstanceFunctions.destroyInstance = [scriptableEntityInstance]() mutable {
+            delete (T *) scriptableEntityInstance;
+            scriptableEntityInstance = nullptr;
+        };
+        nscInstanceFunctions.onStart = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnStart<T>::value) {
                 ((T *) passedInstance)->onStart();
             }
         };
-        onUpdate = [](ScriptableEntity *passedInstance) {
+        nscInstanceFunctions.onUpdate = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnUpdate<T>::value) {
                 ((T *) passedInstance)->onUpdate();
             }
         };
-        onImGui = [](ScriptableEntity *passedInstance) {
+        nscInstanceFunctions.onImGui = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnImGui<T>::value) {
                 ((T *) passedInstance)->onImGui();
             }
         };
-        onCustomRenderPass = [](ScriptableEntity *passedInstance) {
+        nscInstanceFunctions.onCustomRenderPass = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnCustomRenderPass<T>::value) {
                 ((T *) passedInstance)->onCustomRenderPass();
             }
         };
-        onMainRenderPass = [](ScriptableEntity *passedInstance) {
+        nscInstanceFunctions.onMainRenderPass = [](ScriptableEntity *passedInstance) {
             if constexpr (hasOnMainRenderPass<T>::value) {
                 ((T *) passedInstance)->onMainRenderPass();
             }
         };
+
+        return *scriptableEntityInstance;
     }
 };
 

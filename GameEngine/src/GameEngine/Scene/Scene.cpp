@@ -20,15 +20,20 @@ Entity Scene::createEntity() {
 
 void Scene::onUpdate() {
     m_registry.view<NativeScriptComponent>().each([&](auto entity, auto &nsc) {
-        if (!nsc.instance) {
-            nsc.instantiate();
-            nsc.instance->m_entity = Entity(entity, this);
-            nsc.onStart(nsc.instance);
+        for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
+            if (!instanceFunctions.instantiated) {
+                instanceFunctions.instantiated = true;
+                ScriptableEntity *instance = instanceFunctions.instance();
+                instance->m_entity = Entity(entity, this);
+                instanceFunctions.onStart(instance);
+            }
         }
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
-        nsc.onUpdate(nsc.instance);
+        for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
+            instanceFunctions.onUpdate(instanceFunctions.instance());
+        }
     });
 
     m_registry.view<TransformComponent, CameraComponent>().each([](auto &transform, auto &camera) {
@@ -36,17 +41,23 @@ void Scene::onUpdate() {
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
-        nsc.onImGui(nsc.instance);
+        for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
+            instanceFunctions.onImGui(instanceFunctions.instance());
+        }
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
-        nsc.onCustomRenderPass(nsc.instance);
+        for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
+            instanceFunctions.onCustomRenderPass(instanceFunctions.instance());
+        }
     });
 
     WebGPURenderer::startMainRenderPass();
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
-        nsc.onMainRenderPass(nsc.instance);
+        for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
+            instanceFunctions.onMainRenderPass(instanceFunctions.instance());
+        }
     });
 
     WebGPURenderer::endMainRenderPass();

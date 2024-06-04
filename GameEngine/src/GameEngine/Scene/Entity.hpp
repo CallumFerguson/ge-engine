@@ -14,6 +14,7 @@ public:
 
     template<typename T, typename... Args>
     T &addComponent(Args &&... args) {
+        static_assert(!std::is_same<T, NativeScriptComponent>::value, "NativeScriptComponent cannot be directly added. Use addScript instead");
         T &component = m_scene->m_registry.emplace<T>(m_enttEntity, std::forward<Args>(args)...);
         return component;
     }
@@ -34,9 +35,9 @@ public:
     }
 
     template<typename T, typename... Args>
-    void addScript(Args &&... args) {
+    T &addScript(Args &&... args) {
         auto &nsc = m_scene->m_registry.get_or_emplace<NativeScriptComponent>(m_enttEntity);
-        nsc.bind<T>(std::forward<Args>(args)...);
+        return nsc.bind<T>(std::forward<Args>(args)...);
     }
 
     Scene *getScene();

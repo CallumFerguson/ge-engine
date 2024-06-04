@@ -15,7 +15,7 @@ void runSandboxApp() {
 
     auto camera = scene.createEntity();
     camera.addComponent<GameEngine::CameraComponent>(90.0);
-    camera.addComponent<GameEngine::NativeScriptComponent>().bind<CameraController>();
+    camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().position[2] = 2.5;
 
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
@@ -24,14 +24,14 @@ void runSandboxApp() {
 
     GameEngine::Entity renderingEntity = scene.createEntity("ball 1");
     renderingEntity.addScript<TestRenderer>(unlitShader, mesh);
-//    renderingEntity.addScript<Rotator>();
+    renderingEntity.addScript<Rotator>();
 
     GameEngine::Entity renderingEntity2 = scene.createEntity("ball 2");
-    renderingEntity2.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader, mesh);
+    renderingEntity2.addScript<TestRenderer>(unlitShader, mesh);
     renderingEntity2.getComponent<GameEngine::TransformComponent>().position[0] = 2.5;
 
     GameEngine::Entity trackFPS = scene.createEntity();
-    trackFPS.addComponent<GameEngine::NativeScriptComponent>().bind<TrackFramerate>();
+    trackFPS.addScript<TrackFramerate>();
 
 //    Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();
