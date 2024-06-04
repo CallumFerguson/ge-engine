@@ -2,6 +2,7 @@
 
 #include <entt/entt.hpp>
 #include "Scene.hpp"
+#include "Components.hpp"
 
 namespace GameEngine {
 
@@ -30,6 +31,12 @@ public:
     template<typename T>
     void removeComponent() {
         m_scene->m_registry.remove<T>(m_enttEntity);
+    }
+
+    template<typename T, typename... Args>
+    void addScript(Args &&... args) {
+        auto &nsc = m_scene->m_registry.get_or_emplace<NativeScriptComponent>(m_enttEntity);
+        nsc.bind<T>(std::forward<Args>(args)...);
     }
 
     Scene *getScene();

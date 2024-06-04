@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "ScriptableEntity.hpp"
 
 namespace GameEngine {
 
@@ -47,6 +46,8 @@ HAS_MEMBER_FUNCTION(onUpdate, hasOnUpdate)
 HAS_MEMBER_FUNCTION(onImGui, hasOnImGui)
 HAS_MEMBER_FUNCTION(onCustomRenderPass, hasOnCustomRenderPass)
 HAS_MEMBER_FUNCTION(onMainRenderPass, hasOnMainRenderPass)
+
+class ScriptableEntity;
 
 struct NativeScriptComponent {
     ScriptableEntity *instance = nullptr;

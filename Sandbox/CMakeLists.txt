@@ -15,6 +15,7 @@ add_executable(
         src/scripts/TrackFramerate.cpp
         src/scripts/ImGuiDemoWindow.cpp
         src/scripts/CameraController.cpp
+        src/scripts/Rotator.cpp
 )
 
 if (EMSCRIPTEN)

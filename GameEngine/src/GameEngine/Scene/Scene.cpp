@@ -2,6 +2,7 @@
 
 #include "Entity.hpp"
 #include "Components.hpp"
+#include "ScriptableEntity.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 
 namespace GameEngine {

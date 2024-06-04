@@ -6,17 +6,12 @@
 #include "scripts/TrackFramerate.hpp"
 #include "scripts/ImGuiDemoWindow.hpp"
 #include "scripts/CameraController.hpp"
+#include "scripts/Rotator.hpp"
 
 void runSandboxApp() {
     GameEngine::App app;
 
     GameEngine::Scene &scene = app.getActiveScene();
-
-//    Entity entity = scene.createEntity();
-//    entity.addComponent<NativeScriptComponent>().bind<TestScript>();
-
-//    Entity entity2 = scene.createEntity("my entity");
-//    entity2.addComponent<NativeScriptComponent>().bind<TestScript>();
 
     auto camera = scene.createEntity();
     camera.addComponent<GameEngine::CameraComponent>(90.0);
@@ -28,7 +23,8 @@ void runSandboxApp() {
     auto mesh = std::make_shared<GameEngine::Mesh>("assets/sphere.glb.asset");
 
     GameEngine::Entity renderingEntity = scene.createEntity("ball 1");
-    renderingEntity.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader, mesh);
+    renderingEntity.addScript<TestRenderer>(unlitShader, mesh);
+//    renderingEntity.addScript<Rotator>();
 
     GameEngine::Entity renderingEntity2 = scene.createEntity("ball 2");
     renderingEntity2.addComponent<GameEngine::NativeScriptComponent>().bind<TestRenderer>(unlitShader, mesh);
