@@ -4,9 +4,9 @@ namespace GameEngine {
 
 class Time {
 public:
-    static double time();
+    static float time();
 
-    static double deltaTime();
+    static float deltaTime();
 
 private:
     static void onUpdate();

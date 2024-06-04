@@ -9,12 +9,12 @@ static double s_lastTime = -1;
 static double s_time;
 static double s_deltaTime;
 
-double Time::time() {
-    return s_time;
+float Time::time() {
+    return static_cast<float>(s_time);
 }
 
-double Time::deltaTime() {
-    return s_deltaTime;
+float Time::deltaTime() {
+    return static_cast<float>(s_deltaTime);
 }
 
 void Time::onUpdate() {
