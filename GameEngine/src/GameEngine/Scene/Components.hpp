@@ -2,15 +2,24 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <entt/entt.hpp>
 
 namespace GameEngine {
 
-struct TransformComponent {
-    glm::vec3 position{0.0f, 0.0f, 0.0f};
-    glm::quat rotation = glm::identity<glm::quat>();
-    glm::vec3 scale{1.0f, 1.0f, 1.0f};
+class Entity;
 
-    glm::mat4 localModel();
+class TransformComponent {
+public:
+    glm::vec3 localPosition{0.0f, 0.0f, 0.0f};
+    glm::quat localRotation = glm::identity<glm::quat>();
+    glm::vec3 localScale{1.0f, 1.0f, 1.0f};
+
+    glm::mat4 localModelMatrix();
+
+private:
+    entt::entity m_parentENTTHandel = entt::null;
+
+    friend class Entity;
 };
 
 struct NameComponent {

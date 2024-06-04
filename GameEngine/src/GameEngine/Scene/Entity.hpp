@@ -1,6 +1,7 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include "Scene.hpp"
 #include "Components.hpp"
 
@@ -41,6 +42,10 @@ public:
     }
 
     Scene *getScene();
+
+    void setParent(const Entity &entity);
+
+    glm::mat4 globalModelMatrix();
 
 private:
     entt::entity m_enttEntity = entt::null;

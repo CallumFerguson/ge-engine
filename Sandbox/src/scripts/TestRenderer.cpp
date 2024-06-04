@@ -96,16 +96,16 @@ void TestRenderer::onUpdate() {
     }
     const float speed = 10;
     if(GameEngine::Input::getKey(GameEngine::KeyCode::Up)) {
-        getComponent<GameEngine::TransformComponent>().position[1] += GameEngine::Time::deltaTime() * speed;
+        getComponent<GameEngine::TransformComponent>().localPosition[1] += GameEngine::Time::deltaTime() * speed;
     }
     if(GameEngine::Input::getKey(GameEngine::KeyCode::Down)) {
-        getComponent<GameEngine::TransformComponent>().position[1] -= GameEngine::Time::deltaTime() * speed;
+        getComponent<GameEngine::TransformComponent>().localPosition[1] -= GameEngine::Time::deltaTime() * speed;
     }
     if(GameEngine::Input::getKey(GameEngine::KeyCode::Left)) {
-        getComponent<GameEngine::TransformComponent>().position[0] -= GameEngine::Time::deltaTime() * speed;
+        getComponent<GameEngine::TransformComponent>().localPosition[0] -= GameEngine::Time::deltaTime() * speed;
     }
     if(GameEngine::Input::getKey(GameEngine::KeyCode::Right)) {
-        getComponent<GameEngine::TransformComponent>().position[0] += GameEngine::Time::deltaTime() * speed;
+        getComponent<GameEngine::TransformComponent>().localPosition[0] += GameEngine::Time::deltaTime() * speed;
     }
 }
 
@@ -126,10 +126,8 @@ void TestRenderer::onImGui() {
 }
 
 void TestRenderer::onMainRenderPass() {
-    auto& transform = getComponent<GameEngine::TransformComponent>();
-
     uint8_t data[128];
-    std::memcpy(data, glm::value_ptr(transform.localModel()), 64);
+    std::memcpy(data, glm::value_ptr(getEntity().globalModelMatrix()), 64);
     std::memcpy(data + 64, glm::value_ptr(m_color), 16);
     GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 0, data, 64 + 16);
 

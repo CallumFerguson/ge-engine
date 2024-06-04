@@ -6,5 +6,5 @@ class Rotator : public GameEngine::ScriptableEntity {
 public:
     void onUpdate();
 
-    float speed = 1.0f;
+    float speed = 360.0f;
 };
