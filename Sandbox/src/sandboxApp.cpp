@@ -24,7 +24,8 @@ void runSandboxApp() {
 
     GameEngine::Entity renderingEntity = scene.createEntity("ball 1");
     renderingEntity.addScript<TestRenderer>(unlitShader, mesh);
-    renderingEntity.addScript<Rotator>();
+    auto &rotator = renderingEntity.addScript<Rotator>();
+    rotator.speed = 2.5f;
 
     GameEngine::Entity renderingEntity2 = scene.createEntity("ball 2");
     renderingEntity2.addScript<TestRenderer>(unlitShader, mesh);

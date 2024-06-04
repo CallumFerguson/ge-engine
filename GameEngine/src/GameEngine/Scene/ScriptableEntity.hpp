@@ -6,6 +6,18 @@ namespace GameEngine {
 
 class ScriptableEntity {
 public:
+    ScriptableEntity() = default;
+
+    ~ScriptableEntity() = default;
+
+    ScriptableEntity(const ScriptableEntity &) = delete;
+
+    ScriptableEntity &operator=(const ScriptableEntity &) = delete;
+
+    ScriptableEntity(ScriptableEntity &&) = delete;
+
+    ScriptableEntity &operator=(ScriptableEntity &&) = delete;
+
     template<typename T, typename... Args>
     T &addComponent(Args &&... args) {
         T &component = m_entity.addComponent<T>(std::forward<Args>(args)...);
