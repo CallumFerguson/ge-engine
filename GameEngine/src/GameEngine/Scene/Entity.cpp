@@ -10,18 +10,18 @@ Scene *Entity::getScene() {
 
 void Entity::setParent(const Entity &entity) {
     auto &transform = getComponent<TransformComponent>();
-    transform.m_parentENTTHandel = entity.m_enttEntity;
+    transform.m_parentENTTHandle = entity.m_enttEntity;
 }
 
 glm::mat4 Entity::globalModelMatrix() {
     auto &transform = getComponent<TransformComponent>();
     glm::mat4 modelMatrix = transform.localModelMatrix();
-    entt::entity parent = transform.m_parentENTTHandel;
+    entt::entity parent = transform.parentENTTHandle();
 
     while (parent != entt::null) {
         auto &parentTransform = m_scene->m_registry.get<TransformComponent>(parent);
         modelMatrix = parentTransform.localModelMatrix() * modelMatrix;
-        parent = parentTransform.m_parentENTTHandel;
+        parent = parentTransform.parentENTTHandle();
     }
 
     return modelMatrix;

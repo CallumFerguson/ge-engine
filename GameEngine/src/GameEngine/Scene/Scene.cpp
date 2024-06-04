@@ -1,9 +1,11 @@
 #include "Scene.hpp"
 
+#include <imgui.h>
 #include "Entity.hpp"
 #include "Components.hpp"
 #include "ScriptableEntity.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
+#include "renderImGuiHeirarchy.hpp"
 
 namespace GameEngine {
 
@@ -44,6 +46,8 @@ void Scene::onUpdate() {
             instanceFunctions.onImGui(instanceFunctions.instance);
         }
     });
+
+    renderImGuiEntityHierarchy(m_registry);
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {

@@ -16,10 +16,14 @@ public:
 
     glm::mat4 localModelMatrix();
 
+    entt::entity parentENTTHandle() const;
+
 private:
-    entt::entity m_parentENTTHandel = entt::null;
+    entt::entity m_parentENTTHandle = entt::null;
 
     friend class Entity;
+
+    friend class Scene;
 };
 
 struct NameComponent {

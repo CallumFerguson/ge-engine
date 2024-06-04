@@ -29,6 +29,7 @@ add_library(
         src/GameEngine/Scene/Entity.cpp
         src/GameEngine/Scene/ScriptableEntity.cpp
         src/GameEngine/Scene/Components.cpp
+        src/GameEngine/Scene/renderImGuiHeirarchy.cpp
 
         src/GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.cpp
         src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp
