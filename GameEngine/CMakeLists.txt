@@ -70,6 +70,7 @@ target_include_directories(
         ../Dependencies/tinygltf/include
         ../Dependencies/imgui/include
         ../Dependencies/entt/include
+        ../Dependencies/nlohmannjson/include
 )
 
 if (NOT EMSCRIPTEN)

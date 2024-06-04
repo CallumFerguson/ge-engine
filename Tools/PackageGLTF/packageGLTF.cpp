@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <tiny_gltf.h>
+#include <nlohmann/json.hpp>
 #include "GameEngine.hpp"
 
 tinygltf::TinyGLTF loader;
@@ -39,4 +40,22 @@ int main(int argc, char *argv[]) {
     auto &mesh = model.meshes[0];
 
     GameEngine::writeGLTFMeshToFile(model, mesh, outputFilePath);
+
+    nlohmann::json j2 = {
+            {"pi",      3.141},
+            {"happy",   true},
+            {"name",    "Niels"},
+            {"nothing", nullptr},
+            {"answer",  {
+                                {"everything", 42}
+                        }},
+            {"list",    {       1, 0, 2}},
+            {"object",  {
+                                {"currency",   "USD"},
+                                   {"value", 42.99}
+                        }}
+    };
+
+//    std::ofstream outputFile(outputFilePath, std::ios::out);
+//    outputFile << j2.dump(4);
 }

@@ -19,3 +19,4 @@
 #include <GLFW/glfw3.h>
 #include <webgpu/webgpu_cpp.h>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
