@@ -48,7 +48,7 @@ void runSandboxApp() {
 //    Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();
 
-    std::filesystem::path inputFilePath("C:\\Users\\Calxf\\Documents\\CallumDocs\\git\\GameEngine\\Sandbox\\assets\\FlightHelmet\\FlightHelmet.gltf");
+    std::filesystem::path inputFilePath("assets/FlightHelmet/FlightHelmet.gltf");
 
     tinygltf::TinyGLTF loader;
 
@@ -119,7 +119,7 @@ void runSandboxApp() {
         }
     }
 
-    std::set<entt::entity> rootEntities;
+    std::set < entt::entity > rootEntities;
 
     auto prefabRootEntity = scene.createEntity(inputFilePath.stem().string());
 

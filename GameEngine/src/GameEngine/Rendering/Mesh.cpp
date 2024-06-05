@@ -6,7 +6,7 @@
 namespace GameEngine {
 
 Mesh::Mesh(const std::string &inputFilePath) {
-    std::ifstream inputFile(inputFilePath, std::ios::in | std::ios::binary);
+    std::ifstream inputFile(inputFilePath, std::ios::binary);
     if (!inputFile) {
         std::cerr << "Error: Could not open file for reading!" << std::endl;
         return;

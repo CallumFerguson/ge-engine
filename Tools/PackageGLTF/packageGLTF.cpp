@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    GameEngine::writeGLTFMeshToFile(model, model.meshes[0], outputFilePath.string());
+
 //    json prefab;
 //    prefab["components"] = {
 //            {

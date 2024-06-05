@@ -26,6 +26,7 @@ if (EMSCRIPTEN)
             -sASYNCIFY
             -sUSE_WEBGPU=1
             -sUSE_GLFW=3
+            -sALLOW_MEMORY_GROWTH
     )
 endif ()
 
