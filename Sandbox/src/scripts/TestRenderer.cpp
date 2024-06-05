@@ -112,7 +112,7 @@ void TestRenderer::onUpdate() {
 void TestRenderer::onImGui() {
     auto &name = getComponent<GameEngine::NameComponent>().name;
 
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f - 300.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::Begin("Controls", nullptr,
                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     std::string buttonLabel = "Randomize " + name + " color";
@@ -152,8 +152,11 @@ std::string &TestRenderer::imGuiName() {
 }
 
 void TestRenderer::onImGuiInspector() {
-    auto colorPtr = glm::value_ptr(m_color);
-    if(ImGui::ColorPicker3("color", colorPtr)) {
-        GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 64, colorPtr, 16);
+    if (ImGui::TreeNode("color")) {
+        auto colorPtr = glm::value_ptr(m_color);
+        if (ImGui::ColorPicker3("##color picker", colorPtr)) {
+            GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 64, colorPtr, 16);
+        }
+        ImGui::TreePop();
     }
 }

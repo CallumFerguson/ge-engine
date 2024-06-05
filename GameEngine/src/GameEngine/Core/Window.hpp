@@ -27,8 +27,8 @@ public:
 
 private:
     GLFWwindow *m_glfwWindow = nullptr;
-    int m_renderSurfaceWidth = 960;
-    int m_renderSurfaceHeight = 540;
+    int m_renderSurfaceWidth = 1280;
+    int m_renderSurfaceHeight = 720;
 
     static double getWindowTime();
 

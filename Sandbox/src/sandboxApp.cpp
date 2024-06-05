@@ -13,7 +13,7 @@ void runSandboxApp() {
 
     GameEngine::Scene &scene = app.getActiveScene();
 
-    auto camera = scene.createEntity("camera");
+    auto camera = scene.createEntity("Main Camera");
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 2.5;
@@ -24,25 +24,25 @@ void runSandboxApp() {
 
     float scale = 1;
 
-    GameEngine::Entity renderingEntity = scene.createEntity("ball 1");
+    GameEngine::Entity renderingEntity = scene.createEntity("Thing 1");
     renderingEntity.addScript<TestRenderer>(unlitShader, mesh);
     renderingEntity.addScript<Rotator>().speed = 180;
     renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
     renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
     renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
 
-    GameEngine::Entity renderingEntity2 = scene.createEntity("ball 2");
+    GameEngine::Entity renderingEntity2 = scene.createEntity("Thing 2");
     renderingEntity2.addScript<TestRenderer>(unlitShader, mesh);
     renderingEntity2.addScript<Rotator>().speed = 90;
     renderingEntity2.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
     renderingEntity2.setParent(renderingEntity);
 
-    GameEngine::Entity renderingEntity3 = scene.createEntity("ball 3");
+    GameEngine::Entity renderingEntity3 = scene.createEntity("Thing 3");
     renderingEntity3.addScript<TestRenderer>(unlitShader, mesh);
     renderingEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
     renderingEntity3.setParent(renderingEntity2);
 
-    GameEngine::Entity trackFPS = scene.createEntity("track FPS");
+    GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
 
     GameEngine::createPrefabFromEntity(renderingEntity);

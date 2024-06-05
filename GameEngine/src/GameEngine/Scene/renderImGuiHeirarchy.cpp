@@ -30,8 +30,24 @@ void renderEntityNode(const entt::registry &registry, entt::entity entity) {
 }
 
 void renderImGuiEntityHierarchy(entt::registry &registry) {
-    ImGui::SetNextWindowSize(ImVec2(0, 0));
-    ImGui::Begin("Scene Hierarchy");
+    ImGuiIO &io = ImGui::GetIO();
+    float displayWidth = io.DisplaySize.x;
+    float displayHeight = io.DisplaySize.y;
+
+    // Fixed width for the windows
+    float windowWidth = 300.0f;  // Adjust this value to your desired width
+
+    // Calculate heights for each window
+    float windowHeight = displayHeight / 2.0f;
+
+    float windowPosX = displayWidth - windowWidth;
+
+    // First window
+    ImGui::SetNextWindowPos(ImVec2(windowPosX, 0));  // Top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+
+//    ImGui::SetNextWindowSize(ImVec2(0, 0));
+    ImGui::Begin("Scene Hierarchy", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
     registry.view<entt::entity>().each([&](auto entity) {
         auto &transform = registry.get<TransformComponent>(entity);
@@ -42,8 +58,12 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
 
     ImGui::End();
 
-    ImGui::SetNextWindowSize(ImVec2(0, 0));
-    ImGui::Begin("Entity Inspector");
+    // Second window
+    ImGui::SetNextWindowPos(ImVec2(windowPosX, windowHeight));  // Below the first window
+    ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+
+//    ImGui::SetNextWindowSize(ImVec2(0, 0));
+    ImGui::Begin("Entity Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
     if (s_selectedEntity != entt::null) {
         auto name = registry.get<NameComponent>(s_selectedEntity).name;
