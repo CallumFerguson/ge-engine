@@ -15,6 +15,7 @@
 #include "GameEngine/Scene/Entity.hpp"
 #include "GameEngine/Scene/Scene.hpp"
 #include "GameEngine/Scene/ScriptableEntity.hpp"
+#include "GameEngine/Scene/prefab.hpp"
 
 #include "GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 #include "GameEngine/Rendering/Backends/WebGPU/WebGPUShader.hpp"
