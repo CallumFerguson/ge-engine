@@ -27,4 +27,22 @@ glm::mat4 Entity::globalModelMatrix() {
     return modelMatrix;
 }
 
+Entity Entity::getRootEntity() {
+    auto &transform = getComponent<TransformComponent>();
+    entt::entity parent = transform.parentENTTHandle();
+    entt::entity lastParent = m_enttEntity;
+
+    while (parent != entt::null) {
+        auto &parentTransform = m_scene->m_registry.get<TransformComponent>(parent);
+        lastParent = parent;
+        parent = parentTransform.parentENTTHandle();
+    }
+
+    return Entity(lastParent, m_scene);
+}
+
+entt::entity Entity::enttHandle() {
+    return m_enttEntity;
+}
+
 }

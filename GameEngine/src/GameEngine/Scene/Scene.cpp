@@ -11,8 +11,8 @@ namespace GameEngine {
 
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);
-    entity.addComponent<TransformComponent>();
     entity.addComponent<NameComponent>(name);
+    entity.addComponent<TransformComponent>();
     return entity;
 }
 

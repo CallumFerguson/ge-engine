@@ -26,7 +26,7 @@ public:
     }
 
     template<typename T>
-    T &getComponent() {
+    T &getComponent() const {
         return m_scene->m_registry.get<T>(m_enttEntity);
     }
 
@@ -45,7 +45,15 @@ public:
 
     void setParent(const Entity &entity);
 
+    Entity getRootEntity();
+
     glm::mat4 globalModelMatrix();
+
+    entt::entity enttHandle();
+
+//    bool operator==(const Entity &other) const {
+//        return m_enttEntity == other.m_enttEntity;
+//    }
 
 private:
     entt::entity m_enttEntity = entt::null;

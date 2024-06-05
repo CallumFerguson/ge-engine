@@ -15,6 +15,30 @@
 
 namespace GameEngine {
 
+int accessorItemByteLength(const tinygltf::Accessor &accessor) {
+    int componentSizeInBytes = tinygltf::GetComponentSizeInBytes(static_cast<uint32_t>(accessor.componentType));
+    if (componentSizeInBytes <= 0) {
+        return -1;
+    }
+
+    int numComponents = tinygltf::GetNumComponentsInType(static_cast<uint32_t>(accessor.type));
+    if (numComponents <= 0) {
+        return -1;
+    }
+
+    return componentSizeInBytes * numComponents;
+}
+
+bool isTightlyPacked(const tinygltf::Accessor &accessor, const tinygltf::BufferView &bufferView) {
+    int itemByteLength = accessorItemByteLength(accessor);
+    if (itemByteLength <= 0 || itemByteLength != accessor.ByteStride(bufferView)) {
+        return false;
+    }
+    return true;
+}
+
+#include <vector>
+
 bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::string &outputFilePath) {
     if (mesh.primitives.empty()) {
         std::cout << "First mesh does not contain any primitives." << std::endl;
@@ -34,13 +58,10 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
     auto *positions = &positionBuffer.data[positionBufferView.byteOffset + positionAccessor.byteOffset];
     int32_t numPositions = positionAccessor.count;
 
-    if (positionBufferView.byteStride != 0) {
+    if (!isTightlyPacked(positionAccessor, positionBufferView)) {
         std::cout << "positions are not tightly packed which is not supported yet" << std::endl;
         return false;
     }
-//    std::cout << positionBufferView.byteStride << std::endl;
-//    std::cout << positionAccessor.ByteStride(positionBufferView) << std::endl;
-
 
     if (primitive.indices < 0) {
         std::cout << "Primitive does not contain indices." << std::endl;
@@ -52,7 +73,7 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
     auto &indexBuffer = model.buffers[indexBufferView.buffer];
     auto *indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
 
-    if (indexBufferView.byteStride != 0) {
+    if (!isTightlyPacked(indexAccessor, indexBufferView)) {
         std::cout << "indices are not tightly packed which is not supported yet" << std::endl;
         return false;
     }
