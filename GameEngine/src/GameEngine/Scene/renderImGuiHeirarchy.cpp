@@ -1,7 +1,9 @@
 #include "renderImGuiHeirarchy.hpp"
 
+#include <string>
 #include <imgui.h>
 #include "Components.hpp"
+#include "ScriptableEntity.hpp"
 
 namespace GameEngine {
 
@@ -46,21 +48,53 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
     if (s_selectedEntity != entt::null) {
         auto name = registry.get<NameComponent>(s_selectedEntity).name;
         ImGui::Text("%s", name.c_str());
+
         ImGui::Separator();
 
-        auto &transform = registry.get<TransformComponent>(s_selectedEntity);
-        ImGui::Text("Transform");
+        ImGui::Text("Components:");
 
-        ImGui::DragFloat3("local position", &transform.localPosition[0], 0.1f);
+        if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto &transform = registry.get<TransformComponent>(s_selectedEntity);
 
-        glm::vec3 eulerRotation = glm::eulerAngles(transform.localRotation);
-        eulerRotation = glm::degrees(eulerRotation);  // Convert to degrees for easier manipulation
-        if (ImGui::DragFloat3("local rotation", &eulerRotation[0], 0.1f)) {
-            eulerRotation = glm::radians(eulerRotation);  // Convert back to radians
-            transform.localRotation = glm::quat(eulerRotation);
+            ImGui::DragFloat3("local position", &transform.localPosition[0], 0.1f);
+
+            glm::vec3 eulerRotation = glm::eulerAngles(transform.localRotation);
+            eulerRotation = glm::degrees(eulerRotation);  // Convert to degrees for easier manipulation
+            if (ImGui::DragFloat3("local rotation", &eulerRotation[0], 0.1f)) {
+                eulerRotation = glm::radians(eulerRotation);  // Convert back to radians
+                transform.localRotation = glm::quat(eulerRotation);
+            }
+
+            ImGui::DragFloat3("local scale", &transform.localScale[0], 0.1f);
         }
 
-        ImGui::DragFloat3("local scale", &transform.localScale[0], 0.1f);
+        if (registry.all_of<CameraComponent>(s_selectedEntity)) {
+            if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+                auto &camera = registry.get<CameraComponent>(s_selectedEntity);
+                camera.onImGui();
+            }
+        }
+
+        ImGui::Separator();
+
+        ImGui::Text("Scripts:");
+
+        if (registry.all_of<NativeScriptComponent>(s_selectedEntity)) {
+            auto &nsc = registry.get<NativeScriptComponent>(s_selectedEntity);
+            int i = 0;
+            for (auto &nscInstanceFunctions: nsc.instancesFunctions) {
+                auto scriptName = nscInstanceFunctions.instance->imGuiName();
+                if (scriptName.empty()) {
+                    scriptName = "Unnamed script (" + std::to_string(i) + ")";
+                }
+                if (ImGui::CollapsingHeader(scriptName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                    nscInstanceFunctions.instance->onImGuiInspector();
+                }
+                i++;
+            }
+        } else {
+            ImGui::Text("none");
+        }
     }
 
     ImGui::End();

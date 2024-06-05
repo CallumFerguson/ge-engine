@@ -16,3 +16,8 @@ void CameraController::onUpdate() {
         transform.localPosition[2] += GameEngine::Time::deltaTime();
     }
 }
+
+std::string &CameraController::imGuiName() {
+    static std::string s_name = "CameraController";
+    return s_name;
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "Entity.hpp"
 
 namespace GameEngine {
@@ -40,6 +41,10 @@ public:
     }
 
     Entity &getEntity();
+
+    virtual std::string &imGuiName();
+
+    virtual void onImGuiInspector();
 
 private:
     Entity m_entity;

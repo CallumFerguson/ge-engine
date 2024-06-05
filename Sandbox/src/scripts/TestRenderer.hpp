@@ -17,6 +17,10 @@ public:
 
     void onMainRenderPass();
 
+    std::string &imGuiName() override;
+
+    void onImGuiInspector() override;
+
 private:
     std::shared_ptr<GameEngine::WebGPUShader> m_shader;
     std::shared_ptr<GameEngine::Mesh> m_mesh;

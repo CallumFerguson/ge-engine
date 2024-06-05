@@ -145,3 +145,15 @@ void TestRenderer::randomizeColor() {
     m_color[1] = GameEngine::Random::value();
     m_color[2] = GameEngine::Random::value();
 }
+
+std::string &TestRenderer::imGuiName() {
+    static std::string s_name = "TestRenderer";
+    return s_name;
+}
+
+void TestRenderer::onImGuiInspector() {
+    auto colorPtr = glm::value_ptr(m_color);
+    if(ImGui::ColorPicker3("color", colorPtr)) {
+        GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_uniformBuffer, 64, colorPtr, 16);
+    }
+}

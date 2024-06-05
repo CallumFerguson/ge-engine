@@ -1,6 +1,7 @@
 #include "Components.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
 #include "../Core/Window.hpp"
 
 namespace GameEngine {
@@ -31,6 +32,12 @@ const glm::mat4 &CameraComponent::projection() {
 glm::mat4 CameraComponent::transformToView(const TransformComponent &transform) {
     // ignore transform scale
     return glm::inverse(glm::translate(glm::mat4(1.0f), transform.localPosition) * glm::mat4_cast(transform.localRotation));
+}
+
+void CameraComponent::onImGui() {
+    if (ImGui::SliderFloat("FOV", &m_fov, 0.001f, 179.0f)) {
+        m_projection = glm::perspectiveRH_ZO(glm::radians(m_fov), m_aspectRatio, m_nearClippingPlane, m_farClippingPlane);
+    }
 }
 
 }

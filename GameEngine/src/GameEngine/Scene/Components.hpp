@@ -38,6 +38,8 @@ public:
 
     static glm::mat4 transformToView(const TransformComponent &transform);
 
+    void onImGui();
+
 private:
     glm::mat4 m_projection{};
     float m_aspectRatio;

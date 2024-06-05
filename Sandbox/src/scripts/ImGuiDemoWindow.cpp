@@ -7,3 +7,8 @@ void ImGuiDemoWindow::onImGui() {
         ImGui::ShowDemoWindow(&m_showDemoWindow);
     }
 }
+
+std::string &ImGuiDemoWindow::imGuiName() {
+    static std::string s_name = "ImGuiDemoWindow";
+    return s_name;
+}

@@ -13,7 +13,7 @@ void runSandboxApp() {
 
     GameEngine::Scene &scene = app.getActiveScene();
 
-    auto camera = scene.createEntity();
+    auto camera = scene.createEntity("camera");
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 2.5;
@@ -42,15 +42,15 @@ void runSandboxApp() {
     renderingEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
     renderingEntity3.setParent(renderingEntity2);
 
-    GameEngine::Entity trackFPS = scene.createEntity();
+    GameEngine::Entity trackFPS = scene.createEntity("track FPS");
     trackFPS.addScript<TrackFramerate>();
 
     GameEngine::createPrefabFromEntity(renderingEntity);
 
     GameEngine::loadPrefab();
 
-//    Entity imGuiDemoWindow = scene.createEntity();
-//    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();
+//    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
+//    imGuiDemoWindow.addScript<ImGuiDemoWindow>();
 
 //    std::filesystem::path inputFilePath("assets/FlightHelmet/FlightHelmet.gltf");
 //
