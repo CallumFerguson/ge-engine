@@ -110,16 +110,16 @@ void TestRenderer::onUpdate() {
 }
 
 void TestRenderer::onImGui() {
-    auto &name = getComponent<GameEngine::NameComponent>().name;
-
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f - 300.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::Begin("Controls", nullptr,
-                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-    std::string buttonLabel = "Randomize " + name + " color";
-    if (ImGui::Button(buttonLabel.c_str())) {
-        randomizeColor();
-    }
-    ImGui::End();
+//    auto &name = getComponent<GameEngine::NameComponent>().name;
+//
+//    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f - 300.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+//    ImGui::Begin("Controls", nullptr,
+//                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+//    std::string buttonLabel = "Randomize " + name + " color";
+//    if (ImGui::Button(buttonLabel.c_str())) {
+//        randomizeColor();
+//    }
+//    ImGui::End();
 
 //    static MemoryEditor mem_edit;
 //    mem_edit.DrawWindow("Memory Editor", m_uniformBufferData, 16);

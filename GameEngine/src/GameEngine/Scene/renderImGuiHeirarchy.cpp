@@ -118,7 +118,6 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
     }
 
     ImGui::End();
-
 }
 
 }
