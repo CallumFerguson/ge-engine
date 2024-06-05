@@ -27,7 +27,8 @@ void renderEntityNode(const entt::registry &registry, entt::entity entity) {
     }
 }
 
-void renderImGuiEntityHierarchy(const entt::registry &registry) {
+void renderImGuiEntityHierarchy(entt::registry &registry) {
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Scene Hierarchy");
 
     registry.view<entt::entity>().each([&](auto entity) {
@@ -38,6 +39,32 @@ void renderImGuiEntityHierarchy(const entt::registry &registry) {
     });
 
     ImGui::End();
+
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
+    ImGui::Begin("Entity Inspector");
+
+    if (s_selectedEntity != entt::null) {
+        auto name = registry.get<NameComponent>(s_selectedEntity).name;
+        ImGui::Text("%s", name.c_str());
+        ImGui::Separator();
+
+        auto &transform = registry.get<TransformComponent>(s_selectedEntity);
+        ImGui::Text("Transform");
+
+        ImGui::DragFloat3("local position", &transform.localPosition[0], 0.1f);
+
+        glm::vec3 eulerRotation = glm::eulerAngles(transform.localRotation);
+        eulerRotation = glm::degrees(eulerRotation);  // Convert to degrees for easier manipulation
+        if (ImGui::DragFloat3("local rotation", &eulerRotation[0], 0.1f)) {
+            eulerRotation = glm::radians(eulerRotation);  // Convert back to radians
+            transform.localRotation = glm::quat(eulerRotation);
+        }
+
+        ImGui::DragFloat3("local scale", &transform.localScale[0], 0.1f);
+    }
+
+    ImGui::End();
+
 }
 
 }

@@ -4,6 +4,6 @@
 
 namespace GameEngine {
 
-void renderImGuiEntityHierarchy(const entt::registry &registry);
+void renderImGuiEntityHierarchy(entt::registry &registry);
 
 }

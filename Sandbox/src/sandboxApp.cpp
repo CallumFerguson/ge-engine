@@ -48,5 +48,89 @@ void runSandboxApp() {
 //    Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addComponent<NativeScriptComponent>().bind<ImGuiDemoWindow>();
 
+    std::filesystem::path inputFilePath("C:\\Users\\Calxf\\Documents\\CallumDocs\\git\\GameEngine\\Sandbox\\assets\\FlightHelmet\\FlightHelmet.gltf");
+
+    tinygltf::TinyGLTF loader;
+
+    tinygltf::Model model;
+    std::string err;
+    std::string warn;
+
+    std::string inputFilePathExtension = inputFilePath.extension().string();
+    bool result;
+    if (inputFilePathExtension == ".gltf") {
+        result = loader.LoadASCIIFromFile(&model, &err, &warn, inputFilePath.string());
+    } else if (inputFilePathExtension == ".glb") {
+        result = loader.LoadBinaryFromFile(&model, &err, &warn, inputFilePath.string());
+    } else {
+        std::cout << "unknown file extension: " << inputFilePathExtension << " extension must be either .gltf or .glb" << std::endl;
+        return;
+    }
+
+    if (!warn.empty()) {
+        std::cout << "loadModel warning: " << warn << std::endl;
+    }
+    if (!err.empty()) {
+        std::cerr << "loadModel error: " << err << std::endl;
+    }
+    if (!result) {
+        std::cerr << "loadModel ailed to load GLTF model." << std::endl;
+        return;
+    }
+    if (model.scenes.size() != 1) {
+        // TODO: probably just make an empty root element
+        std::cout << "only gltf files with a single scene are supported. this gltf has " << model.scenes.size() << " scenes." << std::endl;
+        return;
+    }
+
+//    json prefab;
+//    prefab["components"] = {
+//            {
+//                    "type", "NameComponent",
+//                    "properties", {
+//                                          "name",     "Entity",
+//                                  }
+//            },
+//            {
+//                    "type", "TransformComponent",
+//                    "properties", {
+//                                          "position", {0, 0, 0},
+//                                          "rotation", {0, 0, 0, 1},
+//                                          "scale", {1, 1, 1},
+//                                  }
+//            }
+//    };
+//    prefab["children"] = json::array();
+
+    std::vector<GameEngine::Entity> entities;
+
+    for (const auto &nodeId: model.scenes[0].nodes) {
+        auto &node = model.nodes[nodeId];
+        auto entity = scene.createEntity(node.name);
+        entities.push_back(entity);
+    }
+
+    for (const auto &nodeId: model.scenes[0].nodes) {
+        auto &node = model.nodes[nodeId];
+        for (const auto &childNodeId: node.children) {
+            entities[childNodeId].setParent(entities[nodeId]);
+            std::cout << "set parent" << std::endl;
+
+        }
+    }
+
+    std::set<entt::entity> rootEntities;
+
+    auto prefabRootEntity = scene.createEntity(inputFilePath.stem().string());
+
+    for (auto &entity: entities) {
+        rootEntities.insert(entity.getRootEntity().enttHandle());
+    }
+
+    for (auto &rootEntity: rootEntities) {
+        GameEngine::Entity entity(rootEntity, &scene);
+        entity.setParent(prefabRootEntity);
+    }
+
     app.run();
 }
