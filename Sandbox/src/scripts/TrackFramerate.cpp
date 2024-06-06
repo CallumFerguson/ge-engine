@@ -14,3 +14,7 @@ void TrackFramerate::onImGui() {
     ImGui::Text("fps: %d", static_cast<int>(std::round(m_fpsRollingAverage.average())));
     ImGui::End();
 }
+
+nlohmann::json TrackFramerate::toJSON() {
+    return {};
+}

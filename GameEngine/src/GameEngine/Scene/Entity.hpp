@@ -1,14 +1,13 @@
 #pragma once
 
+#include <vector>
+#include <map>
+#include <functional>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 #include "Scene.hpp"
 #include "Components.hpp"
-
-#include <set>
-#include <typeindex>
-#include <type_traits>
-#include <utility>
 
 namespace GameEngine {
 
@@ -23,7 +22,11 @@ public:
         static_assert(!std::is_same<T, NativeScriptComponent>::value, "NativeScriptComponent cannot be directly added. Use addScript instead");
         T &component = m_scene->m_registry.emplace<T>(m_enttEntity, std::forward<Args>(args)...);
 
-//        std::cout << component.objectName() << std::endl;
+        auto &info = getComponent<InfoComponent>();
+        info.componentNames.push_back(component.objectName());
+        info.componentToJSONFunctions[component.objectName()] = [&]() -> nlohmann::json {
+            return component.toJSON();
+        };
 
         return component;
     }
@@ -34,9 +37,11 @@ public:
     }
 
     template<typename T>
-    T &getComponent() const {
+    [[nodiscard]] T &getComponent() const {
         return m_scene->m_registry.get<T>(m_enttEntity);
     }
+
+    nlohmann::json getComponentJSON(const std::string &componentName);
 
     template<typename T>
     void removeComponent() {
@@ -45,18 +50,23 @@ public:
 
     template<typename T, typename... Args>
     T &addScript(Args &&... args) {
-        // add to list for heirarchy and to prefab? or maybe not needed if i know there is a NSC
         auto &nsc = m_scene->m_registry.get_or_emplace<NativeScriptComponent>(m_enttEntity);
         T &script = nsc.bind<T>(std::forward<Args>(args)...);
 
-//        std::cout << script.objectName() << std::endl;
+        auto &info = getComponent<InfoComponent>();
+        info.scriptNames.push_back(script.objectName());
+        info.scriptToJSONFunctions[script.objectName()] = [&]() -> nlohmann::json {
+            return script.toJSON();
+        };
 
         return script;
     }
 
+    nlohmann::json getScriptJSON(const std::string &scriptName);
+
     Scene *getScene();
 
-    void setParent(const Entity &parentEntity);
+    void setParent(Entity &parentEntity);
 
     Entity getRootEntity();
 

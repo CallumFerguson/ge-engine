@@ -10,6 +10,8 @@ public:
 
     void onImGuiInspector() override;
 
+    nlohmann::json toJSON();
+
     [[nodiscard]] const char *objectName() const override {
         return "Rotator";
     }

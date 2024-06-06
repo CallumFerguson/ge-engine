@@ -2,31 +2,31 @@
 
 #include <fstream>
 #include <iostream>
+#include "Components.hpp"
 
 namespace GameEngine {
 
 json entityToJson(Entity &entity) {
-    auto &transform = entity.getComponent<TransformComponent>();
-
     json entityJson;
-    entityJson["components"] = {
-            {
-                    "type", "NameComponent",
-                    "properties", {
-                                          "name",     "Entity",
-                                  }
-            },
-            {
-                    "type", "TransformComponent",
-                    "properties", {
-                                          "position", {0, 0, 0},
-                                          "rotation", {0, 0, 0, 1},
-                                          "scale", {1, 1, 1},
-                                  }
-            }
-    };
+
+    entityJson["components"] = json::array();
+    for (auto &componentName: entity.getComponent<InfoComponent>().componentNames) {
+        json componentJSON;
+        componentJSON["type"] = componentName;
+        componentJSON["properties"] = entity.getComponentJSON(componentName);
+        entityJson["components"].push_back(componentJSON);
+    }
+
+    entityJson["scripts"] = json::array();
+    for (auto &scriptName: entity.getComponent<InfoComponent>().scriptNames) {
+        json scriptJSON;
+        scriptJSON["type"] = scriptName;
+        scriptJSON["properties"] = entity.getScriptJSON(scriptName);
+        entityJson["scripts"].push_back(scriptJSON);
+    }
+
     entityJson["children"] = json::array();
-    for (auto &childEntityHandle: transform.childrenENTTHandles()) {
+    for (auto &childEntityHandle: entity.getComponent<TransformComponent>().childrenENTTHandles()) {
         auto childEntity = Entity(childEntityHandle, entity.getScene());
         entityJson["children"].push_back(entityToJson(childEntity));
     }

@@ -8,7 +8,7 @@ Scene *Entity::getScene() {
     return m_scene;
 }
 
-void Entity::setParent(const Entity &parentEntity) {
+void Entity::setParent(Entity &parentEntity) {
     getComponent<TransformComponent>().m_parentENTTHandle = parentEntity.m_enttEntity;
 
     parentEntity.getComponent<TransformComponent>().m_childrenENTTHandles.push_back(m_enttEntity);
@@ -44,6 +44,32 @@ Entity Entity::getRootEntity() {
 
 entt::entity Entity::enttHandle() {
     return m_enttEntity;
+}
+
+nlohmann::json Entity::getComponentJSON(const std::string &componentName) {
+    auto &info = getComponent<InfoComponent>();
+
+    auto it = info.componentToJSONFunctions.find(componentName);
+
+    if (it != info.componentToJSONFunctions.end()) {
+        return it->second();
+    } else {
+        std::cout << "getComponentJSON did not find component with name " << componentName << std::endl;
+        return {};
+    }
+}
+
+nlohmann::json Entity::getScriptJSON(const std::string &scriptName) {
+    auto &info = getComponent<InfoComponent>();
+
+    auto it = info.scriptToJSONFunctions.find(scriptName);
+
+    if (it != info.scriptToJSONFunctions.end()) {
+        return it->second();
+    } else {
+        std::cout << "getScriptJSON did not find component with name " << scriptName << std::endl;
+        return {};
+    }
 }
 
 }

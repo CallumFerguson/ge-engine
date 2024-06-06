@@ -155,3 +155,9 @@ void TestRenderer::onImGuiInspector() {
         ImGui::TreePop();
     }
 }
+
+nlohmann::json TestRenderer::toJSON() {
+    nlohmann::json result;
+    result["color"] = {m_color[0], m_color[1], m_color[2], m_color[3]};
+    return result;
+}

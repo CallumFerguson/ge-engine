@@ -6,6 +6,8 @@ class TrackFramerate : public GameEngine::ScriptableEntity {
 public:
     void onImGui();
 
+    nlohmann::json toJSON();
+
     [[nodiscard]] const char *objectName() const override {
         return "TrackFramerate";
     }

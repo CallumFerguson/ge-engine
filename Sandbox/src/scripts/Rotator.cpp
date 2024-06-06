@@ -14,3 +14,9 @@ void Rotator::onUpdate() {
 void Rotator::onImGuiInspector() {
     ImGui::DragFloat("speed", &speed, 1.0f);
 }
+
+nlohmann::json Rotator::toJSON() {
+    nlohmann::json result;
+    result["speed"] = speed;
+    return result;
+}

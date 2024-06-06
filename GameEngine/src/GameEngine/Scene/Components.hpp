@@ -1,13 +1,33 @@
 #pragma once
 
 #include <vector>
+#include <set>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <entt/entt.hpp>
+#include <nlohmann/json.hpp>
 
 namespace GameEngine {
 
 class Entity;
+
+struct InfoComponent {
+    std::vector<std::string> componentNames;
+    std::map<std::string, std::function<nlohmann::json()>> componentToJSONFunctions;
+
+    std::vector<std::string> scriptNames;
+    std::map<std::string, std::function<nlohmann::json()>> scriptToJSONFunctions;
+};
+
+struct NameComponent {
+    std::string name;
+
+    nlohmann::json toJSON();
+
+    [[nodiscard]] const char *objectName() const {
+        return "NameComponent";
+    }
+};
 
 class TransformComponent {
 public:
@@ -20,6 +40,8 @@ public:
     entt::entity parentENTTHandle() const;
 
     const std::vector<entt::entity> &childrenENTTHandles() const;
+
+    nlohmann::json toJSON();
 
     [[nodiscard]] const char *objectName() const {
         return "TransformComponent";
@@ -34,14 +56,6 @@ private:
     friend class Scene;
 };
 
-struct NameComponent {
-    std::string name;
-
-    [[nodiscard]] const char *objectName() const {
-        return "NameComponent";
-    }
-};
-
 class CameraComponent {
 public:
     explicit CameraComponent(float fieldOfView);
@@ -52,12 +66,14 @@ public:
 
     void onImGui();
 
+    nlohmann::json toJSON();
+
     [[nodiscard]] const char *objectName() const {
         return "CameraComponent";
     }
 
 private:
-    glm::mat4 m_projection{};
+    glm::mat4 m_projection;
     float m_aspectRatio;
     float m_fov;
     float m_nearClippingPlane = 0.1;
@@ -186,10 +202,6 @@ struct NativeScriptComponent {
         };
 
         return *scriptableEntityInstance;
-    }
-
-    [[nodiscard]] const char *objectName() const {
-        return "NativeScriptComponent";
     }
 };
 
