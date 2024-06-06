@@ -7,10 +7,8 @@ namespace GameEngine {
 
 using json = nlohmann::json;
 
-json entityToJson(Entity &entity);
+json entityToJSON(Entity &entity);
 
-void createPrefabFromEntity(Entity &entity);
-
-void loadPrefab();
+void jsonToEntity(const json &entityJSON, entt::entity parentENTTHandle, Scene &scene);
 
 }

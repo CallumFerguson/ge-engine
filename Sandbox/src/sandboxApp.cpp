@@ -45,9 +45,9 @@ void runSandboxApp() {
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
 
-    GameEngine::createPrefabFromEntity(renderingEntity);
+    auto json = GameEngine::entityToJSON(renderingEntity);
 
-    GameEngine::loadPrefab();
+    GameEngine::jsonToEntity(json, entt::null, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();
