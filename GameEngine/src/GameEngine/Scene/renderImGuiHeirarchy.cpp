@@ -103,11 +103,7 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
             auto &nsc = registry.get<NativeScriptComponent>(s_selectedEntity);
             int i = 0;
             for (auto &nscInstanceFunctions: nsc.instancesFunctions) {
-                auto scriptName = nscInstanceFunctions.instance->imGuiName();
-                if (scriptName.empty()) {
-                    scriptName = "Unnamed script (" + std::to_string(i) + ")";
-                }
-                if (ImGui::CollapsingHeader(scriptName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::CollapsingHeader(nscInstanceFunctions.instance->objectName(), ImGuiTreeNodeFlags_DefaultOpen)) {
                     nscInstanceFunctions.instance->onImGuiInspector();
                 }
                 i++;

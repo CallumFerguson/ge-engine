@@ -14,8 +14,3 @@ void TrackFramerate::onImGui() {
     ImGui::Text("fps: %d", static_cast<int>(std::round(m_fpsRollingAverage.average())));
     ImGui::End();
 }
-
-std::string &TrackFramerate::imGuiName() {
-    static std::string s_name = "TrackFramerate";
-    return s_name;
-}

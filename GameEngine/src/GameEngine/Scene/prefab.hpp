@@ -1,10 +1,15 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include "Entity.hpp"
 
 namespace GameEngine {
 
-void createPrefabFromEntity(const Entity &entity);
+using json = nlohmann::json;
+
+json entityToJson(Entity &entity);
+
+void createPrefabFromEntity(Entity &entity);
 
 void loadPrefab();
 

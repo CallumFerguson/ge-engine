@@ -11,11 +11,6 @@ void Rotator::onUpdate() {
     }
 }
 
-std::string &Rotator::imGuiName() {
-    static std::string s_name = "Rotator";
-    return s_name;
-}
-
 void Rotator::onImGuiInspector() {
     ImGui::DragFloat("speed", &speed, 1.0f);
 }

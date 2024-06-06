@@ -6,7 +6,9 @@ class ImGuiDemoWindow : public GameEngine::ScriptableEntity {
 public:
     void onImGui();
 
-    std::string &imGuiName() override;
+    [[nodiscard]] const char *objectName() const override {
+        return "ImGuiDemoWindow";
+    }
 
 private:
     bool m_showDemoWindow = true;

@@ -6,7 +6,9 @@ class TrackFramerate : public GameEngine::ScriptableEntity {
 public:
     void onImGui();
 
-    std::string &imGuiName() override;
+    [[nodiscard]] const char *objectName() const override {
+        return "TrackFramerate";
+    }
 
 private:
     GameEngine::RollingAverage m_fpsRollingAverage;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <entt/entt.hpp>
@@ -18,8 +19,15 @@ public:
 
     entt::entity parentENTTHandle() const;
 
+    const std::vector<entt::entity> &childrenENTTHandles() const;
+
+    [[nodiscard]] const char *objectName() const {
+        return "TransformComponent";
+    }
+
 private:
     entt::entity m_parentENTTHandle = entt::null;
+    std::vector<entt::entity> m_childrenENTTHandles;
 
     friend class Entity;
 
@@ -28,6 +36,10 @@ private:
 
 struct NameComponent {
     std::string name;
+
+    [[nodiscard]] const char *objectName() const {
+        return "NameComponent";
+    }
 };
 
 class CameraComponent {
@@ -39,6 +51,10 @@ public:
     static glm::mat4 transformToView(const TransformComponent &transform);
 
     void onImGui();
+
+    [[nodiscard]] const char *objectName() const {
+        return "CameraComponent";
+    }
 
 private:
     glm::mat4 m_projection{};
@@ -170,6 +186,10 @@ struct NativeScriptComponent {
         };
 
         return *scriptableEntityInstance;
+    }
+
+    [[nodiscard]] const char *objectName() const {
+        return "NativeScriptComponent";
     }
 };
 

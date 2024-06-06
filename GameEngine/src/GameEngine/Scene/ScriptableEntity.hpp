@@ -42,9 +42,9 @@ public:
 
     Entity &getEntity();
 
-    virtual std::string &imGuiName();
-
     virtual void onImGuiInspector();
+
+    [[nodiscard]] virtual const char *objectName() const = 0;
 
 private:
     Entity m_entity;

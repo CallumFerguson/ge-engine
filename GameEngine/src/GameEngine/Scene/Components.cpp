@@ -14,6 +14,10 @@ entt::entity TransformComponent::parentENTTHandle() const {
     return m_parentENTTHandle;
 }
 
+const std::vector<entt::entity> &TransformComponent::childrenENTTHandles() const {
+    return m_childrenENTTHandles;
+}
+
 CameraComponent::CameraComponent(float fieldOfView) {
     m_fov = fieldOfView;
     m_aspectRatio = Window::mainWindow().aspectRatio();

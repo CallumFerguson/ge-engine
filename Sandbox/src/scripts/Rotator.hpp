@@ -8,7 +8,9 @@ public:
 
     void onUpdate();
 
-    std::string &imGuiName() override;
-
     void onImGuiInspector() override;
+
+    [[nodiscard]] const char *objectName() const override {
+        return "Rotator";
+    }
 };

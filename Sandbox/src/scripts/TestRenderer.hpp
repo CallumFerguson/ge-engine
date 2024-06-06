@@ -17,9 +17,11 @@ public:
 
     void onMainRenderPass();
 
-    std::string &imGuiName() override;
-
     void onImGuiInspector() override;
+
+    [[nodiscard]] const char *objectName() const override {
+        return "TestRenderer";
+    }
 
 private:
     std::shared_ptr<GameEngine::WebGPUShader> m_shader;

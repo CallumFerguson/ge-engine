@@ -146,11 +146,6 @@ void TestRenderer::randomizeColor() {
     m_color[2] = GameEngine::Random::value();
 }
 
-std::string &TestRenderer::imGuiName() {
-    static std::string s_name = "TestRenderer";
-    return s_name;
-}
-
 void TestRenderer::onImGuiInspector() {
     if (ImGui::TreeNode("color")) {
         auto colorPtr = glm::value_ptr(m_color);

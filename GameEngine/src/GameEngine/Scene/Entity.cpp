@@ -8,9 +8,10 @@ Scene *Entity::getScene() {
     return m_scene;
 }
 
-void Entity::setParent(const Entity &entity) {
-    auto &transform = getComponent<TransformComponent>();
-    transform.m_parentENTTHandle = entity.m_enttEntity;
+void Entity::setParent(const Entity &parentEntity) {
+    getComponent<TransformComponent>().m_parentENTTHandle = parentEntity.m_enttEntity;
+
+    parentEntity.getComponent<TransformComponent>().m_childrenENTTHandles.push_back(m_enttEntity);
 }
 
 glm::mat4 Entity::globalModelMatrix() {
