@@ -7,68 +7,67 @@
 
 namespace GameEngine {
 
-// super janky just for testing
-
 static entt::entity s_selectedEntity = entt::null;
 
-void renderEntityNode(const entt::registry &registry, entt::entity entity) {
-    ImGuiTreeNodeFlags flags = ((s_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-    bool opened = ImGui::TreeNodeEx((void *) (uint64_t) (uint32_t) entity, flags, "%s", registry.get<NameComponent>(entity).name.c_str());
+void renderImGuiEntity(const entt::registry &registry, entt::entity entity) {
+    auto entityName = registry.get<NameComponent>(entity).name.c_str();
+    auto &transform = registry.get<TransformComponent>(entity);
+
+    ImGuiTreeNodeFlags flags = 0;
+    flags |= ImGuiTreeNodeFlags_OpenOnArrow;
+    if (transform.childrenENTTHandles().empty()) {
+        flags |= ImGuiTreeNodeFlags_Leaf;
+    }
+    if (entity == s_selectedEntity) {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    bool opened = ImGui::TreeNodeEx(entityName, flags);
     if (ImGui::IsItemClicked()) {
         s_selectedEntity = entity;
     }
 
     if (opened) {
-        registry.view<entt::entity>().each([&](auto childEntity) {
-            auto &childTransform = registry.get<TransformComponent>(childEntity);
-            if (childTransform.parentENTTHandle() == entity) {
-                renderEntityNode(registry, childEntity);
-            }
-        });
+        for (auto &child: transform.childrenENTTHandles()) {
+            renderImGuiEntity(registry, child);
+        }
         ImGui::TreePop();
     }
 }
 
 void renderImGuiEntityHierarchy(entt::registry &registry) {
     ImGuiIO &io = ImGui::GetIO();
+
     float displayWidth = io.DisplaySize.x;
     float displayHeight = io.DisplaySize.y;
 
-    // Fixed width for the windows
-    float windowWidth = 300.0f;  // Adjust this value to your desired width
-
-    // Calculate heights for each window
+    float windowWidth = 300.0f;
     float windowHeight = displayHeight / 2.0f;
 
     float windowPosX = displayWidth - windowWidth;
 
-    // First window
-    ImGui::SetNextWindowPos(ImVec2(windowPosX, 0));  // Top-left corner
+    ImGui::SetNextWindowPos(ImVec2(windowPosX, 0));
     ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
-
-//    ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Scene Hierarchy", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
     registry.view<entt::entity>().each([&](auto entity) {
         auto &transform = registry.get<TransformComponent>(entity);
         if (transform.parentENTTHandle() == entt::null) {
-            renderEntityNode(registry, entity);
+            renderImGuiEntity(registry, entity);
         }
     });
 
     ImGui::End();
 
-    // Second window
-    ImGui::SetNextWindowPos(ImVec2(windowPosX, windowHeight));  // Below the first window
+    ImGui::SetNextWindowPos(ImVec2(windowPosX, windowHeight));
     ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
-
-//    ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Entity Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
     if (s_selectedEntity != entt::null) {
         auto name = registry.get<NameComponent>(s_selectedEntity).name;
         ImGui::Text("%s", name.c_str());
-        ImGui::Text("entt handle: %d", (int) s_selectedEntity);
+        auto entityHandle = std::to_string(static_cast<uint64_t>(s_selectedEntity));
+        ImGui::Text("entt handle: %s", entityHandle.c_str());
 
         ImGui::Separator();
 

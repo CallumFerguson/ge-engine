@@ -51,7 +51,7 @@ void runSandboxApp() {
     std::ifstream jsonFile("assets/prefab.json");
     jsonFile >> entityJSON;
 
-    GameEngine::jsonToEntity(entityJSON, entt::null, scene);
+    GameEngine::jsonToEntity(entityJSON, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();

@@ -92,6 +92,10 @@ bool validateEntityJSON(const nlohmann::json &entityJSON) {
     return true;
 }
 
+void jsonToEntity(const nlohmann::json &entityJSON, Scene &scene) {
+    jsonToEntity(entityJSON, entt::null, scene);
+}
+
 void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandle, Scene &scene) {
     if (!validateEntityJSON(entityJSON)) {
         std::cout << "entity is not valid" << std::endl;
