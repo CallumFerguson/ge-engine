@@ -9,16 +9,8 @@
 #include "scripts/Rotator.hpp"
 
 void runSandboxApp() {
-    GameEngine::Entity::registerAddScriptFromStringFunction("Rotator", [](GameEngine::Entity &entity) {
-        entity.addComponent<Rotator>().speed = 27;
-        std::cout << "for real add" << std::endl;
-        std::cout << entity.getComponent<Rotator>().speed << std::endl;
-        std::cout << "handle: " << (int) entity.enttHandle() << std::endl;
-
-        auto &info = entity.getComponent<GameEngine::InfoComponent>();
-        for (auto &cn: info.componentNames) {
-            std::cout << cn << std::endl;
-        }
+    GameEngine::Entity::registerAddScriptFromStringFunction("Rotator", [](GameEngine::Entity *entity) {
+        entity->addScript<Rotator>();
     });
 
     GameEngine::App app;

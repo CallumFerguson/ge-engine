@@ -95,7 +95,7 @@ public:
 
     entt::entity enttHandle();
 
-    static void registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity)> addScriptFunction);
+    static void registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity *entity)> addScriptFunction);
 
 private:
     entt::entity m_enttEntity = entt::null;
