@@ -23,6 +23,7 @@ public:
     template<typename T, typename... Args>
     T &addComponent(Args &&... args) {
         static_assert(!std::is_same<T, NativeScriptComponent>::value, "NativeScriptComponent cannot be directly added. Use addScript instead");
+        static_assert(!std::is_base_of<ScriptableEntity, T>::value, "It looks like T is a script. use addScript instead");
         T &component = m_scene->m_registry.emplace<T>(m_enttEntity, std::forward<Args>(args)...);
 
         auto &info = getComponent<InfoComponent>();
@@ -65,6 +66,8 @@ public:
 
     template<typename T, typename... Args>
     T &addScript(Args &&... args) {
+        static_assert(std::is_base_of<ScriptableEntity, T>::value, "T must inherit from ScriptableEntity");
+
         auto &nsc = m_scene->m_registry.get_or_emplace<NativeScriptComponent>(m_enttEntity);
         T &script = nsc.bind<T>(std::forward<Args>(args)...);
 
