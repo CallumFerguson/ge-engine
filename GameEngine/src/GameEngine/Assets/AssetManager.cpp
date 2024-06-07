@@ -1,7 +1,6 @@
 #include "AssetManager.hpp"
 
 #include <vector>
-#include "../Rendering/Mesh.hpp"
 
 namespace GameEngine {
 

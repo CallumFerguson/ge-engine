@@ -9,4 +9,5 @@ void registerScripts() {
     GameEngine::Entity::registerAddScriptFromStringFunction<Rotator>("Rotator");
     GameEngine::Entity::registerAddScriptFromStringFunction<TestRenderer>("TestRenderer");
     GameEngine::Entity::registerAddScriptFromStringFunction<TrackFramerate>("TrackFramerate");
+    GameEngine::Entity::registerAddScriptFromStringFunction<PBRColorRandomizer>("PBRColorRandomizer");
 }

@@ -4,6 +4,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include "../Core/Window.hpp"
+#include "../Assets/AssetManager.hpp"
 
 namespace GameEngine {
 
@@ -67,6 +68,8 @@ nlohmann::json CameraComponent::toJSON() {
     return result;
 }
 
+PBRRendererComponent::PBRRendererComponent(bool initializeForRendering) : initializeForRendering(initializeForRendering) {}
+
 PBRRendererComponent::PBRRendererComponent(int meshHandle) : meshHandle(meshHandle) {}
 
 void PBRRendererComponent::onImGui() {
@@ -79,7 +82,9 @@ void PBRRendererComponent::onImGui() {
 }
 
 nlohmann::json PBRRendererComponent::toJSON() {
-    std::cout << "TODO: PBRRendererComponent" << std::endl;
-    return {};
+    nlohmann::json result;
+    result["mesh"]["uuid"] = AssetManager::getMesh(meshHandle).assetUUID();
+    return result;
 }
+
 }

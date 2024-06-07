@@ -13,6 +13,10 @@ nlohmann::json entityToJSON(Entity &entity) {
 
     entityJson["components"] = nlohmann::json::array();
     for (auto &componentName: entity.getComponent<InfoComponent>().componentNames) {
+        if (componentName == "WebGPUPBRRendererDataComponent") {
+            continue;
+        }
+
         if (!entity.hasComponentJSON(componentName)) {
             std::cout << "entityToJSON component " << componentName << " does not have a to JSON function." << std::endl;
             return {};

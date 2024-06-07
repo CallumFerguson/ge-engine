@@ -83,10 +83,13 @@ private:
 
 struct PBRRendererComponent {
     int meshHandle = -1;
+    bool initializeForRendering = true;
 
     glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
 
     PBRRendererComponent() = default;
+
+    explicit PBRRendererComponent(bool initializeForRendering);
 
     explicit PBRRendererComponent(int meshHandle);
 

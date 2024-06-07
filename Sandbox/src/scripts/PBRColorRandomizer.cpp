@@ -24,3 +24,10 @@ void PBRColorRandomizer::randomizeColor() {
     color[1] = GameEngine::Random::value();
     color[2] = GameEngine::Random::value();
 }
+
+nlohmann::json PBRColorRandomizer::toJSON() {
+    return {};
+}
+
+void PBRColorRandomizer::initFromJSON(const nlohmann::json &scriptJSON) {
+}

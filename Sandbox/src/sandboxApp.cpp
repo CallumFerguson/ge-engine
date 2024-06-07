@@ -67,13 +67,13 @@ void runSandboxApp() {
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
 
-//    auto json = GameEngine::entityToJSON(renderingEntity);
+    auto json = GameEngine::entityToJSON(pbrRendererEntity1);
 //    GameEngine::jsonToEntity(json, entt::null, scene);
 
-    nlohmann::json entityJSON;
-    std::ifstream jsonFile("assets/prefab.json");
-    jsonFile >> entityJSON;
-    GameEngine::jsonToEntity(entityJSON, scene);
+//    nlohmann::json entityJSON;
+//    std::ifstream jsonFile("assets/prefab.json");
+//    jsonFile >> entityJSON;
+//    GameEngine::jsonToEntity(entityJSON, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();

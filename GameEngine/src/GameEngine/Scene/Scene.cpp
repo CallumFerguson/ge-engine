@@ -83,12 +83,16 @@ void Scene::onUpdate() {
 }
 
 void Scene::onPBRRendererConstruct(entt::registry &, entt::entity entity) {
-    Entity(entity, this).addComponent<WebGPUPBRRendererDataComponent>();
+    if (m_registry.get<PBRRendererComponent>(entity).initializeForRendering) {
+        Entity(entity, this).addComponent<WebGPUPBRRendererDataComponent>();
+    }
 }
 
 void Scene::onPBRRendererDestroy(entt::registry &, entt::entity entity) {
-//    Entity(entity, this).removeComponent<WebGPUPBRRendererDataComponent>();
-    std::cout << "TODO: onPBRRendererDestroy" << std::endl;
+    if (m_registry.get<PBRRendererComponent>(entity).initializeForRendering) {
+//        Entity(entity, this).removeComponent<WebGPUPBRRendererDataComponent>();
+        std::cout << "TODO: onPBRRendererDestroy" << std::endl;
+    }
 }
 
 }

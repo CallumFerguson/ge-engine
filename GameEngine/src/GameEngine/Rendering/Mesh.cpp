@@ -15,6 +15,7 @@ Mesh::Mesh(const std::string &inputFilePath) {
     char uuid[37];
     uuid[36] = '\0';
     inputFile.read(uuid, 36);
+    m_assetUUID = uuid;
 
     inputFile.read(reinterpret_cast<char *>(&m_indexCount), sizeof(m_indexCount));
     int32_t indicesByteLength = m_indexCount * sizeof(uint32_t);
@@ -40,6 +41,10 @@ const wgpu::Buffer &Mesh::positionBuffer() {
 
 uint32_t Mesh::indexCount() {
     return m_indexCount;
+}
+
+std::string &Mesh::assetUUID() {
+    return m_assetUUID;
 }
 
 }
