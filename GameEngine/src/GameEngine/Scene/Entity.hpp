@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include <map>
 #include <functional>
 #include <entt/entt.hpp>
@@ -10,6 +11,8 @@
 #include "Components.hpp"
 
 namespace GameEngine {
+
+HAS_MEMBER_FUNCTION(toJSON, hasToJSON)
 
 class Entity {
 public:
@@ -24,11 +27,20 @@ public:
 
         auto &info = getComponent<InfoComponent>();
         info.componentNames.push_back(component.objectName());
-        info.componentToJSONFunctions[component.objectName()] = [&]() -> nlohmann::json {
-            return component.toJSON();
-        };
+        if constexpr (hasToJSON<T>::value) {
+            info.componentToJSONFunctions[component.objectName()] = [&]() -> nlohmann::json {
+                return component.toJSON();
+            };
+        }
 
         return component;
+    }
+
+    void addComponent(const std::string &componentName) {
+        // move this to cpp
+        // use static set of functions that are registered before app creation in sandbox of wherever
+        // and engine components can be automatically registered instead of defined in prefab.cpp
+        std::cout << "TODO" << std::endl;
     }
 
     template<typename T>
@@ -43,10 +55,13 @@ public:
 
     nlohmann::json getComponentJSON(const std::string &componentName);
 
-    template<typename T>
-    void removeComponent() {
-        m_scene->m_registry.remove<T>(m_enttEntity);
-    }
+    bool hasComponentJSON(const std::string &componentName);
+
+//    template<typename T>
+//    void removeComponent() {
+////        m_scene->m_registry.remove<T>(m_enttEntity);
+//        std::cout << "TODO: implement removeComponent" << std::endl;
+//    }
 
     template<typename T, typename... Args>
     T &addScript(Args &&... args) {
@@ -55,14 +70,20 @@ public:
 
         auto &info = getComponent<InfoComponent>();
         info.scriptNames.push_back(script.objectName());
-        info.scriptToJSONFunctions[script.objectName()] = [&]() -> nlohmann::json {
-            return script.toJSON();
-        };
+        if constexpr (hasToJSON<T>::value) {
+            info.scriptToJSONFunctions[script.objectName()] = [&]() -> nlohmann::json {
+                return script.toJSON();
+            };
+        }
 
         return script;
     }
 
+    void addScript(const std::string &scriptName);
+
     nlohmann::json getScriptJSON(const std::string &scriptName);
+
+    bool hasScriptJSON(const std::string &scriptName);
 
     Scene *getScene();
 
@@ -74,9 +95,7 @@ public:
 
     entt::entity enttHandle();
 
-//    bool operator==(const Entity &other) const {
-//        return m_enttEntity == other.m_enttEntity;
-//    }
+    static void registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity)> addScriptFunction);
 
 private:
     entt::entity m_enttEntity = entt::null;

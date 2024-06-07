@@ -1,6 +1,10 @@
 #include "Entity.hpp"
 
+#include <utility>
+
 namespace GameEngine {
+
+static std::map<std::string, std::function<void(Entity &entity)>> s_addScriptFromStringFunctions;
 
 Entity::Entity(entt::entity enttEntity, Scene *scene) : m_enttEntity(enttEntity), m_scene(scene) {}
 
@@ -59,6 +63,12 @@ nlohmann::json Entity::getComponentJSON(const std::string &componentName) {
     }
 }
 
+bool Entity::hasComponentJSON(const std::string &componentName) {
+    auto &info = getComponent<InfoComponent>();
+    auto it = info.componentToJSONFunctions.find(componentName);
+    return it != info.componentToJSONFunctions.end();
+}
+
 nlohmann::json Entity::getScriptJSON(const std::string &scriptName) {
     auto &info = getComponent<InfoComponent>();
 
@@ -70,6 +80,28 @@ nlohmann::json Entity::getScriptJSON(const std::string &scriptName) {
         std::cout << "getScriptJSON did not find component with name " << scriptName << std::endl;
         return {};
     }
+}
+
+bool Entity::hasScriptJSON(const std::string &scriptName) {
+    auto &info = getComponent<InfoComponent>();
+    auto it = info.scriptToJSONFunctions.find(scriptName);
+    return it != info.scriptToJSONFunctions.end();
+}
+
+void Entity::addScript(const std::string &scriptName) {
+    auto it = s_addScriptFromStringFunctions.find(scriptName);
+
+    if (it != s_addScriptFromStringFunctions.end()) {
+        std::cout << "added " << scriptName << std::endl;
+
+        it->second(*this);
+    } else {
+//        std::cout << "addScript did not find script with name " << scriptName << ". make sure to register the script using Entity::registerAddScriptFromStringFunction" << std::endl;
+    }
+}
+
+void Entity::registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity)> addScriptFunction) {
+    s_addScriptFromStringFunctions[scriptName] = std::move(addScriptFunction);
 }
 
 }

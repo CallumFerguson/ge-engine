@@ -68,6 +68,7 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
     if (s_selectedEntity != entt::null) {
         auto name = registry.get<NameComponent>(s_selectedEntity).name;
         ImGui::Text("%s", name.c_str());
+        ImGui::Text("entt handle: %d", (int) s_selectedEntity);
 
         ImGui::Separator();
 

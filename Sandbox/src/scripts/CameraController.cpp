@@ -16,7 +16,3 @@ void CameraController::onUpdate() {
         transform.localPosition[2] += GameEngine::Time::deltaTime();
     }
 }
-
-nlohmann::json CameraController::toJSON() {
-    return {};
-}

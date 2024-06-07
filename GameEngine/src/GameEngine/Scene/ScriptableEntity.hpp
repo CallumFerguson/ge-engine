@@ -35,10 +35,10 @@ public:
         return m_entity.getComponent<T>();
     }
 
-    template<typename T>
-    void removeComponent() {
-        m_entity.removeComponent<T>();
-    }
+//    template<typename T>
+//    void removeComponent() {
+//        m_entity.removeComponent<T>();
+//    }
 
     Entity &getEntity();
 

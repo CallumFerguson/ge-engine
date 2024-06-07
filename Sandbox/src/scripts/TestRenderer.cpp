@@ -107,6 +107,7 @@ void TestRenderer::onUpdate() {
     if(GameEngine::Input::getKey(GameEngine::KeyCode::Right)) {
         getComponent<GameEngine::TransformComponent>().localPosition[0] += GameEngine::Time::deltaTime() * speed;
     }
+
 }
 
 void TestRenderer::onImGui() {

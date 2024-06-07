@@ -9,6 +9,9 @@ void Rotator::onUpdate() {
     if (GameEngine::Input::getKey(GameEngine::KeyCode::G)) {
         transform.localRotation = glm::rotate(transform.localRotation, glm::radians(GameEngine::Time::deltaTime() * speed), glm::vec3(0.0f, 0.0f, 1.0f));
     }
+
+    std::cout << (int) getEntity().enttHandle() << std::endl;
+    
 }
 
 void Rotator::onImGuiInspector() {

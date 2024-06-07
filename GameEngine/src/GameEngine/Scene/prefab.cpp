@@ -13,6 +13,11 @@ json entityToJSON(Entity &entity) {
 
     entityJson["components"] = json::array();
     for (auto &componentName: entity.getComponent<InfoComponent>().componentNames) {
+        if (!entity.hasComponentJSON(componentName)) {
+            std::cout << "entityToJSON component " << componentName << " does not have a to JSON function." << std::endl;
+            return {};
+        }
+
         json componentJSON;
         componentJSON["type"] = componentName;
         componentJSON["properties"] = entity.getComponentJSON(componentName);
@@ -21,6 +26,11 @@ json entityToJSON(Entity &entity) {
 
     entityJson["scripts"] = json::array();
     for (auto &scriptName: entity.getComponent<InfoComponent>().scriptNames) {
+        if (!entity.hasScriptJSON(scriptName)) {
+            std::cout << "entityToJSON script " << scriptName << " does not have a to JSON function." << std::endl;
+            return {};
+        }
+
         json scriptJSON;
         scriptJSON["type"] = scriptName;
         scriptJSON["properties"] = entity.getScriptJSON(scriptName);
@@ -129,19 +139,13 @@ void jsonToEntity(const json &entityJSON, entt::entity parentENTTHandle, Scene &
             transform.localScale.y = localScale[1];
             transform.localScale.z = localScale[2];
         } else {
-            std::cout << "unsupported component " << componentName << std::endl;
+            entity.addComponent(componentName);
         }
     }
 
     for (const auto &scriptJSON: entityJSON["scripts"]) {
         auto scriptName = scriptJSON["type"].get<std::string>();
-        if (scriptName == "TestRenderer") {
-            
-        } else if (scriptName == "Rotator") {
-
-        } else {
-            std::cout << "unsupported script " << scriptName << std::endl;
-        }
+        entity.addScript(scriptName);
     }
 
     for (const auto &childJSON: entityJSON["children"]) {
