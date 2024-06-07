@@ -6,6 +6,17 @@
 
 namespace GameEngine {
 
+struct WebGPUMeshRendererDataComponent {
+    wgpu::Buffer objectDataBuffer;
+    wgpu::BindGroup objectDataBindGroup;
+
+    WebGPUMeshRendererDataComponent();
+
+    [[nodiscard]] const char *objectName() const {
+        return "WebGPUMeshRendererDataComponent";
+    }
+};
+
 class Window;
 
 class WebGPURenderer {
@@ -40,7 +51,7 @@ public:
 
     static void updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection);
 
-    static void renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer);
+    static void renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer, const WebGPUMeshRendererDataComponent &meshRendererData);
 
 private:
     static void getAdapter();
@@ -64,7 +75,7 @@ private:
 
     static void errorCallback(WGPUErrorType type, const char *message, void *userdata);
 
-    static void setUpCameraBindGroup();
+    static void setUpCameraBuffer();
 };
 
 }

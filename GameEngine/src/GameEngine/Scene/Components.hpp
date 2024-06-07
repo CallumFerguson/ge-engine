@@ -81,8 +81,7 @@ private:
     float m_farClippingPlane = 1000;
 };
 
-class MeshRendererComponent {
-public:
+struct MeshRendererComponent {
     int meshHandle = -1;
 
     void onImGui();

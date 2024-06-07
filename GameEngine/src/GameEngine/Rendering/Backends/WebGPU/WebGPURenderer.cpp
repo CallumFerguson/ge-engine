@@ -44,8 +44,6 @@ static wgpu::RenderPassEncoder s_renderPassEncoder;
 static wgpu::CommandEncoder s_commandEncoder;
 
 static wgpu::Buffer s_cameraDataBuffer;
-static wgpu::BindGroupLayout s_cameraDataBindGroupLayout;
-static wgpu::BindGroup s_cameraDataBindGroup;
 
 void WebGPURenderer::init(Window *window) {
     s_window = window;
@@ -144,7 +142,7 @@ void WebGPURenderer::finishInit() {
 
     // camera
 
-    setUpCameraBindGroup();
+    setUpCameraBuffer();
 }
 
 void WebGPURenderer::createSurface() {
@@ -286,44 +284,12 @@ const wgpu::Buffer &WebGPURenderer::cameraDataBuffer() {
     return s_cameraDataBuffer;
 }
 
-const wgpu::BindGroupLayout &WebGPURenderer::cameraDataBindGroupLayout() {
-    return s_cameraDataBindGroupLayout;
-}
-
-const wgpu::BindGroup &WebGPURenderer::cameraDataBindGroup() {
-    return s_cameraDataBindGroup;
-}
-
-void WebGPURenderer::setUpCameraBindGroup() {
-    wgpu::BufferBindingLayout cameraDataBindGroupLayoutEntry0BufferBindingLayout = {};
-    cameraDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
-
-    wgpu::BindGroupLayoutEntry cameraDataBindGroupLayoutEntry0 = {};
-    cameraDataBindGroupLayoutEntry0.binding = 0;
-    cameraDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
-    cameraDataBindGroupLayoutEntry0.buffer = cameraDataBindGroupLayoutEntry0BufferBindingLayout;
-
-    wgpu::BindGroupLayoutDescriptor cameraDataBindGroupLayoutDescriptor = {};
-    cameraDataBindGroupLayoutDescriptor.entryCount = 1;
-    cameraDataBindGroupLayoutDescriptor.entries = &cameraDataBindGroupLayoutEntry0;
-    s_cameraDataBindGroupLayout = s_device.CreateBindGroupLayout(&cameraDataBindGroupLayoutDescriptor);
-
+void WebGPURenderer::setUpCameraBuffer() {
     wgpu::BufferDescriptor bufferDescriptor = {};
     bufferDescriptor.size = 64 * 2;
     bufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
     bufferDescriptor.mappedAtCreation = false;
     s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
-
-    wgpu::BindGroupEntry cameraDataBindGroupEntry0 = {};
-    cameraDataBindGroupEntry0.binding = 0;
-    cameraDataBindGroupEntry0.buffer = s_cameraDataBuffer;
-
-    wgpu::BindGroupDescriptor cameraDataBindGroupDescriptor = {};
-    cameraDataBindGroupDescriptor.layout = s_cameraDataBindGroupLayout;
-    cameraDataBindGroupDescriptor.entryCount = 1;
-    cameraDataBindGroupDescriptor.entries = &cameraDataBindGroupEntry0;
-
-    s_cameraDataBindGroup = s_device.CreateBindGroup(&cameraDataBindGroupDescriptor);
 }
 
 void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection) {
@@ -333,8 +299,32 @@ void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::ma
     device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 128);
 }
 
-void WebGPURenderer::renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer) {
-//    std::cout << "render " << (int) entity.enttHandle() << std::endl;
+void WebGPURenderer::renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer, const WebGPUMeshRendererDataComponent &meshRendererData) {
+    std::cout << "render " << (int) entity.enttHandle() << std::endl;
+}
+
+WebGPUMeshRendererDataComponent::WebGPUMeshRendererDataComponent() {
+    auto &device = WebGPURenderer::device();
+
+    // buffer
+
+    wgpu::BufferDescriptor uniformBufferDescriptor = {};
+    uniformBufferDescriptor.size = 64 + 16;
+    uniformBufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
+    objectDataBuffer = device.CreateBuffer(&uniformBufferDescriptor);
+
+    // bind group
+
+//    wgpu::BindGroupEntry objectDataBindGroupDescriptorEntry0 = {};
+//    objectDataBindGroupDescriptorEntry0.binding = 0;
+//    objectDataBindGroupDescriptorEntry0.buffer = objectDataBuffer;
+//
+//    wgpu::BindGroupDescriptor objectDataBindGroupDescriptor = {};
+//    objectDataBindGroupDescriptor.layout = objectDataBindGroupLayout;
+//    objectDataBindGroupDescriptor.entryCount = 1;
+//    objectDataBindGroupDescriptor.entries = &objectDataBindGroupDescriptorEntry0;
+//
+//    objectDataBindGroup = device.CreateBindGroup(&objectDataBindGroupDescriptor);
 }
 
 }

@@ -103,6 +103,9 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
                     auto &meshRenderer = registry.get<MeshRendererComponent>(s_selectedEntity);
                     meshRenderer.onImGui();
                 }
+            } else if (componentName == "WebGPUMeshRendererDataComponent") {
+                if (ImGui::CollapsingHeader("WebGPUMeshRendererDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+                }
             } else {
                 if (ImGui::CollapsingHeader(componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 //                    ImGui::Text("inspector not configured for component");

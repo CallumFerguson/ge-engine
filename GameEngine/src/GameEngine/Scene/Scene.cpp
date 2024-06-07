@@ -9,6 +9,16 @@
 
 namespace GameEngine {
 
+Scene::Scene() {
+    m_registry.on_construct<MeshRendererComponent>().connect<&Scene::onMeshRendererConstruct>(this);
+    m_registry.on_destroy<MeshRendererComponent>().connect<&Scene::onMeshRendererDestroy>(this);
+}
+
+Scene::~Scene() {
+    m_registry.on_construct<MeshRendererComponent>().disconnect<&Scene::onMeshRendererConstruct>(this);
+    m_registry.on_destroy<MeshRendererComponent>().disconnect<&Scene::onMeshRendererDestroy>(this);
+}
+
 Entity Scene::createEntity(const std::string &name) {
     Entity entity(m_registry.create(), this);
     m_registry.emplace<InfoComponent>(entity.enttHandle());
@@ -64,12 +74,21 @@ void Scene::onUpdate() {
         }
     });
 
-    m_registry.view<MeshRendererComponent>().each([&](auto enttEntity, auto &meshRenderer) {
+    m_registry.view<MeshRendererComponent, WebGPUMeshRendererDataComponent>().each([&](auto enttEntity, auto &meshRenderer, auto &meshRendererData) {
         auto entity = Entity(enttEntity, this);
-        WebGPURenderer::renderMesh(entity, meshRenderer);
+        WebGPURenderer::renderMesh(entity, meshRenderer, meshRendererData);
     });
 
     WebGPURenderer::endMainRenderPass();
+}
+
+void Scene::onMeshRendererConstruct(entt::registry &, entt::entity entity) {
+    Entity(entity, this).addComponent<WebGPUMeshRendererDataComponent>();
+}
+
+void Scene::onMeshRendererDestroy(entt::registry &, entt::entity entity) {
+//    Entity(entity, this).removeComponent<WebGPUMeshRendererDataComponent>();
+    std::cout << "TODO: onMeshRendererDestroy" << std::endl;
 }
 
 }
