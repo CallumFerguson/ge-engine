@@ -8,36 +8,36 @@
 
 namespace GameEngine {
 
-json entityToJSON(Entity &entity) {
-    json entityJson;
+nlohmann::json entityToJSON(Entity &entity) {
+    nlohmann::json entityJson;
 
-    entityJson["components"] = json::array();
+    entityJson["components"] = nlohmann::json::array();
     for (auto &componentName: entity.getComponent<InfoComponent>().componentNames) {
         if (!entity.hasComponentJSON(componentName)) {
             std::cout << "entityToJSON component " << componentName << " does not have a to JSON function." << std::endl;
             return {};
         }
 
-        json componentJSON;
+        nlohmann::json componentJSON;
         componentJSON["type"] = componentName;
         componentJSON["properties"] = entity.getComponentJSON(componentName);
         entityJson["components"].push_back(componentJSON);
     }
 
-    entityJson["scripts"] = json::array();
+    entityJson["scripts"] = nlohmann::json::array();
     for (auto &scriptName: entity.getComponent<InfoComponent>().scriptNames) {
         if (!entity.hasScriptJSON(scriptName)) {
             std::cout << "entityToJSON script " << scriptName << " does not have a to JSON function." << std::endl;
             return {};
         }
 
-        json scriptJSON;
+        nlohmann::json scriptJSON;
         scriptJSON["type"] = scriptName;
         scriptJSON["properties"] = entity.getScriptJSON(scriptName);
         entityJson["scripts"].push_back(scriptJSON);
     }
 
-    entityJson["children"] = json::array();
+    entityJson["children"] = nlohmann::json::array();
     for (auto &childEntityHandle: entity.getComponent<TransformComponent>().childrenENTTHandles()) {
         auto childEntity = Entity(childEntityHandle, entity.getScene());
         entityJson["children"].push_back(entityToJSON(childEntity));
@@ -45,7 +45,7 @@ json entityToJSON(Entity &entity) {
     return entityJson;
 }
 
-bool validateEntityJSON(const json &entityJSON) {
+bool validateEntityJSON(const nlohmann::json &entityJSON) {
     if (!entityJSON.contains("components") || !entityJSON["components"].is_array()) {
         std::cout << "No components found." << std::endl;
         return false;
@@ -92,7 +92,7 @@ bool validateEntityJSON(const json &entityJSON) {
     return true;
 }
 
-void jsonToEntity(const json &entityJSON, entt::entity parentENTTHandle, Scene &scene) {
+void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandle, Scene &scene) {
     if (!validateEntityJSON(entityJSON)) {
         std::cout << "entity is not valid" << std::endl;
         return;

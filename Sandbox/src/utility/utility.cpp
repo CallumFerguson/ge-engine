@@ -7,6 +7,6 @@ void registerScripts() {
     GameEngine::Entity::registerAddScriptFromStringFunction<CameraController>("CameraController");
     GameEngine::Entity::registerAddScriptFromStringFunction<ImGuiDemoWindow>("ImGuiDemoWindow");
     GameEngine::Entity::registerAddScriptFromStringFunction<Rotator>("Rotator");
-//    GameEngine::Entity::registerAddScriptFromStringFunction<TestRenderer>("TestRenderer");
+    GameEngine::Entity::registerAddScriptFromStringFunction<TestRenderer>("TestRenderer");
     GameEngine::Entity::registerAddScriptFromStringFunction<TrackFramerate>("TrackFramerate");
 }

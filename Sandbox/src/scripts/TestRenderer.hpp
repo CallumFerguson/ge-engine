@@ -7,6 +7,8 @@
 
 struct TestRenderer : public GameEngine::ScriptableEntity {
 public:
+    TestRenderer() = default;
+
     explicit TestRenderer(std::shared_ptr<GameEngine::WebGPUShader> shader, std::shared_ptr<GameEngine::Mesh> mesh);
 
     void onStart();

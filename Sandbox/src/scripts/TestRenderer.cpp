@@ -168,4 +168,9 @@ void TestRenderer::initFromJSON(const nlohmann::json &scriptJSON) {
     for(int i = 0; i < 4; i++) {
         m_color[i] = color[i];
     }
+
+    std::cout << "TODO: load shared shader/mesh assets" << std::endl;
+
+    m_shader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
+    m_mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.asset");
 }

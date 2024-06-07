@@ -11,8 +11,6 @@
 tinygltf::TinyGLTF loader;
 
 int main(int argc, char *argv[]) {
-    using json = nlohmann::json;
-
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <input_file_path> <output_file_path>" << std::endl;
         return 1;
@@ -54,25 +52,6 @@ int main(int argc, char *argv[]) {
 
     GameEngine::writeGLTFMeshToFile(model, model.meshes[0], outputFilePath.string());
 
-//    json prefab;
-//    prefab["components"] = {
-//            {
-//                    "type", "NameComponent",
-//                    "properties", {
-//                                          "name",     "Entity",
-//                                  }
-//            },
-//            {
-//                    "type", "TransformComponent",
-//                    "properties", {
-//                                          "position", {0, 0, 0},
-//                                          "rotation", {0, 0, 0, 1},
-//                                          "scale", {1, 1, 1},
-//                                  }
-//            }
-//    };
-//    prefab["children"] = json::array();
-
     GameEngine::Scene scene;
     std::vector<GameEngine::Entity> entities;
 
@@ -104,8 +83,8 @@ int main(int argc, char *argv[]) {
         entity.setParent(prefabRootEntity);
     }
 
-//    std::cout << prefabRootEntity.getComponent<GameEngine::NameComponent>().name << std::endl;
+    nlohmann::json entityJSON = GameEngine::entityToJSON(prefabRootEntity);
 
-//    std::ofstream outputFile(outputFilePath, std::ios::out);
-//    outputFile << prefab.dump(2);
+    std::ofstream outputFile("C:\\Users\\Calxf\\Documents\\CallumDocs\\prefab.json", std::ios::out);
+    outputFile << entityJSON.dump();
 }

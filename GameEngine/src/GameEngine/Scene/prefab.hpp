@@ -5,10 +5,8 @@
 
 namespace GameEngine {
 
-using json = nlohmann::json;
+nlohmann::json entityToJSON(Entity &entity);
 
-json entityToJSON(Entity &entity);
-
-void jsonToEntity(const json &entityJSON, entt::entity parentENTTHandle, Scene &scene);
+void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandle, Scene &scene);
 
 }

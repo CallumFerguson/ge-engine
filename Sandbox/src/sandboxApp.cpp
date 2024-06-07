@@ -21,10 +21,6 @@ void runSandboxApp() {
 
     auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.asset");
 
-    GameEngine::Entity::registerAddScriptFromStringFunction("TestRenderer", [&](GameEngine::Entity &entity, const nlohmann::json &scriptJSON) {
-        entity.addScript<TestRenderer>(unlitShader, mesh).initFromJSON(scriptJSON);
-    });
-
     float scale = 1;
 
     GameEngine::Entity renderingEntity = scene.createEntity("Thing 1");
@@ -48,9 +44,14 @@ void runSandboxApp() {
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
 
-    auto json = GameEngine::entityToJSON(renderingEntity);
+//    auto json = GameEngine::entityToJSON(renderingEntity);
+//    GameEngine::jsonToEntity(json, entt::null, scene);
 
-    GameEngine::jsonToEntity(json, entt::null, scene);
+    nlohmann::json entityJSON;
+    std::ifstream jsonFile("assets/prefab.json");
+    jsonFile >> entityJSON;
+
+    GameEngine::jsonToEntity(entityJSON, entt::null, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();
