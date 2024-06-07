@@ -22,17 +22,12 @@ Mesh::Mesh(const std::string &inputFilePath) {
     inputFile.read(reinterpret_cast<char *>(m_indexBuffer.GetMappedRange()), indicesByteLength);
     m_indexBuffer.Unmap();
 
-    std::cout << indicesByteLength << std::endl;
-
-
     int32_t numPositions;
     inputFile.read(reinterpret_cast<char *>(&numPositions), sizeof(numPositions));
     int32_t positionsByteLength = numPositions * sizeof(float) * 3;
     m_positionBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), positionsByteLength, wgpu::BufferUsage::Vertex);
     inputFile.read(reinterpret_cast<char *>(m_positionBuffer.GetMappedRange()), positionsByteLength);
     m_positionBuffer.Unmap();
-
-    std::cout << positionsByteLength << std::endl;
 }
 
 const wgpu::Buffer &Mesh::indexBuffer() {

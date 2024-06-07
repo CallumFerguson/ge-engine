@@ -85,12 +85,6 @@ class MeshRendererComponent {
 public:
     int meshHandle = -1;
 
-    wgpu::Buffer uniformBuffer;
-
-    MeshRendererComponent() {
-        std::cout << "init buffer!" << std::endl;
-    }
-
     void onImGui();
 
     nlohmann::json toJSON();
