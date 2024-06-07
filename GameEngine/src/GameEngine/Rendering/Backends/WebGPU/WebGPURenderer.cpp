@@ -333,4 +333,8 @@ void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::ma
     device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 128);
 }
 
+void WebGPURenderer::renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer) {
+    std::cout << "render " << (int) entity.enttHandle() << std::endl;
+}
+
 }

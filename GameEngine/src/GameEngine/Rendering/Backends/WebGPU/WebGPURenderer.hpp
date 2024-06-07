@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <webgpu/webgpu_cpp.h>
+#include "../../../Scene/Entity.hpp"
 
 namespace GameEngine {
 
@@ -38,6 +39,8 @@ public:
     static const wgpu::BindGroup &cameraDataBindGroup();
 
     static void updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection);
+
+    static void renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer);
 
 private:
     static void getAdapter();

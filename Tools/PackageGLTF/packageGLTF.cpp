@@ -58,6 +58,17 @@ int main(int argc, char *argv[]) {
     for (const auto &nodeId: model.scenes[0].nodes) {
         auto &node = model.nodes[nodeId];
         auto entity = scene.createEntity(node.name);
+
+        auto &mesh = model.meshes[node.mesh];
+
+        if (mesh.primitives.size() > 1) {
+            std::cout << "mesh has multiple primitives which is not supported yet" << std::endl;
+            // TODO: just make one child for each primitive
+            return 1;
+        }
+
+        entity.addComponent<GameEngine::MeshRendererComponent>();
+
         entities.push_back(entity);
     }
 
@@ -65,8 +76,6 @@ int main(int argc, char *argv[]) {
         auto &node = model.nodes[nodeId];
         for (const auto &childNodeId: node.children) {
             entities[childNodeId].setParent(entities[nodeId]);
-            std::cout << "set parent" << std::endl;
-
         }
     }
 

@@ -66,4 +66,11 @@ nlohmann::json CameraComponent::toJSON() {
     return result;
 }
 
+void MeshRendererComponent::onImGui() {
+    ImGui::Text("%d", meshHandle);
+}
+
+nlohmann::json MeshRendererComponent::toJSON() {
+    return {};
+}
 }

@@ -14,6 +14,7 @@ add_library(
         GameEngine
         STATIC
         src/GameEngine/Assets/gltfloader.cpp
+        src/GameEngine/Assets/AssetManager.cpp
 
         src/GameEngine/Utility/RollingAverage.cpp
         src/GameEngine/Utility/utility.cpp

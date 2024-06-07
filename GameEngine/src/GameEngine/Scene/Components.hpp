@@ -6,6 +6,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
+#include <webgpu/webgpu_cpp.h>
 
 namespace GameEngine {
 
@@ -78,6 +79,25 @@ private:
     float m_fov;
     float m_nearClippingPlane = 0.1;
     float m_farClippingPlane = 1000;
+};
+
+class MeshRendererComponent {
+public:
+    int meshHandle = -1;
+
+    wgpu::Buffer uniformBuffer;
+
+    MeshRendererComponent() {
+        std::cout << "init buffer!" << std::endl;
+    }
+
+    void onImGui();
+
+    nlohmann::json toJSON();
+
+    [[nodiscard]] const char *objectName() const {
+        return "MeshRendererComponent";
+    }
 };
 
 // Helper to detect if a class has a specific member function

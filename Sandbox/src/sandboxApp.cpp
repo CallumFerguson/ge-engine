@@ -19,27 +19,32 @@ void runSandboxApp() {
 
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 
-    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.asset");
+//    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
+    auto meshHandle = GameEngine::AssetManager::loadMesh("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
+
+    GameEngine::Entity meshRendererTest = scene.createEntity("Mesh Renderer Test");
+    auto &meshRenderer = meshRendererTest.addComponent<GameEngine::MeshRendererComponent>();
+    meshRenderer.meshHandle = meshHandle;
 
     float scale = 1;
 
-    GameEngine::Entity renderingEntity = scene.createEntity("Thing 1");
-    renderingEntity.addScript<TestRenderer>(unlitShader, mesh);
-    renderingEntity.addScript<Rotator>().speed = 180;
-    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
-    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
-    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
-
-    GameEngine::Entity renderingEntity2 = scene.createEntity("Thing 2");
-    renderingEntity2.addScript<TestRenderer>(unlitShader, mesh);
-    renderingEntity2.addScript<Rotator>().speed = 90;
-    renderingEntity2.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
-    renderingEntity2.setParent(renderingEntity);
-
-    GameEngine::Entity renderingEntity3 = scene.createEntity("Thing 3");
-    renderingEntity3.addScript<TestRenderer>(unlitShader, mesh);
-    renderingEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
-    renderingEntity3.setParent(renderingEntity2);
+//    GameEngine::Entity renderingEntity = scene.createEntity("Thing 1");
+//    renderingEntity.addScript<TestRenderer>(unlitShader, mesh);
+//    renderingEntity.addScript<Rotator>().speed = 180;
+//    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
+//    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
+//    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
+//
+//    GameEngine::Entity renderingEntity2 = scene.createEntity("Thing 2");
+//    renderingEntity2.addScript<TestRenderer>(unlitShader, mesh);
+//    renderingEntity2.addScript<Rotator>().speed = 90;
+//    renderingEntity2.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
+//    renderingEntity2.setParent(renderingEntity);
+//
+//    GameEngine::Entity renderingEntity3 = scene.createEntity("Thing 3");
+//    renderingEntity3.addScript<TestRenderer>(unlitShader, mesh);
+//    renderingEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
+//    renderingEntity3.setParent(renderingEntity2);
 
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
@@ -50,7 +55,6 @@ void runSandboxApp() {
     nlohmann::json entityJSON;
     std::ifstream jsonFile("assets/prefab.json");
     jsonFile >> entityJSON;
-
     GameEngine::jsonToEntity(entityJSON, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();

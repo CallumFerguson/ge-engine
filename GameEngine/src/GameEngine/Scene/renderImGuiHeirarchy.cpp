@@ -98,9 +98,15 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
                     auto &camera = registry.get<CameraComponent>(s_selectedEntity);
                     camera.onImGui();
                 }
+            } else if (componentName == "MeshRendererComponent") {
+                if (ImGui::CollapsingHeader("MeshRendererComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto &meshRenderer = registry.get<MeshRendererComponent>(s_selectedEntity);
+                    meshRenderer.onImGui();
+                }
             } else {
                 if (ImGui::CollapsingHeader(componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 //                    ImGui::Text("inspector not configured for component");
+                    std::cout << "TODO: automate the above stuff with a register component like register script" << std::endl;
                 }
             }
         }

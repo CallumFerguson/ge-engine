@@ -64,6 +64,11 @@ void Scene::onUpdate() {
         }
     });
 
+    m_registry.view<MeshRendererComponent>().each([&](auto enttEntity, auto &meshRenderer) {
+        auto entity = Entity(enttEntity, this);
+        WebGPURenderer::renderMesh(entity, meshRenderer);
+    });
+
     WebGPURenderer::endMainRenderPass();
 }
 

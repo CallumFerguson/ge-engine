@@ -13,6 +13,8 @@
 
 #include <tiny_gltf.h>
 
+#include "../Utility/Random.hpp"
+
 namespace GameEngine {
 
 int accessorItemByteLength(const tinygltf::Accessor &accessor) {
@@ -43,6 +45,10 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
     if (mesh.primitives.empty()) {
         std::cout << "First mesh does not contain any primitives." << std::endl;
         return false;
+    }
+
+    if (mesh.primitives.size() > 1) {
+        std::cout << "Mesh has multiple primitives" << std::endl;
     }
 
     const tinygltf::Primitive &primitive = mesh.primitives[0];
@@ -98,6 +104,8 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return false;
     }
+
+    outputFile << Random::uuid();
 
     outputFile.write(reinterpret_cast<const char *>(&numIndices), sizeof(numIndices));
     outputFile.write(reinterpret_cast<const char *>(indices), numIndices * sizeof(uint32_t));
