@@ -89,10 +89,20 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
             ImGui::DragFloat3("local scale", &transform.localScale[0], 0.1f);
         }
 
-        if (registry.all_of<CameraComponent>(s_selectedEntity)) {
-            if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-                auto &camera = registry.get<CameraComponent>(s_selectedEntity);
-                camera.onImGui();
+        for (auto &componentName: registry.get<InfoComponent>(s_selectedEntity).componentNames) {
+            if (componentName == "NameComponent" || componentName == "TransformComponent") {
+                continue;
+            }
+
+            if (componentName == "CameraComponent") {
+                if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto &camera = registry.get<CameraComponent>(s_selectedEntity);
+                    camera.onImGui();
+                }
+            } else {
+                if (ImGui::CollapsingHeader(componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+//                    ImGui::Text("inspector not configured for component");
+                }
             }
         }
 
