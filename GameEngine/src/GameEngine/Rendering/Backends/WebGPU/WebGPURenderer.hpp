@@ -6,14 +6,14 @@
 
 namespace GameEngine {
 
-struct WebGPUMeshRendererDataComponent {
+struct WebGPUPBRRendererDataComponent {
     wgpu::Buffer objectDataBuffer;
     wgpu::BindGroup objectDataBindGroup;
 
-    WebGPUMeshRendererDataComponent();
+    WebGPUPBRRendererDataComponent();
 
     [[nodiscard]] const char *objectName() const {
-        return "WebGPUMeshRendererDataComponent";
+        return "WebGPUPBRRendererDataComponent";
     }
 };
 
@@ -45,13 +45,9 @@ public:
 
     static const wgpu::Buffer &cameraDataBuffer();
 
-    static const wgpu::BindGroupLayout &cameraDataBindGroupLayout();
-
-    static const wgpu::BindGroup &cameraDataBindGroup();
-
     static void updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection);
 
-    static void renderMesh(Entity &entity, const MeshRendererComponent &meshRenderer, const WebGPUMeshRendererDataComponent &meshRendererData);
+    static void renderMesh(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
 
 private:
     static void getAdapter();
@@ -76,6 +72,8 @@ private:
     static void errorCallback(WGPUErrorType type, const char *message, void *userdata);
 
     static void setUpCameraBuffer();
+
+    static void setUpPBRRenderPipeline();
 };
 
 }

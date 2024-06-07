@@ -81,15 +81,21 @@ private:
     float m_farClippingPlane = 1000;
 };
 
-struct MeshRendererComponent {
+struct PBRRendererComponent {
     int meshHandle = -1;
+
+    glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+
+    PBRRendererComponent() = default;
+
+    explicit PBRRendererComponent(int meshHandle);
 
     void onImGui();
 
     nlohmann::json toJSON();
 
     [[nodiscard]] const char *objectName() const {
-        return "MeshRendererComponent";
+        return "PBRRendererComponent";
     }
 };
 

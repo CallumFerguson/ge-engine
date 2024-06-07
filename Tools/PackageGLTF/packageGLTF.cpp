@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        entity.addComponent<GameEngine::MeshRendererComponent>();
+        entity.addComponent<GameEngine::PBRRendererComponent>();
 
         entities.push_back(entity);
     }

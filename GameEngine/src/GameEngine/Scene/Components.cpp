@@ -1,6 +1,7 @@
 #include "Components.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include "../Core/Window.hpp"
 
@@ -66,12 +67,19 @@ nlohmann::json CameraComponent::toJSON() {
     return result;
 }
 
-void MeshRendererComponent::onImGui() {
+PBRRendererComponent::PBRRendererComponent(int meshHandle) : meshHandle(meshHandle) {}
+
+void PBRRendererComponent::onImGui() {
     ImGui::Text("Mesh handle: %d", meshHandle);
+    if (ImGui::TreeNode("color")) {
+        auto colorPtr = glm::value_ptr(color);
+        ImGui::ColorPicker3("##color picker", colorPtr);
+        ImGui::TreePop();
+    }
 }
 
-nlohmann::json MeshRendererComponent::toJSON() {
-    std::cout << "TODO: MeshRendererComponent" << std::endl;
+nlohmann::json PBRRendererComponent::toJSON() {
+    std::cout << "TODO: PBRRendererComponent" << std::endl;
     return {};
 }
 }

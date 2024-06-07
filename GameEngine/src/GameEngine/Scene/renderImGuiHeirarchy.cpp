@@ -98,13 +98,13 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
                     auto &camera = registry.get<CameraComponent>(s_selectedEntity);
                     camera.onImGui();
                 }
-            } else if (componentName == "MeshRendererComponent") {
-                if (ImGui::CollapsingHeader("MeshRendererComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    auto &meshRenderer = registry.get<MeshRendererComponent>(s_selectedEntity);
-                    meshRenderer.onImGui();
+            } else if (componentName == "PBRRendererComponent") {
+                if (ImGui::CollapsingHeader("PBRRendererComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    auto &renderer = registry.get<PBRRendererComponent>(s_selectedEntity);
+                    renderer.onImGui();
                 }
-            } else if (componentName == "WebGPUMeshRendererDataComponent") {
-                if (ImGui::CollapsingHeader("WebGPUMeshRendererDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
+            } else if (componentName == "WebGPUPBRRendererDataComponent") {
+                if (ImGui::CollapsingHeader("WebGPUPBRRendererDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
                 }
             } else {
                 if (ImGui::CollapsingHeader(componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {

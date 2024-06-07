@@ -5,3 +5,4 @@
 #include "Rotator.hpp"
 #include "TestRenderer.hpp"
 #include "TrackFramerate.hpp"
+#include "PBRColorRandomizer.hpp"

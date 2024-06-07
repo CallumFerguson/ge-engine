@@ -22,9 +22,9 @@ public:
 private:
     entt::registry m_registry;
 
-    void onMeshRendererConstruct(entt::registry &, entt::entity entity);
+    void onPBRRendererConstruct(entt::registry &, entt::entity entity);
 
-    void onMeshRendererDestroy(entt::registry &, entt::entity entity);
+    void onPBRRendererDestroy(entt::registry &, entt::entity entity);
 
     friend class Entity;
 };

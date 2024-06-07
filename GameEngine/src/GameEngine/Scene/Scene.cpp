@@ -10,13 +10,13 @@
 namespace GameEngine {
 
 Scene::Scene() {
-    m_registry.on_construct<MeshRendererComponent>().connect<&Scene::onMeshRendererConstruct>(this);
-    m_registry.on_destroy<MeshRendererComponent>().connect<&Scene::onMeshRendererDestroy>(this);
+    m_registry.on_construct<PBRRendererComponent>().connect<&Scene::onPBRRendererConstruct>(this);
+    m_registry.on_destroy<PBRRendererComponent>().connect<&Scene::onPBRRendererDestroy>(this);
 }
 
 Scene::~Scene() {
-    m_registry.on_construct<MeshRendererComponent>().disconnect<&Scene::onMeshRendererConstruct>(this);
-    m_registry.on_destroy<MeshRendererComponent>().disconnect<&Scene::onMeshRendererDestroy>(this);
+    m_registry.on_construct<PBRRendererComponent>().disconnect<&Scene::onPBRRendererConstruct>(this);
+    m_registry.on_destroy<PBRRendererComponent>().disconnect<&Scene::onPBRRendererDestroy>(this);
 }
 
 Entity Scene::createEntity(const std::string &name) {
@@ -74,21 +74,21 @@ void Scene::onUpdate() {
         }
     });
 
-    m_registry.view<MeshRendererComponent, WebGPUMeshRendererDataComponent>().each([&](auto enttEntity, auto &meshRenderer, auto &meshRendererData) {
+    m_registry.view<PBRRendererComponent, WebGPUPBRRendererDataComponent>().each([&](auto enttEntity, auto &renderer, auto &rendererData) {
         auto entity = Entity(enttEntity, this);
-        WebGPURenderer::renderMesh(entity, meshRenderer, meshRendererData);
+        WebGPURenderer::renderMesh(entity, renderer, rendererData);
     });
 
     WebGPURenderer::endMainRenderPass();
 }
 
-void Scene::onMeshRendererConstruct(entt::registry &, entt::entity entity) {
-    Entity(entity, this).addComponent<WebGPUMeshRendererDataComponent>();
+void Scene::onPBRRendererConstruct(entt::registry &, entt::entity entity) {
+    Entity(entity, this).addComponent<WebGPUPBRRendererDataComponent>();
 }
 
-void Scene::onMeshRendererDestroy(entt::registry &, entt::entity entity) {
-//    Entity(entity, this).removeComponent<WebGPUMeshRendererDataComponent>();
-    std::cout << "TODO: onMeshRendererDestroy" << std::endl;
+void Scene::onPBRRendererDestroy(entt::registry &, entt::entity entity) {
+//    Entity(entity, this).removeComponent<WebGPUPBRRendererDataComponent>();
+    std::cout << "TODO: onPBRRendererDestroy" << std::endl;
 }
 
 }

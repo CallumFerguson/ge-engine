@@ -18,34 +18,51 @@ void runSandboxApp() {
     camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 2.5;
 
 //    auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
-    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
+//    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
 
 //    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
     auto meshHandle = GameEngine::AssetManager::loadMesh("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
 
-//    GameEngine::Entity meshRendererTest = scene.createEntity("Mesh Renderer Test");
-//    auto &meshRenderer = meshRendererTest.addComponent<GameEngine::MeshRendererComponent>();
-//    meshRenderer.meshHandle = meshHandle;
-
     float scale = 1;
 
-    GameEngine::Entity renderingEntity = scene.createEntity("Thing 1");
-    renderingEntity.addScript<TestRenderer>(unlitShaderHandle, meshHandle);
-    renderingEntity.addScript<Rotator>().speed = 180;
-    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
-    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
-    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
+    GameEngine::Entity pbrRendererEntity1 = scene.createEntity("Thing 1");
+    pbrRendererEntity1.addComponent<GameEngine::PBRRendererComponent>(meshHandle);
+    pbrRendererEntity1.addScript<Rotator>().speed = 180;
+    pbrRendererEntity1.addScript<PBRColorRandomizer>();
+    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
+    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
+    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
 
-    GameEngine::Entity renderingEntity2 = scene.createEntity("Thing 2");
-    renderingEntity2.addScript<TestRenderer>(unlitShaderHandle, meshHandle);
-    renderingEntity2.addScript<Rotator>().speed = 90;
-    renderingEntity2.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
-    renderingEntity2.setParent(renderingEntity);
+    GameEngine::Entity pbrRendererEntity2 = scene.createEntity("Thing 2");
+    pbrRendererEntity2.addComponent<GameEngine::PBRRendererComponent>(meshHandle);
+    pbrRendererEntity2.addScript<Rotator>().speed = 90;
+    pbrRendererEntity2.addScript<PBRColorRandomizer>();
+    pbrRendererEntity2.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
+    pbrRendererEntity2.setParent(pbrRendererEntity1);
 
-    GameEngine::Entity renderingEntity3 = scene.createEntity("Thing 3");
-    renderingEntity3.addScript<TestRenderer>(unlitShaderHandle, meshHandle);
-    renderingEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
-    renderingEntity3.setParent(renderingEntity2);
+    GameEngine::Entity pbrRendererEntity3 = scene.createEntity("Thing 3");
+    pbrRendererEntity3.addComponent<GameEngine::PBRRendererComponent>(meshHandle);
+    pbrRendererEntity3.addScript<PBRColorRandomizer>();
+    pbrRendererEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
+    pbrRendererEntity3.setParent(pbrRendererEntity2);
+
+//    GameEngine::Entity renderingEntity = scene.createEntity("Thing 1");
+//    renderingEntity.addScript<TestRenderer>(unlitShaderHandle, meshHandle);
+//    renderingEntity.addScript<Rotator>().speed = 180;
+//    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
+//    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
+//    renderingEntity.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
+//
+//    GameEngine::Entity renderingEntity2 = scene.createEntity("Thing 2");
+//    renderingEntity2.addScript<TestRenderer>(unlitShaderHandle, meshHandle);
+//    renderingEntity2.addScript<Rotator>().speed = 90;
+//    renderingEntity2.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
+//    renderingEntity2.setParent(renderingEntity);
+//
+//    GameEngine::Entity renderingEntity3 = scene.createEntity("Thing 3");
+//    renderingEntity3.addScript<TestRenderer>(unlitShaderHandle, meshHandle);
+//    renderingEntity3.getComponent<GameEngine::TransformComponent>().localPosition[0] = 2.5f / scale;
+//    renderingEntity3.setParent(renderingEntity2);
 
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
