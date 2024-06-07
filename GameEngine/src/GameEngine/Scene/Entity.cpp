@@ -4,7 +4,7 @@
 
 namespace GameEngine {
 
-static std::map<std::string, std::function<void(Entity *entity)>> s_addScriptFromStringFunctions;
+static std::map<std::string, std::function<void(Entity &entity, const nlohmann::json &scriptJSON)>> s_addScriptFromStringFunctions;
 
 Entity::Entity(entt::entity enttEntity, Scene *scene) : m_enttEntity(enttEntity), m_scene(scene) {}
 
@@ -88,17 +88,17 @@ bool Entity::hasScriptJSON(const std::string &scriptName) {
     return it != info.scriptToJSONFunctions.end();
 }
 
-void Entity::addScript(const std::string &scriptName) {
+void Entity::addScript(const std::string &scriptName, const nlohmann::json &scriptJSON) {
     auto it = s_addScriptFromStringFunctions.find(scriptName);
 
     if (it != s_addScriptFromStringFunctions.end()) {
-        it->second(this);
+        it->second(*this, scriptJSON);
     } else {
         std::cout << "addScript did not find script with name " << scriptName << ". make sure to register the script using Entity::registerAddScriptFromStringFunction" << std::endl;
     }
 }
 
-void Entity::registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity *entity)> addScriptFunction) {
+void Entity::registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity, const nlohmann::json &scriptJSON)> addScriptFunction) {
     s_addScriptFromStringFunctions[scriptName] = std::move(addScriptFunction);
 }
 

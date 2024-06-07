@@ -24,6 +24,7 @@ public:
     T &addComponent(Args &&... args) {
         static_assert(!std::is_same<T, NativeScriptComponent>::value, "NativeScriptComponent cannot be directly added. Use addScript instead");
         static_assert(!std::is_base_of<ScriptableEntity, T>::value, "It looks like T is a script. use addScript instead");
+
         T &component = m_scene->m_registry.emplace<T>(m_enttEntity, std::forward<Args>(args)...);
 
         auto &info = getComponent<InfoComponent>();
@@ -82,7 +83,7 @@ public:
         return script;
     }
 
-    void addScript(const std::string &scriptName);
+    void addScript(const std::string &scriptName, const nlohmann::json &scriptJSON);
 
     nlohmann::json getScriptJSON(const std::string &scriptName);
 
@@ -98,7 +99,14 @@ public:
 
     entt::entity enttHandle();
 
-    static void registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity *entity)> addScriptFunction);
+    static void registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity, const nlohmann::json &scriptJSON)> addScriptFunction);
+
+    template<typename T>
+    static void registerAddScriptFromStringFunction(const std::string &scriptName) {
+        registerAddScriptFromStringFunction(scriptName, [](GameEngine::Entity &entity, const nlohmann::json &scriptJSON) {
+            entity.addScript<T>().initFromJSON(scriptJSON);
+        });
+    }
 
 private:
     entt::entity m_enttEntity = entt::null;

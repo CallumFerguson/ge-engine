@@ -16,6 +16,8 @@ add_executable(
         src/scripts/ImGuiDemoWindow.cpp
         src/scripts/CameraController.cpp
         src/scripts/Rotator.cpp
+
+        src/utility/utility.cpp
 )
 
 if (EMSCRIPTEN)

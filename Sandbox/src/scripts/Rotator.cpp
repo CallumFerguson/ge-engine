@@ -20,3 +20,7 @@ nlohmann::json Rotator::toJSON() {
     result["speed"] = speed;
     return result;
 }
+
+void Rotator::initFromJSON(const nlohmann::json &scriptJSON) {
+    speed = scriptJSON["speed"];
+}

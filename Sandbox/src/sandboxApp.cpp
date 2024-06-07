@@ -2,16 +2,11 @@
 
 #include <memory>
 #include "GameEngine.hpp"
-#include "scripts/TestRenderer.hpp"
-#include "scripts/TrackFramerate.hpp"
-#include "scripts/ImGuiDemoWindow.hpp"
-#include "scripts/CameraController.hpp"
-#include "scripts/Rotator.hpp"
+#include "scripts/scripts.hpp"
+#include "utility/utility.hpp"
 
 void runSandboxApp() {
-    GameEngine::Entity::registerAddScriptFromStringFunction("Rotator", [](GameEngine::Entity *entity) {
-        entity->addScript<Rotator>();
-    });
+    registerScripts();
 
     GameEngine::App app;
 
@@ -25,6 +20,10 @@ void runSandboxApp() {
     auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 
     auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.asset");
+
+    GameEngine::Entity::registerAddScriptFromStringFunction("TestRenderer", [&](GameEngine::Entity &entity, const nlohmann::json &scriptJSON) {
+        entity.addScript<TestRenderer>(unlitShader, mesh).initFromJSON(scriptJSON);
+    });
 
     float scale = 1;
 

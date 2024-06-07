@@ -18,3 +18,7 @@ void TrackFramerate::onImGui() {
 nlohmann::json TrackFramerate::toJSON() {
     return {};
 }
+
+void TrackFramerate::initFromJSON(const nlohmann::json &scriptJSON) {
+
+}

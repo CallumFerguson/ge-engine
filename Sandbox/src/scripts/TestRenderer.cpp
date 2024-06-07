@@ -162,3 +162,10 @@ nlohmann::json TestRenderer::toJSON() {
     result["color"] = {m_color[0], m_color[1], m_color[2], m_color[3]};
     return result;
 }
+
+void TestRenderer::initFromJSON(const nlohmann::json &scriptJSON) {
+    auto color = scriptJSON["color"].get<std::vector<float>>();
+    for(int i = 0; i < 4; i++) {
+        m_color[i] = color[i];
+    }
+}

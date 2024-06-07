@@ -7,3 +7,7 @@ void ImGuiDemoWindow::onImGui() {
         ImGui::ShowDemoWindow(&m_showDemoWindow);
     }
 }
+
+void ImGuiDemoWindow::initFromJSON(const nlohmann::json &scriptJSON) {
+
+}

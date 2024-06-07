@@ -145,7 +145,7 @@ void jsonToEntity(const json &entityJSON, entt::entity parentENTTHandle, Scene &
 
     for (const auto &scriptJSON: entityJSON["scripts"]) {
         auto scriptName = scriptJSON["type"].get<std::string>();
-        entity.addScript(scriptName);
+        entity.addScript(scriptName, scriptJSON["properties"]);
     }
 
     for (const auto &childJSON: entityJSON["children"]) {
