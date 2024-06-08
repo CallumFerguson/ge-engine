@@ -1,5 +1,6 @@
 #include "AssetManager.hpp"
 
+#include <iostream>
 #include <vector>
 #include <unordered_map>
 
@@ -11,6 +12,28 @@ static std::unordered_map<std::string, int> s_assetUUIDToHandle;
 static std::vector<Mesh> s_meshes;
 static std::vector<WebGPUShader> s_shaders;
 
+static std::unordered_map<std::string, std::string> s_assetUUIDToPath = []() {
+    std::unordered_map<std::string, std::string> assetUUIDToPath;
+
+    for (const auto &entry: std::filesystem::recursive_directory_iterator("assets")) {
+        if (entry.is_regular_file() && entry.path().extension() == ".gemesh") {
+            std::ifstream inputFile(entry.path(), std::ios::binary);
+            if (!inputFile) {
+                std::cerr << "Error: assetUUIDToPath could not open file " << entry.path() << " for reading!" << std::endl;
+                break;
+            }
+
+            char uuid[37];
+            uuid[36] = '\0';
+            inputFile.read(uuid, 36);
+            assetUUIDToPath[uuid] = entry.path().string();
+
+        }
+    }
+
+    return assetUUIDToPath;
+}();
+
 int AssetManager::getOrLoadMeshFromUUID(const std::string &assetUUID) {
     auto it = s_assetUUIDToHandle.find(assetUUID);
 
@@ -18,7 +41,14 @@ int AssetManager::getOrLoadMeshFromUUID(const std::string &assetUUID) {
         return it->second;
     }
 
-    std::string assetPath = "TODO";
+    auto it2 = s_assetUUIDToPath.find(assetUUID);
+
+    if (it2 == s_assetUUIDToPath.end()) {
+        std::cout << "could not find asset with uuid: " << assetUUID << std::endl;
+        return -1;
+    }
+
+    std::string &assetPath = it2->second;
 
     auto &mesh = s_meshes.emplace_back(assetPath);
 
