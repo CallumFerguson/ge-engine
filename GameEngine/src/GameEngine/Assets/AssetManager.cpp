@@ -12,9 +12,9 @@ static std::unordered_map<std::string, int> s_assetUUIDToHandle;
 static std::vector<Mesh> s_meshes;
 static std::vector<WebGPUShader> s_shaders;
 
-static std::unordered_map<std::string, std::string> s_assetUUIDToPath = []() {
-    std::unordered_map<std::string, std::string> assetUUIDToPath;
+static std::unordered_map<std::string, std::string> s_assetUUIDToPath;
 
+void AssetManager::registerAssetUUIDs() {
     for (const auto &entry: std::filesystem::recursive_directory_iterator("assets")) {
         if (entry.is_regular_file() && entry.path().extension() == ".gemesh") {
             std::ifstream inputFile(entry.path(), std::ios::binary);
@@ -26,13 +26,10 @@ static std::unordered_map<std::string, std::string> s_assetUUIDToPath = []() {
             char uuid[37];
             uuid[36] = '\0';
             inputFile.read(uuid, 36);
-            assetUUIDToPath[uuid] = entry.path().string();
-
+            s_assetUUIDToPath[uuid] = entry.path().string();
         }
     }
-
-    return assetUUIDToPath;
-}();
+}
 
 int AssetManager::getOrLoadMeshFromUUID(const std::string &assetUUID) {
     auto it = s_assetUUIDToHandle.find(assetUUID);
@@ -79,6 +76,16 @@ int AssetManager::getOrLoadMeshFromPath(const std::string &assetPath) {
 
 Mesh &AssetManager::getMesh(int assetHandle) {
     return s_meshes[assetHandle];
+}
+
+int AssetManager::createMesh(Mesh mesh) {
+    auto &meshRef = s_meshes.emplace_back(std::move(mesh));
+
+    int assetHandle = static_cast<int>(s_meshes.size() - 1);
+
+    s_assetUUIDToHandle[meshRef.assetUUID()] = assetHandle;
+
+    return assetHandle;
 }
 
 int AssetManager::loadShader(const std::string &assetPath) {

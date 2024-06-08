@@ -72,10 +72,10 @@ void runSandboxApp() {
     auto json = GameEngine::entityToJSON(pbrRendererEntity1);
     GameEngine::jsonToEntity(json, entt::null, scene);
 
-//    nlohmann::json entityJSON;
-//    std::ifstream jsonFile("assets/prefab.json");
-//    jsonFile >> entityJSON;
-//    GameEngine::jsonToEntity(entityJSON, scene);
+    nlohmann::json entityJSON;
+    std::ifstream jsonFile("assets/FlightHelmetPackaged/FlightHelmet.geprefab");
+    jsonFile >> entityJSON;
+    GameEngine::jsonToEntity(entityJSON, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();

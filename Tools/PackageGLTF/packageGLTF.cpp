@@ -50,7 +50,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    GameEngine::writeGLTFMeshToFile(model, model.meshes[0], outputFilePath.string());
+    std::set<int> savedMeshes;
+
+    for (const auto &meshId: model.meshes) {
+        GameEngine::AssetManager::createMesh({});
+    }
 
     GameEngine::Scene scene;
     std::vector<GameEngine::Entity> entities;
@@ -67,7 +71,12 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = 123;
+        if (!savedMeshes.contains(node.mesh)) {
+            savedMeshes.insert(node.mesh);
+            GameEngine::writeGLTFMeshToFile(model, model.meshes[node.mesh], outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
+        }
+
+        entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;
 
         entities.push_back(entity);
     }
@@ -94,6 +103,6 @@ int main(int argc, char *argv[]) {
 
     nlohmann::json entityJSON = GameEngine::entityToJSON(prefabRootEntity);
 
-    std::ofstream outputFile("C:\\Users\\Calxf\\Documents\\CallumDocs\\prefab.json", std::ios::out);
+    std::ofstream outputFile(outputFilePath / (inputFilePath.stem().string() + ".geprefab"), std::ios::out);
     outputFile << entityJSON.dump();
 }

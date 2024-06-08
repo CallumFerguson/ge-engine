@@ -7,6 +7,6 @@
 
 namespace GameEngine {
 
-bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::string &outputFilePath);
+bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::filesystem::path &outputFilePath, const std::string &meshUUID);
 
 }

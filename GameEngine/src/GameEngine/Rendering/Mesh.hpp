@@ -6,7 +6,7 @@ namespace GameEngine {
 
 class Mesh {
 public:
-    Mesh() = delete;
+    Mesh();
 
     explicit Mesh(const std::string &inputFilePath);
 
@@ -22,7 +22,7 @@ private:
     wgpu::Buffer m_indexBuffer;
     wgpu::Buffer m_positionBuffer;
 
-    uint32_t m_indexCount;
+    uint32_t m_indexCount = 0;
 
     std::string m_assetUUID;
 };

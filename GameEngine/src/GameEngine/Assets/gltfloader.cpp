@@ -41,7 +41,7 @@ bool isTightlyPacked(const tinygltf::Accessor &accessor, const tinygltf::BufferV
 
 #include <vector>
 
-bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::string &outputFilePath) {
+bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
     if (mesh.primitives.empty()) {
         std::cout << "First mesh does not contain any primitives." << std::endl;
         return false;
@@ -99,13 +99,13 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
     }
     int32_t numIndices = indexAccessor.count;
 
-    std::ofstream outputFile(outputFilePath, std::ios::out | std::ios::binary);
+    std::ofstream outputFile(outputFilePath / (mesh.name + ".gemesh"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return false;
     }
 
-    outputFile << Random::uuid();
+    outputFile << meshUUID;
 
     outputFile.write(reinterpret_cast<const char *>(&numIndices), sizeof(numIndices));
     outputFile.write(reinterpret_cast<const char *>(indices), numIndices * sizeof(uint32_t));

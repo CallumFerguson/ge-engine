@@ -4,6 +4,9 @@ project(Tools)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(TestTool PackageGLTF/packageGLTF.cpp)
+
+target_precompile_headers(TestTool REUSE_FROM GameEngine)
+
 target_link_libraries(TestTool PRIVATE GameEngine)
 
 target_include_directories(

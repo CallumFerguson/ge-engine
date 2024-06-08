@@ -3,6 +3,7 @@
 #include <iostream>
 #include "Time.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
+#include "../Assets/AssetManager.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -56,6 +57,8 @@ void App::registerComponents() {
 
 App::App() {
     registerComponents();
+
+    AssetManager::registerAssetUUIDs();
 
     m_window.init(mainLoopStatic);
     WebGPURenderer::init(&m_window);

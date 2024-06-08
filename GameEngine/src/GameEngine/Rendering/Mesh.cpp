@@ -2,8 +2,11 @@
 
 #include "../Utility/utility.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
+#include "../Utility/Random.hpp"
 
 namespace GameEngine {
+
+Mesh::Mesh() : m_assetUUID(Random::uuid()) {}
 
 Mesh::Mesh(const std::string &inputFilePath) {
     std::ifstream inputFile(inputFilePath, std::ios::binary);
