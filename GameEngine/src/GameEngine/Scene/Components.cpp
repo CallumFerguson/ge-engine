@@ -87,4 +87,9 @@ nlohmann::json PBRRendererComponent::toJSON() {
     return result;
 }
 
+void PBRRendererComponent::initFromJSON(const nlohmann::json &componentJSON) {
+    const std::string &meshAssetUUID = componentJSON["mesh"]["uuid"];
+    meshHandle = AssetManager::getOrLoadMeshFromUUID(meshAssetUUID);
+}
+
 }

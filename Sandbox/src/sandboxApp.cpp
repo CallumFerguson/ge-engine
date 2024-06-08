@@ -7,6 +7,7 @@
 
 void runSandboxApp() {
     registerScripts();
+    registerComponents();
 
     GameEngine::App app;
 
@@ -21,7 +22,8 @@ void runSandboxApp() {
 //    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
 
 //    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
-    auto meshHandle = GameEngine::AssetManager::loadMesh("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
+    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromPath("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
+//    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromUUID("71cb6d06-21ea-43fb-991a-ac0ed33b16e2");
 
     float scale = 1;
 
@@ -68,7 +70,7 @@ void runSandboxApp() {
     trackFPS.addScript<TrackFramerate>();
 
     auto json = GameEngine::entityToJSON(pbrRendererEntity1);
-//    GameEngine::jsonToEntity(json, entt::null, scene);
+    GameEngine::jsonToEntity(json, entt::null, scene);
 
 //    nlohmann::json entityJSON;
 //    std::ifstream jsonFile("assets/prefab.json");

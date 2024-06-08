@@ -50,7 +50,13 @@ static bool mainLoopStatic() {
 
 #endif
 
+void App::registerComponents() {
+    Entity::registerAddComponentFromStringFunction<PBRRendererComponent>("PBRRendererComponent");
+}
+
 App::App() {
+    registerComponents();
+
     m_window.init(mainLoopStatic);
     WebGPURenderer::init(&m_window);
 }

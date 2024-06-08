@@ -97,6 +97,8 @@ struct PBRRendererComponent {
 
     nlohmann::json toJSON();
 
+    void initFromJSON(const nlohmann::json &componentJSON);
+
     [[nodiscard]] const char *objectName() const {
         return "PBRRendererComponent";
     }

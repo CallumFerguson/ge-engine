@@ -11,3 +11,7 @@ void registerScripts() {
     GameEngine::Entity::registerAddScriptFromStringFunction<TrackFramerate>("TrackFramerate");
     GameEngine::Entity::registerAddScriptFromStringFunction<PBRColorRandomizer>("PBRColorRandomizer");
 }
+
+void registerComponents() {
+
+}

@@ -147,7 +147,7 @@ void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandl
             transform.localScale.y = localScale[1];
             transform.localScale.z = localScale[2];
         } else {
-            entity.addComponent(componentName);
+            entity.addComponent(componentName, componentJSON["properties"]);
         }
     }
 

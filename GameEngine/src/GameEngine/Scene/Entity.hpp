@@ -38,12 +38,7 @@ public:
         return component;
     }
 
-    void addComponent(const std::string &componentName) {
-        // move this to cpp
-        // use static set of functions that are registered before app creation in sandbox of wherever
-        // and engine components can be automatically registered instead of defined in prefab.cpp
-        std::cout << "TODO" << std::endl;
-    }
+    void addComponent(const std::string &componentName, const nlohmann::json &componentJSON);
 
     template<typename T>
     bool hasComponent() {
@@ -101,10 +96,19 @@ public:
 
     static void registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity, const nlohmann::json &scriptJSON)> addScriptFunction);
 
+    static void registerAddComponentFromStringFunction(const std::string &componentName, std::function<void(Entity &entity, const nlohmann::json &componentJSON)> addComponentFunction);
+
     template<typename T>
     static void registerAddScriptFromStringFunction(const std::string &scriptName) {
         registerAddScriptFromStringFunction(scriptName, [](GameEngine::Entity &entity, const nlohmann::json &scriptJSON) {
             entity.addScript<T>().initFromJSON(scriptJSON);
+        });
+    }
+
+    template<typename T>
+    static void registerAddComponentFromStringFunction(const std::string &componentName) {
+        registerAddComponentFromStringFunction(componentName, [](GameEngine::Entity &entity, const nlohmann::json &componenetJSON) {
+            entity.addComponent<T>().initFromJSON(componenetJSON);
         });
     }
 

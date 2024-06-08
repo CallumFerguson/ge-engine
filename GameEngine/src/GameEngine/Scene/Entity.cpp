@@ -5,6 +5,7 @@
 namespace GameEngine {
 
 static std::map<std::string, std::function<void(Entity &entity, const nlohmann::json &scriptJSON)>> s_addScriptFromStringFunctions;
+static std::map<std::string, std::function<void(Entity &entity, const nlohmann::json &componentJSON)>> s_addComponentFromStringFunctions;
 
 Entity::Entity(entt::entity enttEntity, Scene *scene) : m_enttEntity(enttEntity), m_scene(scene) {}
 
@@ -98,8 +99,22 @@ void Entity::addScript(const std::string &scriptName, const nlohmann::json &scri
     }
 }
 
+void Entity::addComponent(const std::string &componentName, const nlohmann::json &componentJSON) {
+    auto it = s_addComponentFromStringFunctions.find(componentName);
+
+    if (it != s_addComponentFromStringFunctions.end()) {
+        it->second(*this, componentJSON);
+    } else {
+        std::cout << "addComponent did not find component with name " << componentName << ". make sure to register the component using Entity::registerAddComponentFromStringFunction" << std::endl;
+    }
+}
+
 void Entity::registerAddScriptFromStringFunction(const std::string &scriptName, std::function<void(Entity &entity, const nlohmann::json &scriptJSON)> addScriptFunction) {
     s_addScriptFromStringFunctions[scriptName] = std::move(addScriptFunction);
+}
+
+void Entity::registerAddComponentFromStringFunction(const std::string &componentName, std::function<void(Entity &entity, const nlohmann::json &componentJSON)> addComponentFunction) {
+    s_addComponentFromStringFunctions[componentName] = std::move(addComponentFunction);
 }
 
 }
