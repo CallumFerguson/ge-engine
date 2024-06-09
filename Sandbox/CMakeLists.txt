@@ -67,45 +67,41 @@ if (EMSCRIPTEN)
 
     # preload shaders
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js
-            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py
-            ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data --preload shaders --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js
+            OUTPUT package_shaders_always_run_hack
+            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data --preload shaders --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js --quiet
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders
             COMMENT "Packaging shaders..."
     )
-    add_custom_target(package_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js)
+    add_custom_target(package_shaders ALL DEPENDS package_shaders_always_run_hack)
     add_dependencies(Sandbox package_shaders)
 
     # preload assets
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js
-            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py
-            ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data --preload assets --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js
+            OUTPUT package_assets_always_run_hack
+            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data --preload assets --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js --quiet
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets
             COMMENT "Packaging assets..."
     )
-    add_custom_target(package_assets ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js)
+    add_custom_target(package_assets ALL DEPENDS package_assets_always_run_hack)
     add_dependencies(Sandbox package_assets)
 else ()
     # copy shaders
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
+            OUTPUT package_shaders_always_run_hack
+            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders
             COMMENT "Packaging shaders..."
     )
-    add_custom_target(package_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders)
+    add_custom_target(package_shaders ALL DEPENDS package_shaders_always_run_hack)
     add_dependencies(Sandbox package_shaders)
 
     # copy assets
     add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
+            OUTPUT package_assets_always_run_hack
+            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets
             COMMENT "Packaging assets..."
     )
-    add_custom_target(package_assets ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dist/assets)
+    add_custom_target(package_assets ALL DEPENDS package_assets_always_run_hack)
     add_dependencies(Sandbox package_assets)
 endif ()
