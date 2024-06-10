@@ -52,9 +52,19 @@ int main(int argc, char *argv[]) {
     }
 
     std::set<int> savedMeshes;
+    std::set<int> savedMaterials;
+    std::set<int> savedTextures;
 
     for (const auto &meshId: model.meshes) {
         GameEngine::AssetManager::createMesh({});
+    }
+
+    for (const auto &textureId: model.textures) {
+        GameEngine::AssetManager::createTexture({});
+    }
+
+    for (const auto &materialsId: model.materials) {
+        GameEngine::AssetManager::createMaterial({});
     }
 
     GameEngine::Scene scene;
@@ -82,11 +92,32 @@ int main(int argc, char *argv[]) {
         int occlusionTextureIndex = model.materials[0].occlusionTexture.index;
         int metallicRoughnessTextureIndex = model.materials[0].pbrMetallicRoughness.metallicRoughnessTexture.index;
 
-        std::cout << (occlusionTextureIndex == metallicRoughnessTextureIndex) << std::endl;
+        bool metallicRoughnessOcclusionAllInOne = occlusionTextureIndex == metallicRoughnessTextureIndex;
+        if (!metallicRoughnessOcclusionAllInOne) {
+            std::cout << "metallicRoughness and occlusion must be the same texture (for now)" << std::endl;
+            //TODO: combine these textures if they are different (with cpu or gpu, idk)
+            return 1;
+        }
 
-//        model.materials[0].pbrMetallicRoughness.baseColorTexture;
+        int albedoTextureIndex = model.materials[0].pbrMetallicRoughness.baseColorTexture.index;
+        int normalTextureIndex = model.materials[0].normalTexture.index;
 
-//        model.materials[0].normalTexture.index;
+        if (occlusionTextureIndex == -1) {
+            std::cout << "missing occlusion texture which is not supported yet" << std::endl;
+            return 1;
+        }
+        if (metallicRoughnessTextureIndex == -1) {
+            std::cout << "missing metallic toughness texture which is not supported yet" << std::endl;
+            return 1;
+        }
+        if (albedoTextureIndex == -1) {
+            std::cout << "missing albedo texture which is not supported yet" << std::endl;
+            return 1;
+        }
+        if (normalTextureIndex == -1) {
+            std::cout << "missing normal texture which is not supported yet" << std::endl;
+            return 1;
+        }
 
         entities.push_back(entity);
     }

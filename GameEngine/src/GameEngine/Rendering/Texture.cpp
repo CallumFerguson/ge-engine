@@ -1,16 +1,16 @@
-#include "Material.hpp"
+#include "Texture.hpp"
 
 #include <nlohmann/json.hpp>
 #include "../Utility/Random.hpp"
 
 namespace GameEngine {
 
-Material::Material() : Asset(Random::uuid()) {}
+Texture::Texture() : Asset(Random::uuid()) {}
 
-Material::Material(const std::string &assetPath) {
+Texture::Texture(const std::string &assetPath) {
     std::ifstream assetFile(assetPath);
     if (!assetFile) {
-        std::cerr << "Error: [Material] Could not open file " << assetPath << " for reading!" << std::endl;
+        std::cerr << "Error: [Texture] Could not open file " << assetPath << " for reading!" << std::endl;
         return;
     }
 

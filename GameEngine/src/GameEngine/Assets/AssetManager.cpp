@@ -12,6 +12,7 @@ static std::unordered_map<std::string, int> s_assetUUIDToHandle;
 static std::vector<Mesh> s_meshes;
 static std::vector<WebGPUShader> s_shaders;
 static std::vector<Material> s_materials;
+static std::vector<Texture> s_textures;
 
 static std::unordered_map<std::string, std::string> s_assetUUIDToPath;
 
@@ -85,6 +86,26 @@ int AssetManager::createMesh(Mesh mesh) {
     int assetHandle = static_cast<int>(s_meshes.size() - 1);
 
     s_assetUUIDToHandle[meshRef.assetUUID()] = assetHandle;
+
+    return assetHandle;
+}
+
+int AssetManager::createMaterial(Material material) {
+    auto &materialRef = s_materials.emplace_back(std::move(material));
+
+    int assetHandle = static_cast<int>(s_materials.size() - 1);
+
+    s_assetUUIDToHandle[materialRef.assetUUID()] = assetHandle;
+
+    return assetHandle;
+}
+
+int AssetManager::createTexture(Texture texture) {
+    auto &textureRef = s_textures.emplace_back(std::move(texture));
+
+    int assetHandle = static_cast<int>(s_textures.size() - 1);
+
+    s_assetUUIDToHandle[textureRef.assetUUID()] = assetHandle;
 
     return assetHandle;
 }

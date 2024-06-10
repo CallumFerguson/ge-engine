@@ -3,6 +3,7 @@
 #include <string>
 #include "../Rendering/Mesh.hpp"
 #include "../Rendering/Material.hpp"
+#include "../Rendering/Texture.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPUShader.hpp"
 
 namespace GameEngine {
@@ -18,6 +19,10 @@ public:
     static Mesh &getMesh(int assetHandle);
 
     static int createMesh(Mesh mesh);
+
+    static int createMaterial(Material material);
+
+    static int createTexture(Texture texture);
 
     static int loadShader(const std::string &assetPath);
 

@@ -19,6 +19,7 @@ add_library(
         src/GameEngine/Utility/RollingAverage.cpp
         src/GameEngine/Utility/utility.cpp
         src/GameEngine/Utility/Random.cpp
+        src/GameEngine/Utility/stbImpl.cpp
 
         src/GameEngine/Core/App.cpp
         src/GameEngine/Core/Window.cpp
@@ -37,6 +38,7 @@ add_library(
         src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp
         src/GameEngine/Rendering/Mesh.cpp
         src/GameEngine/Rendering/Material.cpp
+        src/GameEngine/Rendering/Texture.cpp
 
         ../Dependencies/imgui/src/imgui.cpp
         ../Dependencies/imgui/src/imgui_demo.cpp
@@ -71,10 +73,10 @@ target_include_directories(
         GameEngine PUBLIC
         ../Dependencies/glm/include
         #        ../Dependencies/GLFW/include
-        ../Dependencies/tinygltf/include
         ../Dependencies/imgui/include
         ../Dependencies/entt/include
         ../Dependencies/nlohmannjson/include
+        ../Dependencies/stb/include
 )
 
 if (NOT EMSCRIPTEN)

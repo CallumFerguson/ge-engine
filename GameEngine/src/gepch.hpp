@@ -15,7 +15,6 @@
 #include <unordered_set>
 
 #include <entt/entt.hpp>
-#include <tiny_gltf.h>
 #include <GLFW/glfw3.h>
 #include <webgpu/webgpu_cpp.h>
 #include <glm/glm.hpp>
