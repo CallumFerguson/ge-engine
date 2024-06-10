@@ -73,7 +73,7 @@ void runSandboxApp() {
 //    GameEngine::jsonToEntity(json, entt::null, scene);
 
     nlohmann::json entityJSON;
-    std::ifstream jsonFile("assets/FlightHelmetPackaged/FlightHelmet.geprefab");
+    std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
     jsonFile >> entityJSON;
     GameEngine::jsonToEntity(entityJSON, scene);
 
