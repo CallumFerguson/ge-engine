@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 #include "GameEngine.hpp"
+#include "gltfloader.hpp"
 
 tinygltf::TinyGLTF loader;
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
 
         if (!savedMeshes.contains(node.mesh)) {
             savedMeshes.insert(node.mesh);
-            GameEngine::writeGLTFMeshToFile(model, model.meshes[node.mesh], outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
+            Tools::writeGLTFMeshToFile(model, model.meshes[node.mesh], outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
         }
 
         entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;

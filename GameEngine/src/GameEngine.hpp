@@ -2,7 +2,6 @@
 
 // For use by GameEngine applications
 
-#include "GameEngine/Assets/gltfloader.hpp"
 #include "GameEngine/Assets/AssetManager.hpp"
 
 #include "GameEngine/Core/App.hpp"

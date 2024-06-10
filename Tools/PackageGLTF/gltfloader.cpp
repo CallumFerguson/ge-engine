@@ -1,21 +1,10 @@
 #include "gltfloader.hpp"
 
 #include <iostream>
+#include <vector>
+#include "GameEngine/Utility/Random.hpp"
 
-// I don't know why this is needed
-#ifdef APIENTRY
-#undef APIENTRY
-#endif
-
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
-#include <tiny_gltf.h>
-
-#include "../Utility/Random.hpp"
-
-namespace GameEngine {
+namespace Tools {
 
 int accessorItemByteLength(const tinygltf::Accessor &accessor) {
     int componentSizeInBytes = tinygltf::GetComponentSizeInBytes(static_cast<uint32_t>(accessor.componentType));
@@ -38,8 +27,6 @@ bool isTightlyPacked(const tinygltf::Accessor &accessor, const tinygltf::BufferV
     }
     return true;
 }
-
-#include <vector>
 
 bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
     if (mesh.primitives.empty()) {
