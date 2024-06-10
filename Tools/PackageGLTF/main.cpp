@@ -111,6 +111,7 @@ int main(int argc, char *argv[]) {
 
         int albedoTextureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
         int normalTextureIndex = material.normalTexture.index;
+        int occlusionRoughnessMetallicTextureIndex = occlusionTextureIndex;
 
         if (occlusionTextureIndex == -1) {
             std::cout << "missing occlusion texture which is not supported yet" << std::endl;
@@ -131,6 +132,38 @@ int main(int argc, char *argv[]) {
 
         if (!savedMaterials.contains(primitive.material)) {
             savedMaterials.insert(node.mesh);
+
+            if (!savedTextures.contains(albedoTextureIndex)) {
+                savedTextures.insert(albedoTextureIndex);
+
+                auto &texture = model.textures[albedoTextureIndex];
+                auto &image = model.images[texture.source];
+
+                std::cout << texture.name << std::endl;
+                std::cout << image.image.size() << std::endl;
+
+                std::ifstream file(inputFilePath.parent_path() / image.uri, std::ios::binary);
+                if (!file) {
+                    std::cout << "no file:" << std::endl;
+                    return 1;
+                }
+
+                file.seekg(0, std::ios::end);
+                size_t size = file.tellg();
+                file.seekg(0, std::ios::beg);
+                std::cout << size << std::endl;
+                file.close();
+            }
+
+            if (!savedTextures.contains(normalTextureIndex)) {
+                savedTextures.insert(normalTextureIndex);
+                std::cout << model.textures[normalTextureIndex].name << std::endl;
+            }
+
+            if (!savedTextures.contains(occlusionRoughnessMetallicTextureIndex)) {
+                savedTextures.insert(occlusionRoughnessMetallicTextureIndex);
+                std::cout << model.textures[occlusionRoughnessMetallicTextureIndex].name << std::endl;
+            }
         }
 
         entities.push_back(entity);
