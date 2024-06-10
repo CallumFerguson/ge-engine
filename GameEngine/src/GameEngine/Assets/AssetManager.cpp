@@ -11,6 +11,7 @@ static std::unordered_map<std::string, int> s_assetUUIDToHandle;
 
 static std::vector<Mesh> s_meshes;
 static std::vector<WebGPUShader> s_shaders;
+static std::vector<Material> s_materials;
 
 static std::unordered_map<std::string, std::string> s_assetUUIDToPath;
 

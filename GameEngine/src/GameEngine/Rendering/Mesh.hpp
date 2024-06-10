@@ -1,10 +1,11 @@
 #pragma once
 
 #include <webgpu/webgpu_cpp.h>
+#include "../Assets/Asset.hpp"
 
 namespace GameEngine {
 
-class Mesh {
+class Mesh : public Asset {
 public:
     Mesh();
 
@@ -16,15 +17,11 @@ public:
 
     uint32_t indexCount();
 
-    std::string &assetUUID();
-
 private:
     wgpu::Buffer m_indexBuffer;
     wgpu::Buffer m_positionBuffer;
 
     uint32_t m_indexCount = 0;
-
-    std::string m_assetUUID;
 };
 
 }

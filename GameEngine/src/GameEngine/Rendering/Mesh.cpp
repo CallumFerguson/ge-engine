@@ -6,7 +6,7 @@
 
 namespace GameEngine {
 
-Mesh::Mesh() : m_assetUUID(Random::uuid()) {}
+Mesh::Mesh() : Asset(Random::uuid()) {}
 
 Mesh::Mesh(const std::string &inputFilePath) {
     std::ifstream inputFile(inputFilePath, std::ios::binary);
@@ -44,10 +44,6 @@ const wgpu::Buffer &Mesh::positionBuffer() {
 
 uint32_t Mesh::indexCount() {
     return m_indexCount;
-}
-
-std::string &Mesh::assetUUID() {
-    return m_assetUUID;
 }
 
 }

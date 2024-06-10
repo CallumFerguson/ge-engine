@@ -78,6 +78,15 @@ int main(int argc, char *argv[]) {
 
         entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;
 
+        int occlusionTextureIndex = model.materials[0].occlusionTexture.index;
+        int metallicRoughnessTextureIndex = model.materials[0].pbrMetallicRoughness.metallicRoughnessTexture.index;
+
+        std::cout << (occlusionTextureIndex == metallicRoughnessTextureIndex) << std::endl;
+
+//        model.materials[0].pbrMetallicRoughness.baseColorTexture;
+
+//        model.materials[0].normalTexture.index;
+
         entities.push_back(entity);
     }
 

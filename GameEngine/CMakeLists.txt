@@ -15,6 +15,7 @@ add_library(
         STATIC
         src/GameEngine/Assets/gltfloader.cpp
         src/GameEngine/Assets/AssetManager.cpp
+        src/GameEngine/Assets/Asset.cpp
 
         src/GameEngine/Utility/RollingAverage.cpp
         src/GameEngine/Utility/utility.cpp
@@ -36,6 +37,7 @@ add_library(
         src/GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.cpp
         src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp
         src/GameEngine/Rendering/Mesh.cpp
+        src/GameEngine/Rendering/Material.cpp
 
         ../Dependencies/imgui/src/imgui.cpp
         ../Dependencies/imgui/src/imgui_demo.cpp

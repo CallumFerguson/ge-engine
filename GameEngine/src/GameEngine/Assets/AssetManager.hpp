@@ -2,6 +2,7 @@
 
 #include <string>
 #include "../Rendering/Mesh.hpp"
+#include "../Rendering/Material.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPUShader.hpp"
 
 namespace GameEngine {
