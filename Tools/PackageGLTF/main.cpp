@@ -7,9 +7,18 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 #include "GameEngine.hpp"
-#include "gltfPacker.hpp"
+#include "meshPacker.hpp"
+#include "texturePacker.hpp"
 
 tinygltf::TinyGLTF loader;
+
+std::string getFirstWordBeforeDot(const std::string &input) {
+    size_t pos = input.find('.');
+    if (pos != std::string::npos) {
+        return input.substr(0, pos);
+    }
+    return input;
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -20,6 +29,7 @@ int main(int argc, char *argv[]) {
     std::filesystem::path inputFilePath(argv[1]);
     std::filesystem::path outputFilePath(argv[2]);
     outputFilePath /= inputFilePath.stem().string();
+    std::filesystem::create_directories(outputFilePath);
 
     tinygltf::Model model;
     std::string err;
@@ -52,6 +62,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // TODO: handle name conflicts in mesh/texture/material/etc. save file names
+
     std::set<int> savedMeshes;
     std::set<int> savedMaterials;
     std::set<int> savedTextures;
@@ -60,7 +72,7 @@ int main(int argc, char *argv[]) {
         GameEngine::AssetManager::createMesh({});
     }
 
-    for (const auto &textureId: model.textures) {
+    for (const auto &imageId: model.images) {
         GameEngine::AssetManager::createTexture({});
     }
 
@@ -92,7 +104,7 @@ int main(int argc, char *argv[]) {
 
         if (!savedMeshes.contains(node.mesh)) {
             savedMeshes.insert(node.mesh);
-            Tools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
+            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
         }
 
         entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;
@@ -139,30 +151,25 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[albedoTextureIndex];
                 auto &image = model.images[texture.source];
 
-                std::cout << texture.name << std::endl;
-                std::cout << image.image.size() << std::endl;
-
-                std::ifstream file(inputFilePath.parent_path() / image.uri, std::ios::binary);
-                if (!file) {
-                    std::cout << "no file:" << std::endl;
-                    return 1;
-                }
-
-                file.seekg(0, std::ios::end);
-                size_t size = file.tellg();
-                file.seekg(0, std::ios::beg);
-                std::cout << size << std::endl;
-                file.close();
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, GameEngine::AssetManager::getTexture(texture.source).assetUUID());
             }
 
             if (!savedTextures.contains(normalTextureIndex)) {
                 savedTextures.insert(normalTextureIndex);
-                std::cout << model.textures[normalTextureIndex].name << std::endl;
+
+                auto &texture = model.textures[normalTextureIndex];
+                auto &image = model.images[texture.source];
+
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, GameEngine::AssetManager::getTexture(texture.source).assetUUID());
             }
 
             if (!savedTextures.contains(occlusionRoughnessMetallicTextureIndex)) {
                 savedTextures.insert(occlusionRoughnessMetallicTextureIndex);
-                std::cout << model.textures[occlusionRoughnessMetallicTextureIndex].name << std::endl;
+
+                auto &texture = model.textures[occlusionRoughnessMetallicTextureIndex];
+                auto &image = model.images[texture.source];
+
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, GameEngine::AssetManager::getTexture(texture.source).assetUUID());
             }
         }
 

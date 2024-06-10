@@ -1,10 +1,10 @@
-#include "gltfPacker.hpp"
+#include "meshPacker.hpp"
 
 #include <iostream>
 #include <vector>
 #include "GameEngine/Utility/Random.hpp"
 
-namespace Tools {
+namespace GameEngineTools {
 
 int accessorItemByteLength(const tinygltf::Accessor &accessor) {
     int componentSizeInBytes = tinygltf::GetComponentSizeInBytes(static_cast<uint32_t>(accessor.componentType));
@@ -77,7 +77,6 @@ writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primi
     }
     int32_t numIndices = indexAccessor.count;
 
-    std::filesystem::create_directories(outputFilePath);
     std::ofstream outputFile(outputFilePath / (name + ".gemesh"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;

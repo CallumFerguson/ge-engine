@@ -90,6 +90,10 @@ int AssetManager::createMesh(Mesh mesh) {
     return assetHandle;
 }
 
+Material &AssetManager::getMaterial(int assetHandle) {
+    return s_materials[assetHandle];
+}
+
 int AssetManager::createMaterial(Material material) {
     auto &materialRef = s_materials.emplace_back(std::move(material));
 
@@ -98,6 +102,10 @@ int AssetManager::createMaterial(Material material) {
     s_assetUUIDToHandle[materialRef.assetUUID()] = assetHandle;
 
     return assetHandle;
+}
+
+Texture &AssetManager::getTexture(int assetHandle) {
+    return s_textures[assetHandle];
 }
 
 int AssetManager::createTexture(Texture texture) {

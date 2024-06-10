@@ -20,7 +20,11 @@ public:
 
     static int createMesh(Mesh mesh);
 
+    static Material &getMaterial(int assetHandle);
+
     static int createMaterial(Material material);
+
+    static Texture &getTexture(int assetHandle);
 
     static int createTexture(Texture texture);
 

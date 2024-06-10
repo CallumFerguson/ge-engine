@@ -8,8 +8,9 @@ add_executable(
 
         PackageGLTF/main.cpp
 
-        PackageGLTF/gltfPacker.cpp
+        PackageGLTF/meshPacker.cpp
         PackageGLTF/tinygltfImpl.cpp
+        PackageGLTF/texturePacker.cpp
 )
 
 target_precompile_headers(TestTool REUSE_FROM GameEngine)
