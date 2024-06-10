@@ -7,6 +7,7 @@
 
 namespace Tools {
 
-bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::filesystem::path &outputFilePath, const std::string &meshUUID);
+bool
+writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primitive &primitive, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &meshUUID);
 
 }

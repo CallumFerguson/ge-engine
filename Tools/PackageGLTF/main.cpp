@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
 
     std::filesystem::path inputFilePath(argv[1]);
     std::filesystem::path outputFilePath(argv[2]);
+    outputFilePath /= inputFilePath.stem().string();
 
     tinygltf::Model model;
     std::string err;
@@ -76,21 +77,30 @@ int main(int argc, char *argv[]) {
 
         auto &mesh = model.meshes[node.mesh];
 
+        if (mesh.primitives.empty()) {
+            std::cout << "mesh does not have any primitives" << std::endl;
+            return 1;
+        }
+
         if (mesh.primitives.size() > 1) {
             std::cout << "mesh has multiple primitives which is not supported yet" << std::endl;
             // TODO: just make one child for each primitive
             return 1;
         }
 
+        auto &primitive = mesh.primitives[0];
+
         if (!savedMeshes.contains(node.mesh)) {
             savedMeshes.insert(node.mesh);
-            Tools::writeGLTFMeshToFile(model, model.meshes[node.mesh], outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
+            Tools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
         }
 
         entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;
 
-        int occlusionTextureIndex = model.materials[0].occlusionTexture.index;
-        int metallicRoughnessTextureIndex = model.materials[0].pbrMetallicRoughness.metallicRoughnessTexture.index;
+        auto &material = model.materials[primitive.material];
+
+        int occlusionTextureIndex = material.occlusionTexture.index;
+        int metallicRoughnessTextureIndex = material.pbrMetallicRoughness.metallicRoughnessTexture.index;
 
         bool metallicRoughnessOcclusionAllInOne = occlusionTextureIndex == metallicRoughnessTextureIndex;
         if (!metallicRoughnessOcclusionAllInOne) {
@@ -99,8 +109,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        int albedoTextureIndex = model.materials[0].pbrMetallicRoughness.baseColorTexture.index;
-        int normalTextureIndex = model.materials[0].normalTexture.index;
+        int albedoTextureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
+        int normalTextureIndex = material.normalTexture.index;
 
         if (occlusionTextureIndex == -1) {
             std::cout << "missing occlusion texture which is not supported yet" << std::endl;
@@ -117,6 +127,10 @@ int main(int argc, char *argv[]) {
         if (normalTextureIndex == -1) {
             std::cout << "missing normal texture which is not supported yet" << std::endl;
             return 1;
+        }
+
+        if (!savedMaterials.contains(primitive.material)) {
+            savedMaterials.insert(node.mesh);
         }
 
         entities.push_back(entity);

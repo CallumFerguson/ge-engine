@@ -28,17 +28,8 @@ bool isTightlyPacked(const tinygltf::Accessor &accessor, const tinygltf::BufferV
     return true;
 }
 
-bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
-    if (mesh.primitives.empty()) {
-        std::cout << "First mesh does not contain any primitives." << std::endl;
-        return false;
-    }
-
-    if (mesh.primitives.size() > 1) {
-        std::cout << "Mesh has multiple primitives" << std::endl;
-    }
-
-    const tinygltf::Primitive &primitive = mesh.primitives[0];
+bool
+writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primitive &primitive, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
     auto it = primitive.attributes.find("POSITION");
     if (it == primitive.attributes.end()) {
         std::cout << "Primitive does not contain POSITION attribute." << std::endl;
@@ -86,7 +77,8 @@ bool writeGLTFMeshToFile(const tinygltf::Model &model, const tinygltf::Mesh &mes
     }
     int32_t numIndices = indexAccessor.count;
 
-    std::ofstream outputFile(outputFilePath / (mesh.name + ".gemesh"), std::ios::out | std::ios::binary);
+    std::filesystem::create_directories(outputFilePath);
+    std::ofstream outputFile(outputFilePath / (name + ".gemesh"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return false;
