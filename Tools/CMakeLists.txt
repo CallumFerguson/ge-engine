@@ -8,7 +8,7 @@ add_executable(
 
         PackageGLTF/main.cpp
 
-        PackageGLTF/gltfloader.cpp
+        PackageGLTF/gltfPacker.cpp
         PackageGLTF/tinygltfImpl.cpp
 )
 

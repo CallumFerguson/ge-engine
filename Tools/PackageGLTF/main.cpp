@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 #include "GameEngine.hpp"
-#include "gltfloader.hpp"
+#include "gltfPacker.hpp"
 
 tinygltf::TinyGLTF loader;
 

@@ -1,4 +1,4 @@
-#include "gltfloader.hpp"
+#include "gltfPacker.hpp"
 
 #include <iostream>
 #include <vector>
