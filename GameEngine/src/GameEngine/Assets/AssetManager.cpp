@@ -17,18 +17,22 @@ static std::vector<Texture> s_textures;
 static std::unordered_map<std::string, std::string> s_assetUUIDToPath;
 
 void AssetManager::registerAssetUUIDs() {
-    for (const auto &entry: std::filesystem::recursive_directory_iterator("assets")) {
-        if (entry.is_regular_file() && entry.path().extension() == ".gemesh") {
-            std::ifstream inputFile(entry.path(), std::ios::binary);
-            if (!inputFile) {
-                std::cerr << "Error: assetUUIDToPath could not open file " << entry.path() << " for reading!" << std::endl;
-                break;
-            }
+    std::vector<std::string> extensions = {".gemesh", ".getexture"};
 
-            char uuid[37];
-            uuid[36] = '\0';
-            inputFile.read(uuid, 36);
-            s_assetUUIDToPath[uuid] = entry.path().string();
+    for (const auto &entry: std::filesystem::recursive_directory_iterator("assets")) {
+        for (const auto &extension: extensions) {
+            if (entry.is_regular_file() && entry.path().extension() == extension) {
+                std::ifstream inputFile(entry.path(), std::ios::binary);
+                if (!inputFile) {
+                    std::cerr << "Error: assetUUIDToPath could not open file " << entry.path() << " for reading!" << std::endl;
+                    break;
+                }
+
+                char uuid[37];
+                uuid[36] = '\0';
+                inputFile.read(uuid, 36);
+                s_assetUUIDToPath[uuid] = entry.path().string();
+            }
         }
     }
 }
