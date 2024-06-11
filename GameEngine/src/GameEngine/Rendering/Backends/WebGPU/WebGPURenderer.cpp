@@ -32,11 +32,10 @@ static wgpu::Instance s_instance;
 static wgpu::Adapter s_adapter;
 static wgpu::Device s_device;
 static wgpu::Surface s_surface;
-#ifdef __EMSCRIPTEN__
-static wgpu::SwapChain s_swapChain;
-#endif
 
 static wgpu::TextureFormat s_mainSurfacePreferredFormat;
+
+const uint32_t multisampleCount = 1;
 
 static wgpu::RenderPassColorAttachment s_colorAttachment;
 static wgpu::RenderPassDepthStencilAttachment s_depthAttachment;
@@ -210,23 +209,12 @@ void WebGPURenderer::errorCallback(WGPUErrorType type, const char *message, void
 }
 
 void WebGPURenderer::configureSurface() {
-    // TODO: use configure api for both https://github.com/emscripten-core/emscripten/pull/21939
-#ifdef __EMSCRIPTEN__
-    wgpu::SwapChainDescriptor swapChainDescriptor = {};
-    swapChainDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
-    swapChainDescriptor.format = s_mainSurfacePreferredFormat;
-    swapChainDescriptor.width = s_window->renderSurfaceWidth();
-    swapChainDescriptor.height = s_window->renderSurfaceHeight();
-    swapChainDescriptor.presentMode = wgpu::PresentMode::Fifo;
-    s_swapChain = s_device.CreateSwapChain(s_surface, &swapChainDescriptor);
-#else
     wgpu::SurfaceConfiguration surfaceConfiguration = {};
     surfaceConfiguration.device = s_device;
     surfaceConfiguration.format = s_mainSurfacePreferredFormat;
     surfaceConfiguration.width = s_window->renderSurfaceWidth();
     surfaceConfiguration.height = s_window->renderSurfaceHeight();
     s_surface.Configure(&surfaceConfiguration);
-#endif
 
     // I don't think this is needed since the destructor will clean it up
     if (s_depthTexture) {
@@ -236,7 +224,7 @@ void WebGPURenderer::configureSurface() {
     wgpu::TextureDescriptor depthTextureDescriptor = {};
     depthTextureDescriptor.size = {static_cast<uint32_t>(s_window->renderSurfaceWidth()), static_cast<uint32_t>(s_window->renderSurfaceHeight()), 1};
     depthTextureDescriptor.format = wgpu::TextureFormat::Depth24Plus;
-    depthTextureDescriptor.sampleCount = 1;
+    depthTextureDescriptor.sampleCount = multisampleCount;
     depthTextureDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
     s_depthTexture = s_device.CreateTexture(&depthTextureDescriptor);
 
@@ -261,13 +249,9 @@ void WebGPURenderer::startFrame() {
     s_device.Tick();
 #endif
 
-#ifdef __EMSCRIPTEN__
-    auto currentSurfaceTextureView = s_swapChain.GetCurrentTextureView();
-#else
     wgpu::SurfaceTexture currentSurfaceTexture;
     s_surface.GetCurrentTexture(&currentSurfaceTexture);
     auto currentSurfaceTextureView = currentSurfaceTexture.texture.CreateView();
-#endif
 
     s_colorAttachment.view = currentSurfaceTextureView;
 
@@ -382,7 +366,7 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
     pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
 
-    pipelineDescriptor.multisample.count = 1;
+    pipelineDescriptor.multisample.count = multisampleCount;
 
     wgpu::DepthStencilState depthStencilState = {};
     depthStencilState.depthWriteEnabled = true;
