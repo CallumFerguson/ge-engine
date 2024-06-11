@@ -23,6 +23,8 @@ private:
     wgpu::Buffer m_indexBuffer;
     wgpu::Buffer m_positionBuffer;
     wgpu::Buffer m_normalBuffer;
+    wgpu::Buffer m_uvBuffer;
+    wgpu::Buffer m_tangentBuffer;
 
     uint32_t m_indexCount = 0;
 };

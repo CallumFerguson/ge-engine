@@ -28,11 +28,37 @@ bool isTightlyPacked(const tinygltf::Accessor &accessor, const tinygltf::BufferV
     return true;
 }
 
-bool
+void writeAttributeToFile(const tinygltf::Model &model, const tinygltf::Primitive &primitive, const std::string &attribute, std::ofstream &outputFile) {
+    auto it = primitive.attributes.find(attribute);
+    if (it == primitive.attributes.end()) {
+        std::cout << "Primitive does not contain " << attribute << " attribute." << std::endl;
+        return;
+    }
+
+    const tinygltf::Accessor &accessor = model.accessors[it->second];
+    auto &bufferView = model.bufferViews[accessor.bufferView];
+    auto &buffer = model.buffers[bufferView.buffer];
+    auto *data = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
+    int32_t numEntries = accessor.count;
+
+    if (!isTightlyPacked(accessor, bufferView)) {
+        std::cout << "data is not tightly packed which is not supported yet" << std::endl;
+        return;
+    }
+
+    int componentSize = tinygltf::GetComponentSizeInBytes(accessor.componentType);
+    int numComponents = tinygltf::GetNumComponentsInType(accessor.type);
+    int entrySize = componentSize * numComponents;
+
+    outputFile.write(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+    outputFile.write(reinterpret_cast<const char *>(data), numEntries * entrySize);
+}
+
+void
 writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primitive &primitive, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
     if (primitive.indices < 0) {
         std::cout << "Primitive does not contain indices." << std::endl;
-        return false;
+        return;
     }
 
     const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
@@ -42,7 +68,7 @@ writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primi
 
     if (!isTightlyPacked(indexAccessor, indexBufferView)) {
         std::cout << "indices are not tightly packed which is not supported yet" << std::endl;
-        return false;
+        return;
     }
 
     std::vector<uint32_t> indicesVector;
@@ -56,14 +82,14 @@ writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primi
         //
     } else {
         std::cout << "unknown indexAccessor componentType" << std::endl;
-        return false;
+        return;
     }
     int32_t numIndices = indexAccessor.count;
 
     std::ofstream outputFile(outputFilePath / (name + ".gemesh"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
-        return false;
+        return;
     }
 
     outputFile << meshUUID;
@@ -71,57 +97,16 @@ writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primi
     outputFile.write(reinterpret_cast<const char *>(&numIndices), sizeof(numIndices));
     outputFile.write(reinterpret_cast<const char *>(indices), numIndices * sizeof(uint32_t));
 
-    {
-        auto it = primitive.attributes.find("POSITION");
-        if (it == primitive.attributes.end()) {
-            std::cout << "Primitive does not contain POSITION attribute." << std::endl;
-            return false;
-        }
-
-        const tinygltf::Accessor &accessor = model.accessors[it->second];
-        auto &bufferView = model.bufferViews[accessor.bufferView];
-        auto &buffer = model.buffers[bufferView.buffer];
-        auto *data = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
-        int32_t numEntries = accessor.count;
-
-        if (!isTightlyPacked(accessor, bufferView)) {
-            std::cout << "data is not tightly packed which is not supported yet" << std::endl;
-            return false;
-        }
-
-        outputFile.write(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
-        outputFile.write(reinterpret_cast<const char *>(data), numEntries * sizeof(float) * 3);
-    }
-
-    {
-        auto it = primitive.attributes.find("NORMAL");
-        if (it == primitive.attributes.end()) {
-            std::cout << "Primitive does not contain NORMAL attribute." << std::endl;
-            return false;
-        }
-
-        const tinygltf::Accessor &accessor = model.accessors[it->second];
-        auto &bufferView = model.bufferViews[accessor.bufferView];
-        auto &buffer = model.buffers[bufferView.buffer];
-        auto *data = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
-        int32_t numEntries = accessor.count;
-
-        if (!isTightlyPacked(accessor, bufferView)) {
-            std::cout << "data is not tightly packed which is not supported yet" << std::endl;
-            return false;
-        }
-
-        outputFile.write(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
-        outputFile.write(reinterpret_cast<const char *>(data), numEntries * sizeof(float) * 3);
-    }
+    writeAttributeToFile(model, primitive, "POSITION", outputFile);
+    writeAttributeToFile(model, primitive, "NORMAL", outputFile);
+    writeAttributeToFile(model, primitive, "TEXCOORD_0", outputFile);
+    writeAttributeToFile(model, primitive, "TANGENT", outputFile);
 
     // Check if the write was successful
     if (!outputFile) {
         std::cerr << "Error: Failed to write data to file!" << std::endl;
-        return false;
+        return;
     }
-
-    return true;
 }
 
 }

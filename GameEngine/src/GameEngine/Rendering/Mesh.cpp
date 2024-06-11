@@ -20,25 +20,54 @@ Mesh::Mesh(const std::string &inputFilePath) {
     inputFile.read(uuid, 36);
     m_assetUUID = uuid;
 
+    // indices
     inputFile.read(reinterpret_cast<char *>(&m_indexCount), sizeof(m_indexCount));
     int32_t indicesByteLength = m_indexCount * sizeof(uint32_t);
     m_indexBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), indicesByteLength, wgpu::BufferUsage::Index);
     inputFile.read(reinterpret_cast<char *>(m_indexBuffer.GetMappedRange()), indicesByteLength);
     m_indexBuffer.Unmap();
 
-    int32_t numPositions;
-    inputFile.read(reinterpret_cast<char *>(&numPositions), sizeof(numPositions));
-    int32_t positionsByteLength = numPositions * sizeof(float) * 3;
-    m_positionBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), positionsByteLength, wgpu::BufferUsage::Vertex);
-    inputFile.read(reinterpret_cast<char *>(m_positionBuffer.GetMappedRange()), positionsByteLength);
-    m_positionBuffer.Unmap();
+    // positions
+    {
+        int32_t numEntries;
+        inputFile.read(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+        int32_t byteLength = numEntries * sizeof(float) * 3;
+        m_positionBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), byteLength, wgpu::BufferUsage::Vertex);
+        inputFile.read(reinterpret_cast<char *>(m_positionBuffer.GetMappedRange()), byteLength);
+        m_positionBuffer.Unmap();
+    }
 
-    int32_t numNormals;
-    inputFile.read(reinterpret_cast<char *>(&numNormals), sizeof(numNormals));
-    int32_t normalsByteLength = numNormals * sizeof(float) * 3;
-    m_normalBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), normalsByteLength, wgpu::BufferUsage::Vertex);
-    inputFile.read(reinterpret_cast<char *>(m_normalBuffer.GetMappedRange()), normalsByteLength);
-    m_normalBuffer.Unmap();
+    // normals
+    {
+        int32_t numEntries;
+        inputFile.read(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+        int32_t byteLength = numEntries * sizeof(float) * 3;
+        m_normalBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), byteLength, wgpu::BufferUsage::Vertex);
+        inputFile.read(reinterpret_cast<char *>(m_normalBuffer.GetMappedRange()), byteLength);
+        m_normalBuffer.Unmap();
+    }
+
+    // uvs
+    {
+        int32_t numEntries;
+        inputFile.read(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+        int32_t byteLength = numEntries * sizeof(float) * 2;
+        m_uvBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), byteLength, wgpu::BufferUsage::Vertex);
+        inputFile.read(reinterpret_cast<char *>(m_uvBuffer.GetMappedRange()), byteLength);
+        m_uvBuffer.Unmap();
+    }
+
+    // tangents
+    {
+        int32_t numEntries;
+        inputFile.read(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+        int32_t byteLength = numEntries * sizeof(float) * 4;
+        m_tangentBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), byteLength, wgpu::BufferUsage::Vertex);
+        inputFile.read(reinterpret_cast<char *>(m_tangentBuffer.GetMappedRange()), byteLength);
+        m_tangentBuffer.Unmap();
+    }
+
+    // bitangents? or calc in shader
 }
 
 const wgpu::Buffer &Mesh::indexBuffer() {
