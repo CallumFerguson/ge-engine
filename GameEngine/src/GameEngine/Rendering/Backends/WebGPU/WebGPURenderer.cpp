@@ -357,12 +357,32 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     normalBufferLayout.attributeCount = 1;
     normalBufferLayout.attributes = &normalBufferLayoutAttribute0;
 
-    std::array<wgpu::VertexBufferLayout, 2> vertexBufferLayouts = {positionBufferLayout, normalBufferLayout};
+    wgpu::VertexAttribute uvBufferLayoutAttribute0 = {};
+    uvBufferLayoutAttribute0.shaderLocation = 2;
+    uvBufferLayoutAttribute0.offset = 0;
+    uvBufferLayoutAttribute0.format = wgpu::VertexFormat::Float32x2;
+
+    wgpu::VertexBufferLayout uvBufferLayout = {};
+    uvBufferLayout.arrayStride = 2 * 4;
+    uvBufferLayout.attributeCount = 1;
+    uvBufferLayout.attributes = &uvBufferLayoutAttribute0;
+
+    wgpu::VertexAttribute tangentBufferLayoutAttribute0 = {};
+    tangentBufferLayoutAttribute0.shaderLocation = 3;
+    tangentBufferLayoutAttribute0.offset = 0;
+    tangentBufferLayoutAttribute0.format = wgpu::VertexFormat::Float32x4;
+
+    wgpu::VertexBufferLayout tangentBufferLayout = {};
+    tangentBufferLayout.arrayStride = 4 * 4;
+    tangentBufferLayout.attributeCount = 1;
+    tangentBufferLayout.attributes = &tangentBufferLayoutAttribute0;
+
+    std::array<wgpu::VertexBufferLayout, 4> vertexBufferLayouts = {positionBufferLayout, normalBufferLayout, uvBufferLayout, tangentBufferLayout};
 
     wgpu::VertexState vertex = {};
     vertex.module = shader.shaderModule();
     vertex.entryPoint = "vert";
-    vertex.bufferCount = 2;
+    vertex.bufferCount = vertexBufferLayouts.size();
     vertex.buffers = vertexBufferLayouts.data();
 
     pipelineDescriptor.vertex = vertex;
@@ -406,6 +426,8 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
 
     renderPassEncoder.SetVertexBuffer(0, mesh.positionBuffer());
     renderPassEncoder.SetVertexBuffer(1, mesh.normalBuffer());
+    renderPassEncoder.SetVertexBuffer(2, mesh.uvBuffer());
+    renderPassEncoder.SetVertexBuffer(3, mesh.tangentBuffer());
 
     renderPassEncoder.SetIndexBuffer(mesh.indexBuffer(), wgpu::IndexFormat::Uint32);
 

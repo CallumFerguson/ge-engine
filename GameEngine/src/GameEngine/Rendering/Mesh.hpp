@@ -17,6 +17,10 @@ public:
 
     const wgpu::Buffer &normalBuffer();
 
+    const wgpu::Buffer &uvBuffer();
+
+    const wgpu::Buffer &tangentBuffer();
+
     uint32_t indexCount();
 
 private:

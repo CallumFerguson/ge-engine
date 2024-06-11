@@ -64,10 +64,14 @@ Mesh::Mesh(const std::string &inputFilePath) {
         int32_t byteLength = numEntries * sizeof(float) * 4;
         m_tangentBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), byteLength, wgpu::BufferUsage::Vertex);
         inputFile.read(reinterpret_cast<char *>(m_tangentBuffer.GetMappedRange()), byteLength);
+//        auto tangents = reinterpret_cast<float *>(m_tangentBuffer.GetMappedRange());
+//        for (int i = 0; i < numEntries; i++) {
+//            if (tangents[i * 4 + 3] != 1) {
+//                std::cout << tangents[i * 4 + 3] << std::endl;
+//            }
+//        }
         m_tangentBuffer.Unmap();
     }
-
-    // bitangents? or calc in shader
 }
 
 const wgpu::Buffer &Mesh::indexBuffer() {
@@ -80,6 +84,14 @@ const wgpu::Buffer &Mesh::positionBuffer() {
 
 const wgpu::Buffer &Mesh::normalBuffer() {
     return m_normalBuffer;
+}
+
+const wgpu::Buffer &Mesh::uvBuffer() {
+    return m_uvBuffer;
+}
+
+const wgpu::Buffer &Mesh::tangentBuffer() {
+    return m_tangentBuffer;
 }
 
 uint32_t Mesh::indexCount() {
