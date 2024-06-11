@@ -39,6 +39,8 @@ static wgpu::SwapChain s_swapChain;
 static wgpu::TextureFormat s_mainSurfacePreferredFormat;
 
 static wgpu::RenderPassColorAttachment s_colorAttachment;
+static wgpu::RenderPassDepthStencilAttachment s_depthAttachment;
+static wgpu::Texture s_depthTexture;
 static wgpu::RenderPassDescriptor s_renderPassDescriptor;
 
 static wgpu::RenderPassEncoder s_renderPassEncoder;
@@ -126,13 +128,12 @@ void WebGPURenderer::getDeviceCallback(
 void WebGPURenderer::finishInit() {
     createSurface();
     s_mainSurfacePreferredFormat = s_surface.GetPreferredFormat(s_adapter);
-    configureSurface();
 
     ImGui_ImplWGPU_InitInfo init_info;
     init_info.Device = s_device.Get();
     init_info.NumFramesInFlight = 3;
     init_info.RenderTargetFormat = (WGPUTextureFormat) s_mainSurfacePreferredFormat;
-    init_info.DepthStencilFormat = WGPUTextureFormat_Undefined;
+    init_info.DepthStencilFormat = WGPUTextureFormat_Depth24Plus; // static_cast<WGPUTextureFormat>(wgpu::TextureFormat::Depth24Plus)
     ImGui_ImplWGPU_Init(&init_info);
 
     s_colorAttachment = {};
@@ -140,9 +141,17 @@ void WebGPURenderer::finishInit() {
     s_colorAttachment.storeOp = wgpu::StoreOp::Store;
     s_colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
 
+    s_depthAttachment = {};
+    s_depthAttachment.depthClearValue = 1.0f;
+    s_depthAttachment.depthLoadOp = wgpu::LoadOp::Clear;
+    s_depthAttachment.depthStoreOp = wgpu::StoreOp::Store;
+
     s_renderPassDescriptor = {};
     s_renderPassDescriptor.colorAttachmentCount = 1;
     s_renderPassDescriptor.colorAttachments = &s_colorAttachment;
+    s_renderPassDescriptor.depthStencilAttachment = &s_depthAttachment;
+
+    configureSurface();
 
     setUpPBRRenderPipeline();
     setUpCameraBuffer();
@@ -218,6 +227,20 @@ void WebGPURenderer::configureSurface() {
     surfaceConfiguration.height = s_window->renderSurfaceHeight();
     s_surface.Configure(&surfaceConfiguration);
 #endif
+
+    // I don't think this is needed since the destructor will clean it up
+    if (s_depthTexture) {
+        s_depthTexture.Destroy();
+    }
+
+    wgpu::TextureDescriptor depthTextureDescriptor = {};
+    depthTextureDescriptor.size = {static_cast<uint32_t>(s_window->renderSurfaceWidth()), static_cast<uint32_t>(s_window->renderSurfaceHeight()), 1};
+    depthTextureDescriptor.format = wgpu::TextureFormat::Depth24Plus;
+    depthTextureDescriptor.sampleCount = 1;
+    depthTextureDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
+    s_depthTexture = s_device.CreateTexture(&depthTextureDescriptor);
+
+    s_depthAttachment.view = s_depthTexture.CreateView();
 }
 
 void WebGPURenderer::present() {
@@ -360,6 +383,13 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
 
     pipelineDescriptor.multisample.count = 1;
+
+    wgpu::DepthStencilState depthStencilState = {};
+    depthStencilState.depthWriteEnabled = true;
+    depthStencilState.depthCompare = wgpu::CompareFunction::Less;
+    depthStencilState.format = wgpu::TextureFormat::Depth24Plus;
+
+    pipelineDescriptor.depthStencil = &depthStencilState;
 
     s_pbrRenderPipeline = device.CreateRenderPipeline(&pipelineDescriptor);
 }
