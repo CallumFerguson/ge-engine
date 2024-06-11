@@ -25,6 +25,10 @@ void runSandboxApp() {
 //    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromPath("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
 //    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromUUID("71cb6d06-21ea-43fb-991a-ac0ed33b16e2");
 
+//    GameEngine::AssetManager::getOrLoad; // FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture
+    GameEngine::Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+    std::cout << texture.assetUUID() << std::endl;
+
 //    float scale = 1;
 //
 //    GameEngine::Entity pbrRendererEntity1 = scene.createEntity("Thing 1");
