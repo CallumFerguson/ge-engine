@@ -35,11 +35,10 @@ static wgpu::Surface s_surface;
 
 static wgpu::TextureFormat s_mainSurfacePreferredFormat;
 
-const uint32_t multisampleCount = 1;
+const uint32_t multisampleCount = 4;
 
 static wgpu::RenderPassColorAttachment s_colorAttachment;
 static wgpu::RenderPassDepthStencilAttachment s_depthAttachment;
-static wgpu::Texture s_depthTexture;
 static wgpu::RenderPassDescriptor s_renderPassDescriptor;
 
 static wgpu::RenderPassEncoder s_renderPassEncoder;
@@ -131,8 +130,9 @@ void WebGPURenderer::finishInit() {
     ImGui_ImplWGPU_InitInfo init_info;
     init_info.Device = s_device.Get();
     init_info.NumFramesInFlight = 3;
-    init_info.RenderTargetFormat = (WGPUTextureFormat) s_mainSurfacePreferredFormat;
-    init_info.DepthStencilFormat = WGPUTextureFormat_Depth24Plus; // static_cast<WGPUTextureFormat>(wgpu::TextureFormat::Depth24Plus)
+    init_info.RenderTargetFormat = static_cast<WGPUTextureFormat>(s_mainSurfacePreferredFormat);
+    init_info.DepthStencilFormat = static_cast<WGPUTextureFormat>(wgpu::TextureFormat::Depth24Plus);
+    init_info.PipelineMultisampleState.count = multisampleCount;
     ImGui_ImplWGPU_Init(&init_info);
 
     s_colorAttachment = {};
@@ -216,19 +216,21 @@ void WebGPURenderer::configureSurface() {
     surfaceConfiguration.height = s_window->renderSurfaceHeight();
     s_surface.Configure(&surfaceConfiguration);
 
-    // I don't think this is needed since the destructor will clean it up
-    if (s_depthTexture) {
-        s_depthTexture.Destroy();
-    }
-
     wgpu::TextureDescriptor depthTextureDescriptor = {};
     depthTextureDescriptor.size = {static_cast<uint32_t>(s_window->renderSurfaceWidth()), static_cast<uint32_t>(s_window->renderSurfaceHeight()), 1};
     depthTextureDescriptor.format = wgpu::TextureFormat::Depth24Plus;
     depthTextureDescriptor.sampleCount = multisampleCount;
     depthTextureDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
-    s_depthTexture = s_device.CreateTexture(&depthTextureDescriptor);
+    s_depthAttachment.view = s_device.CreateTexture(&depthTextureDescriptor).CreateView();
 
-    s_depthAttachment.view = s_depthTexture.CreateView();
+    if(multisampleCount != 1) {
+        wgpu::TextureDescriptor multisampleTextureDescriptor = {};
+        multisampleTextureDescriptor.size = {static_cast<uint32_t>(s_window->renderSurfaceWidth()), static_cast<uint32_t>(s_window->renderSurfaceHeight()), 1};
+        multisampleTextureDescriptor.format = s_mainSurfacePreferredFormat;
+        multisampleTextureDescriptor.sampleCount = multisampleCount;
+        multisampleTextureDescriptor.usage = wgpu::TextureUsage::RenderAttachment;
+        s_colorAttachment.view = s_device.CreateTexture(&multisampleTextureDescriptor).CreateView();
+    }
 }
 
 void WebGPURenderer::present() {
@@ -251,9 +253,12 @@ void WebGPURenderer::startFrame() {
 
     wgpu::SurfaceTexture currentSurfaceTexture;
     s_surface.GetCurrentTexture(&currentSurfaceTexture);
-    auto currentSurfaceTextureView = currentSurfaceTexture.texture.CreateView();
 
-    s_colorAttachment.view = currentSurfaceTextureView;
+    if (multisampleCount == 1) {
+        s_colorAttachment.view = currentSurfaceTexture.texture.CreateView();
+    } else {
+        s_colorAttachment.resolveTarget = currentSurfaceTexture.texture.CreateView();
+    }
 
     s_commandEncoder = s_device.CreateCommandEncoder();
 }
