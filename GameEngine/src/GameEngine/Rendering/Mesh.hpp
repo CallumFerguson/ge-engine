@@ -15,11 +15,14 @@ public:
 
     const wgpu::Buffer &positionBuffer();
 
+    const wgpu::Buffer &normalBuffer();
+
     uint32_t indexCount();
 
 private:
     wgpu::Buffer m_indexBuffer;
     wgpu::Buffer m_positionBuffer;
+    wgpu::Buffer m_normalBuffer;
 
     uint32_t m_indexCount = 0;
 };

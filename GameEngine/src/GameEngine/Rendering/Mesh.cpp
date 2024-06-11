@@ -32,6 +32,13 @@ Mesh::Mesh(const std::string &inputFilePath) {
     m_positionBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), positionsByteLength, wgpu::BufferUsage::Vertex);
     inputFile.read(reinterpret_cast<char *>(m_positionBuffer.GetMappedRange()), positionsByteLength);
     m_positionBuffer.Unmap();
+
+    int32_t numNormals;
+    inputFile.read(reinterpret_cast<char *>(&numNormals), sizeof(numNormals));
+    int32_t normalsByteLength = numNormals * sizeof(float) * 3;
+    m_normalBuffer = createMappedWebGPUBuffer(WebGPURenderer::device(), normalsByteLength, wgpu::BufferUsage::Vertex);
+    inputFile.read(reinterpret_cast<char *>(m_normalBuffer.GetMappedRange()), normalsByteLength);
+    m_normalBuffer.Unmap();
 }
 
 const wgpu::Buffer &Mesh::indexBuffer() {
@@ -40,6 +47,10 @@ const wgpu::Buffer &Mesh::indexBuffer() {
 
 const wgpu::Buffer &Mesh::positionBuffer() {
     return m_positionBuffer;
+}
+
+const wgpu::Buffer &Mesh::normalBuffer() {
+    return m_normalBuffer;
 }
 
 uint32_t Mesh::indexCount() {

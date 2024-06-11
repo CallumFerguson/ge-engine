@@ -30,23 +30,6 @@ bool isTightlyPacked(const tinygltf::Accessor &accessor, const tinygltf::BufferV
 
 bool
 writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primitive &primitive, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
-    auto it = primitive.attributes.find("POSITION");
-    if (it == primitive.attributes.end()) {
-        std::cout << "Primitive does not contain POSITION attribute." << std::endl;
-        return false;
-    }
-
-    const tinygltf::Accessor &positionAccessor = model.accessors[it->second];
-    auto &positionBufferView = model.bufferViews[positionAccessor.bufferView];
-    auto &positionBuffer = model.buffers[positionBufferView.buffer];
-    auto *positions = &positionBuffer.data[positionBufferView.byteOffset + positionAccessor.byteOffset];
-    int32_t numPositions = positionAccessor.count;
-
-    if (!isTightlyPacked(positionAccessor, positionBufferView)) {
-        std::cout << "positions are not tightly packed which is not supported yet" << std::endl;
-        return false;
-    }
-
     if (primitive.indices < 0) {
         std::cout << "Primitive does not contain indices." << std::endl;
         return false;
@@ -88,8 +71,49 @@ writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primi
     outputFile.write(reinterpret_cast<const char *>(&numIndices), sizeof(numIndices));
     outputFile.write(reinterpret_cast<const char *>(indices), numIndices * sizeof(uint32_t));
 
-    outputFile.write(reinterpret_cast<char *>(&numPositions), sizeof(numPositions));
-    outputFile.write(reinterpret_cast<const char *>(positions), numPositions * sizeof(float) * 3);
+    {
+        auto it = primitive.attributes.find("POSITION");
+        if (it == primitive.attributes.end()) {
+            std::cout << "Primitive does not contain POSITION attribute." << std::endl;
+            return false;
+        }
+
+        const tinygltf::Accessor &accessor = model.accessors[it->second];
+        auto &bufferView = model.bufferViews[accessor.bufferView];
+        auto &buffer = model.buffers[bufferView.buffer];
+        auto *data = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
+        int32_t numEntries = accessor.count;
+
+        if (!isTightlyPacked(accessor, bufferView)) {
+            std::cout << "data is not tightly packed which is not supported yet" << std::endl;
+            return false;
+        }
+
+        outputFile.write(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+        outputFile.write(reinterpret_cast<const char *>(data), numEntries * sizeof(float) * 3);
+    }
+
+    {
+        auto it = primitive.attributes.find("NORMAL");
+        if (it == primitive.attributes.end()) {
+            std::cout << "Primitive does not contain NORMAL attribute." << std::endl;
+            return false;
+        }
+
+        const tinygltf::Accessor &accessor = model.accessors[it->second];
+        auto &bufferView = model.bufferViews[accessor.bufferView];
+        auto &buffer = model.buffers[bufferView.buffer];
+        auto *data = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
+        int32_t numEntries = accessor.count;
+
+        if (!isTightlyPacked(accessor, bufferView)) {
+            std::cout << "data is not tightly packed which is not supported yet" << std::endl;
+            return false;
+        }
+
+        outputFile.write(reinterpret_cast<char *>(&numEntries), sizeof(numEntries));
+        outputFile.write(reinterpret_cast<const char *>(data), numEntries * sizeof(float) * 3);
+    }
 
     // Check if the write was successful
     if (!outputFile) {

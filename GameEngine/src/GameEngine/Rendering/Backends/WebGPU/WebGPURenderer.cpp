@@ -48,7 +48,6 @@ static wgpu::Buffer s_cameraDataBuffer;
 static wgpu::BindGroup s_cameraDataBindGroup;
 
 static wgpu::RenderPipeline s_pbrRenderPipeline;
-static int s_pbrRenderShaderHandle;
 
 void WebGPURenderer::init(Window *window) {
     s_window = window;
@@ -317,8 +316,8 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
 
-    s_pbrRenderShaderHandle = AssetManager::loadShader("shaders/unlit_color.wgsl");
-    auto& shader = AssetManager::getShader(s_pbrRenderShaderHandle);
+    int pbrRenderShaderHandle = AssetManager::loadShader("shaders/basic_color.wgsl");
+    auto& shader = AssetManager::getShader(pbrRenderShaderHandle);
 
     wgpu::FragmentState fragment = {};
     fragment.module = shader.shaderModule();
@@ -326,21 +325,33 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     fragment.targetCount = 1;
     fragment.targets = &colorTargetState;
 
-    wgpu::VertexAttribute vertexBuffer0Attribute0 = {};
-    vertexBuffer0Attribute0.shaderLocation = 0;
-    vertexBuffer0Attribute0.offset = 0;
-    vertexBuffer0Attribute0.format = wgpu::VertexFormat::Float32x3;
+    wgpu::VertexAttribute positionBufferLayoutAttribute0 = {};
+    positionBufferLayoutAttribute0.shaderLocation = 0;
+    positionBufferLayoutAttribute0.offset = 0;
+    positionBufferLayoutAttribute0.format = wgpu::VertexFormat::Float32x3;
 
     wgpu::VertexBufferLayout positionBufferLayout = {};
     positionBufferLayout.arrayStride = 3 * 4;
     positionBufferLayout.attributeCount = 1;
-    positionBufferLayout.attributes = &vertexBuffer0Attribute0;
+    positionBufferLayout.attributes = &positionBufferLayoutAttribute0;
+
+    wgpu::VertexAttribute normalBufferLayoutAttribute0 = {};
+    normalBufferLayoutAttribute0.shaderLocation = 1;
+    normalBufferLayoutAttribute0.offset = 0;
+    normalBufferLayoutAttribute0.format = wgpu::VertexFormat::Float32x3;
+
+    wgpu::VertexBufferLayout normalBufferLayout = {};
+    normalBufferLayout.arrayStride = 3 * 4;
+    normalBufferLayout.attributeCount = 1;
+    normalBufferLayout.attributes = &normalBufferLayoutAttribute0;
+
+    std::array<wgpu::VertexBufferLayout, 2> vertexBufferLayouts = {positionBufferLayout, normalBufferLayout};
 
     wgpu::VertexState vertex = {};
     vertex.module = shader.shaderModule();
     vertex.entryPoint = "vert";
-    vertex.bufferCount = 1;
-    vertex.buffers = &positionBufferLayout;
+    vertex.bufferCount = 2;
+    vertex.buffers = vertexBufferLayouts.data();
 
     pipelineDescriptor.vertex = vertex;
     pipelineDescriptor.fragment = &fragment;
@@ -370,10 +381,15 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(s_pbrRenderPipeline);
+
     renderPassEncoder.SetBindGroup(0, s_cameraDataBindGroup);
     renderPassEncoder.SetBindGroup(1, rendererData.objectDataBindGroup);
+
     renderPassEncoder.SetVertexBuffer(0, mesh.positionBuffer());
+    renderPassEncoder.SetVertexBuffer(1, mesh.normalBuffer());
+
     renderPassEncoder.SetIndexBuffer(mesh.indexBuffer(), wgpu::IndexFormat::Uint32);
+
     renderPassEncoder.DrawIndexed(mesh.indexCount());
 }
 
