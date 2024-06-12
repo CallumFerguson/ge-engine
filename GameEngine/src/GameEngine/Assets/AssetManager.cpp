@@ -34,6 +34,9 @@ void AssetManager::registerAssetUUIDs() {
                 if (isUUID(uuid)) {
                     g_AssetManagerAssetUUIDToPath[uuid] = entry.path().string();
                 } else {
+                    if (extension == ".wgsl") {
+                        std::cout << "shader missing uuid. first line of file should be \"//aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\"" << std::endl;
+                    }
                     std::cout << "could not read uuid in asset: " << entry.path() << std::endl;
                 }
             }
