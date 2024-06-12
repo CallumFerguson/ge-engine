@@ -1,10 +1,18 @@
 const PI = 3.14159265359;
 
+struct CameraData {
+    view: mat4x4f,
+    projection: mat4x4f,
+    position: vec3f,
+    viewDirectionProjectionInverse: mat4x4f,
+}
+
 struct ObjectData {
     model: mat4x4f,
-    normalMatrix: mat4x4f,
-    metallic: f32,
-    roughness: f32,
+    color: vec4f,
+//    normalMatrix: mat4x4f,
+//    metallic: f32,
+//    roughness: f32,
 }
 
 @group(0) @binding(0) var<uniform> cameraData: CameraData;
@@ -14,46 +22,46 @@ struct ObjectData {
 @group(1) @binding(2) var emissionTexture: texture_2d<f32>;
 @group(1) @binding(3) var normalTexture: texture_2d<f32>;
 @group(1) @binding(4) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
-@group(1) @binding(5) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
-@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
-@group(1) @binding(7) var brdfLUT: texture_2d<f32>;
+@group(1) @binding(5) var brdfLUT: texture_2d<f32>;
+//@group(1) @binding(5) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
+//@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
 
-@group(2) @binding(0) var<storage, read> objectData: array<ObjectData>;
+//@group(2) @binding(0) var<storage, read> objectData: array<ObjectData>;
+@group(2) @binding(0) var<uniform> objectData: ObjectData;
 
 struct VertexInput {
     @builtin(instance_index) instanceIndex: u32,
     @location(0) position: vec4f,
     @location(1) normal: vec3f,
     @location(2) uv: vec2f,
-    @location(3) tangent: vec3f,
-    @location(4) bitangent: vec3f,
+    @location(3) tangent: vec4f,
 }
 
 struct VertexOutput {
     @builtin(position) fragPosition: vec4f,
     @location(0) worldPosition: vec3f,
-    @location(1) uv: vec2f,
-    @location(2) tangnet: vec3f,
-    @location(3) bitangent: vec3f,
-    @location(4) normal: vec3f,
-    @location(5) metallic: f32,
-    @location(6) roughness: f32,
+    @location(1) normal: vec3f,
+    @location(2) uv: vec2f,
+    @location(3) tangent: vec3f,
+    @location(4) bitangent: vec3f,
+//    @location(0) metallic: f32,
+//    @location(0) roughness: f32,
 }
 
 @vertex
 fn vert(i: VertexInput) -> VertexOutput {
-    let objectData = objectData[i.instanceIndex];
+//    let objectData = objectData[i.instanceIndex];
 
     var o: VertexOutput;
 
     o.fragPosition = cameraData.projection * cameraData.view * objectData.model * i.position;
     o.worldPosition = (objectData.model * i.position).xyz;
+    o.normal = normalize((objectData.model * vec4(i.normal, 0)).xyz);
     o.uv = i.uv;
-    o.tangnet = normalize((objectData.normalMatrix * vec4(i.tangent, 0)).xyz);
-    o.bitangent = normalize((objectData.normalMatrix * vec4(i.bitangent, 0)).xyz);
-    o.normal = normalize((objectData.normalMatrix * vec4(i.normal, 0)).xyz);
-    o.metallic = objectData.metallic;
-    o.roughness = objectData.roughness;
+    o.tangent = normalize((objectData.model * vec4(i.tangent.xyz, 0)).xyz);
+    o.bitangent = normalize((objectData.model * vec4(i.tangent.w * cross(o.normal, o.tangent), 0)).xyz);
+//    o.metallic = objectData.metallic;
+//    o.roughness = objectData.roughness;
 
     return o;
 }
@@ -73,7 +81,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     let occlusionRoughnessMetalic = textureSample(occlusionRoughnessMetalicTexture, textureSampler, i.uv).rgb;
 //    let occlusionRoughnessMetalic: vec3f = vec3(1, i.roughness, i.metallic);
 
-    let TBN = mat3x3(i.tangnet, i.bitangent, i.normal);
+    let TBN = mat3x3(i.tangent, i.bitangent, i.normal);
     let tangentSpaceNormal = textureSample(normalTexture, textureSampler, i.uv).rgb * 2 - 1;
 //    let tangentSpaceNormal: vec3f = vec3(0, 0, 1);
     let worldNormal = normalize(TBN * tangentSpaceNormal);
@@ -137,13 +145,15 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     var kD = 1.0 - kS;
     kD *= 1.0 - metallic;
 
-    let irradiance = textureSample(environmentIrradianceCubeMapTexture, textureSampler, worldNormal * vec3f(-1, 1, 1)).rgb;
+//    let irradiance = textureSample(environmentIrradianceCubeMapTexture, textureSampler, worldNormal * vec3f(-1, 1, 1)).rgb;
+    let irradiance = vec3f(1, 1, 1);
     let diffuse = irradiance * albedo;
 
     let R = reflect(-V, N);
 
     const MAX_REFLECTION_LOD = 4.0;
-    var prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
+//    let prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
+    let prefilteredColor = vec3(0.5, 0.5, 0.5);
     let envBRDF = textureSample(brdfLUT, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 

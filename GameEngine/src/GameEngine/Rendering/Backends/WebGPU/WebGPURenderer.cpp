@@ -164,17 +164,35 @@ void WebGPURenderer::finishInit() {
     samplerDescriptor.mipmapFilter = wgpu::MipmapFilterMode::Linear;
     auto sampler = s_device.CreateSampler(&samplerDescriptor);
 
-    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
-    bindGroupDescriptorEntry0.binding = 0;
-    bindGroupDescriptorEntry0.sampler = sampler;
+//    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
+//    bindGroupDescriptorEntry0.binding = 0;
+//    bindGroupDescriptorEntry0.sampler = sampler;
 
-    Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+    Texture albedoTexture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+    Texture normalTexture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.getexture");
 
-    wgpu::BindGroupEntry bindGroupDescriptorEntry1 = {};
-    bindGroupDescriptorEntry1.binding = 1;
-    bindGroupDescriptorEntry1.textureView = texture.texture().CreateView();
+//    wgpu::BindGroupEntry bindGroupDescriptorEntry1 = {};
+//    bindGroupDescriptorEntry1.binding = 1;
+//    bindGroupDescriptorEntry1.textureView = texture.texture().CreateView();
 
-    std::array<wgpu::BindGroupEntry, 2> bindGroupEntries = {bindGroupDescriptorEntry0, bindGroupDescriptorEntry1};
+    std::array<wgpu::BindGroupEntry, 6> bindGroupEntries;
+    bindGroupEntries[0].binding = 0;
+    bindGroupEntries[0].sampler = sampler;
+
+    bindGroupEntries[1].binding = 1;
+    bindGroupEntries[1].textureView = albedoTexture.texture().CreateView();
+
+    bindGroupEntries[2].binding = 2;
+    bindGroupEntries[2].textureView = normalTexture.texture().CreateView();
+
+    bindGroupEntries[3].binding = 3;
+    bindGroupEntries[3].textureView = albedoTexture.texture().CreateView();
+
+    bindGroupEntries[4].binding = 4;
+    bindGroupEntries[4].textureView = albedoTexture.texture().CreateView();
+
+    bindGroupEntries[5].binding = 5;
+    bindGroupEntries[5].textureView = albedoTexture.texture().CreateView();
 
     wgpu::BindGroupDescriptor bindGroupDescriptor = {};
     bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(1);
@@ -329,7 +347,7 @@ const wgpu::Buffer &WebGPURenderer::cameraDataBuffer() {
 
 void WebGPURenderer::setUpCameraBuffer() {
     wgpu::BufferDescriptor bufferDescriptor = {};
-    bufferDescriptor.size = 64 * 2;
+    bufferDescriptor.size = 208;
     bufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
     bufferDescriptor.mappedAtCreation = false;
     s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
@@ -432,10 +450,15 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
 }
 
 void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection) {
-    uint8_t data[128];
+    glm::vec3 position{0.0f, 0.0f, 0.0f};
+    glm::mat4 viewDirectionProjectionInverse{1.0f};
+
+    uint8_t data[208];
     std::memcpy(data, glm::value_ptr(view), 64);
     std::memcpy(data + 64, glm::value_ptr(projection), 64);
-    device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 128);
+    std::memcpy(data + 128, glm::value_ptr(position), 12);
+    std::memcpy(data + 144, glm::value_ptr(viewDirectionProjectionInverse), 64);
+    device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 208);
 }
 
 void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData) {
