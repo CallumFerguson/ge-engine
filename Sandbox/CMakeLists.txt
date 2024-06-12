@@ -30,21 +30,24 @@ if (EMSCRIPTEN)
             -sUSE_WEBGPU=1
             -sUSE_GLFW=3
             -sALLOW_MEMORY_GROWTH
-            #            -O2
+            -sNO_DISABLE_EXCEPTION_CATCHING # probably turn off for release build?
+            #            -sEXPORTED_FUNCTIONS=_main,_writeTextureCallback
+            #            -sEXPORTED_RUNTIME_METHODS=ccall
+            -O2
     )
-    #    target_compile_options(
-    #            Sandbox PRIVATE
-    #            -O2
-    #    )
-    #
-    #    target_link_options(
-    #            GameEngine PRIVATE
-    #            -O2
-    #    )
-    #    target_compile_options(
-    #            GameEngine PRIVATE
-    #            -O2
-    #    )
+    target_compile_options(
+            Sandbox PRIVATE
+            -O2
+    )
+
+    target_link_options(
+            GameEngine PRIVATE
+            -O2
+    )
+    target_compile_options(
+            GameEngine PRIVATE
+            -O2
+    )
 endif ()
 
 target_precompile_headers(Sandbox REUSE_FROM GameEngine)
