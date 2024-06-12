@@ -69,15 +69,15 @@ int main(int argc, char *argv[]) {
     std::set<int> savedTextures;
 
     for (const auto &meshId: model.meshes) {
-        GameEngine::AssetManager::createMesh({});
+        GameEngine::AssetManager::createAsset<GameEngine::Mesh>({});
     }
 
     for (const auto &imageId: model.images) {
-        GameEngine::AssetManager::createTexture({});
+        GameEngine::AssetManager::createAsset<GameEngine::Texture>({});
     }
 
     for (const auto &materialsId: model.materials) {
-        GameEngine::AssetManager::createMaterial({});
+        GameEngine::AssetManager::createAsset<GameEngine::Material>({});
     }
 
     GameEngine::Scene scene;
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
         if (!savedMeshes.contains(node.mesh)) {
             savedMeshes.insert(node.mesh);
-            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getMesh(node.mesh).assetUUID());
+            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
         }
 
         entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;
@@ -113,17 +113,8 @@ int main(int argc, char *argv[]) {
 
         int occlusionTextureIndex = material.occlusionTexture.index;
         int metallicRoughnessTextureIndex = material.pbrMetallicRoughness.metallicRoughnessTexture.index;
-
-        bool metallicRoughnessOcclusionAllInOne = occlusionTextureIndex == metallicRoughnessTextureIndex;
-        if (!metallicRoughnessOcclusionAllInOne) {
-            std::cout << "metallicRoughness and occlusion must be the same texture (for now)" << std::endl;
-            //TODO: combine these textures if they are different (with cpu or gpu, idk)
-            return 1;
-        }
-
         int albedoTextureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
         int normalTextureIndex = material.normalTexture.index;
-        int occlusionRoughnessMetallicTextureIndex = occlusionTextureIndex;
 
         if (occlusionTextureIndex == -1) {
             std::cout << "missing occlusion texture which is not supported yet" << std::endl;
@@ -142,6 +133,15 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
+        bool metallicRoughnessOcclusionAllInOne = occlusionTextureIndex == metallicRoughnessTextureIndex;
+        if (!metallicRoughnessOcclusionAllInOne) {
+            std::cout << "metallicRoughness and occlusion must be the same texture (for now)" << std::endl;
+            //TODO: combine these textures if they are different (with cpu or gpu, idk)
+            return 1;
+        }
+
+        int occlusionRoughnessMetallicTextureIndex = occlusionTextureIndex;
+
         if (!savedMaterials.contains(primitive.material)) {
             savedMaterials.insert(node.mesh);
 
@@ -151,7 +151,8 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[albedoTextureIndex];
                 auto &image = model.images[texture.source];
 
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, GameEngine::AssetManager::getTexture(texture.source).assetUUID());
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath,
+                                                           GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID());
             }
 
             if (!savedTextures.contains(normalTextureIndex)) {
@@ -160,7 +161,8 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[normalTextureIndex];
                 auto &image = model.images[texture.source];
 
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, GameEngine::AssetManager::getTexture(texture.source).assetUUID());
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath,
+                                                           GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID());
             }
 
             if (!savedTextures.contains(occlusionRoughnessMetallicTextureIndex)) {
@@ -169,7 +171,8 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[occlusionRoughnessMetallicTextureIndex];
                 auto &image = model.images[texture.source];
 
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, GameEngine::AssetManager::getTexture(texture.source).assetUUID());
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath,
+                                                           GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID());
             }
         }
 

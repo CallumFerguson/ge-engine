@@ -4,6 +4,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include "../Core/Window.hpp"
+#include "../Core/Exit.hpp"
 #include "../Assets/AssetManager.hpp"
 
 namespace GameEngine {
@@ -68,9 +69,13 @@ nlohmann::json CameraComponent::toJSON() {
     return result;
 }
 
-PBRRendererComponent::PBRRendererComponent(bool initializeForRendering) : initializeForRendering(initializeForRendering) {}
+PBRRendererComponent::PBRRendererComponent(bool initializeForRendering) : initializeForRendering(initializeForRendering) {
+    if (initializeForRendering) {
+        exitApp("initializeForRendering should always be false when using this");
+    }
+}
 
-PBRRendererComponent::PBRRendererComponent(int meshHandle) : meshHandle(meshHandle) {}
+PBRRendererComponent::PBRRendererComponent(int meshHandle, int materialHandle) : meshHandle(meshHandle), materialHandle(materialHandle) {}
 
 void PBRRendererComponent::onImGui() {
     ImGui::Text("Mesh handle: %d", meshHandle);
@@ -88,8 +93,8 @@ nlohmann::json PBRRendererComponent::toJSON() {
 }
 
 void PBRRendererComponent::initFromJSON(const nlohmann::json &componentJSON) {
-    const std::string &meshAssetUUID = componentJSON["mesh"]["uuid"];
-    meshHandle = AssetManager::getOrLoadAssetFromUUID<Mesh>(meshAssetUUID);
+    meshHandle = AssetManager::getOrLoadAssetFromUUID<Mesh>(componentJSON["mesh"]["uuid"]);
+    materialHandle = AssetManager::getOrLoadAssetFromUUID<Material>(componentJSON["material"]["uuid"]);
 }
 
 }

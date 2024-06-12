@@ -22,22 +22,24 @@ void runSandboxApp() {
 //    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
 
 //    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
-//    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromPath("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
+    auto meshHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Mesh>("assets/packaged/FlightHelmet/LeatherParts_low.gemesh");
 //    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromUUID("71cb6d06-21ea-43fb-991a-ac0ed33b16e2");
+
+    int materialHandle = GameEngine::AssetManager::createAsset<GameEngine::Material>({});
 
 //    GameEngine::AssetManager::getOrLoad; // FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture
 //    GameEngine::Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
 //    std::cout << texture.assetUUID() << std::endl;
 
-//    float scale = 1;
-//
-//    GameEngine::Entity pbrRendererEntity1 = scene.createEntity("Thing 1");
-//    pbrRendererEntity1.addComponent<GameEngine::PBRRendererComponent>(meshHandle);
-//    pbrRendererEntity1.addScript<Rotator>().speed = 180;
-//    pbrRendererEntity1.addScript<PBRColorRandomizer>();
-//    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
-//    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
-//    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
+    float scale = 1;
+
+    GameEngine::Entity pbrRendererEntity1 = scene.createEntity("Thing 1");
+    pbrRendererEntity1.addComponent<GameEngine::PBRRendererComponent>(meshHandle, materialHandle);
+    pbrRendererEntity1.addScript<Rotator>().speed = 180;
+    pbrRendererEntity1.addScript<PBRColorRandomizer>();
+    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
+    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
+    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
 //
 //    GameEngine::Entity pbrRendererEntity2 = scene.createEntity("Thing 2");
 //    pbrRendererEntity2.addComponent<GameEngine::PBRRendererComponent>(meshHandle);
@@ -76,10 +78,10 @@ void runSandboxApp() {
 //    auto json = GameEngine::entityToJSON(pbrRendererEntity1);
 //    GameEngine::jsonToEntity(json, entt::null, scene);
 
-    nlohmann::json entityJSON;
-    std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
-    jsonFile >> entityJSON;
-    GameEngine::jsonToEntity(entityJSON, scene);
+//    nlohmann::json entityJSON;
+//    std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
+//    jsonFile >> entityJSON;
+//    GameEngine::jsonToEntity(entityJSON, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();

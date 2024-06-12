@@ -468,6 +468,7 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
     GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(rendererData.objectDataBuffer, 0, data, 64 + 16);
 
     auto& mesh = GameEngine::AssetManager::getAsset<Mesh>(renderer.meshHandle);
+    auto& material = GameEngine::AssetManager::getAsset<Material>(renderer.materialHandle);
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(s_pbrRenderPipeline);

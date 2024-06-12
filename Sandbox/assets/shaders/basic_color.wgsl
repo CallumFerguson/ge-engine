@@ -69,7 +69,6 @@ fn vert(i: VertexInput) -> VertexOutput {
 
 @fragment
 fn frag(i: VertexOutput) -> @location(0) vec4f {
-
     let emission = textureSample(emissionTexture, textureSampler, i.uv);
     let normal = textureSample(normalTexture, textureSampler, i.uv);
     let occlusionRoughnessMetalic = textureSample(occlusionRoughnessMetalicTexture, textureSampler, i.uv);
@@ -88,6 +87,6 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     if (i.fp.x < 0) {
         return vec4(albedo.rgb * light, 1.0f);
     } else {
-    return vec4(normal.rgb, 1.0f);
+        return vec4(normal.rgb, 1.0f);
     }
 }
