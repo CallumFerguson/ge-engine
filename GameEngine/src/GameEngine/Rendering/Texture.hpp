@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <webgpu/webgpu_cpp.h>
 #include "../Assets/Asset.hpp"
 
 namespace GameEngine {
@@ -12,6 +13,7 @@ public:
     explicit Texture(const std::string &assetPath);
 
 private:
+    wgpu::Texture m_texture;
 };
 
 }
