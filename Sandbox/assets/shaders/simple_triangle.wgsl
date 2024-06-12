@@ -1,4 +1,4 @@
-@group(0) @binding(0) var<uniform> color: vec4f;
+//cc091cdf-8215-4d8b-b1a2-484361f5a293
 
 struct VertexInput {
     @builtin(vertex_index) vertexIndex: u32,
@@ -25,5 +25,5 @@ fn vert(i: VertexInput) -> VertexOutput {
 
 @fragment
 fn frag(i: VertexOutput) -> @location(0) vec4f {
-    return color;
+    return vec4(0.25, 0, 0, 1);
 }

@@ -4,6 +4,7 @@
 #include <sstream>
 #include "WebGPURenderer.hpp"
 #include "../../../Core/Exit.hpp"
+#include "../../../Utility/utility.hpp"
 
 namespace GameEngine {
 
@@ -17,6 +18,12 @@ WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
     std::stringstream shaderBuffer;
     shaderBuffer << shaderFile.rdbuf();
     auto shaderString = shaderBuffer.str();
+
+    m_assetUUID = shaderString.substr(2, 36);
+    if (!isUUID(m_assetUUID)) {
+        std::cout << "shader missing uuid. first line of file should be \"//aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\"" << std::endl;
+        m_assetUUID.clear();
+    }
 
     wgpu::ShaderModuleWGSLDescriptor wgslDescriptor{};
     wgslDescriptor.code = shaderString.c_str();

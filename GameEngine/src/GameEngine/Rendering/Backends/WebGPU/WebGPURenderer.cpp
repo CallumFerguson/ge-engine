@@ -374,8 +374,8 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
 
-    int pbrRenderShaderHandle = AssetManager::loadShader("shaders/basic_color.wgsl");
-    auto& shader = AssetManager::getShader(pbrRenderShaderHandle);
+    int pbrRenderShaderHandle = AssetManager::getOrLoadAssetFromPath<WebGPUShader>("assets/shaders/basic_color.wgsl");
+    auto& shader = AssetManager::getAsset<WebGPUShader>(pbrRenderShaderHandle);
 
     wgpu::FragmentState fragment = {};
     fragment.module = shader.shaderModule();
@@ -467,7 +467,7 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
     std::memcpy(data + 64, glm::value_ptr(renderer.color), 16);
     GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(rendererData.objectDataBuffer, 0, data, 64 + 16);
 
-    auto& mesh = GameEngine::AssetManager::getMesh(renderer.meshHandle);
+    auto& mesh = GameEngine::AssetManager::getAsset<Mesh>(renderer.meshHandle);
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(s_pbrRenderPipeline);

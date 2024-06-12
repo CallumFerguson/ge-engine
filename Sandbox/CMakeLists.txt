@@ -82,16 +82,6 @@ if (EMSCRIPTEN)
         message(FATAL_ERROR "Please specify the path to emsdk using the EMSDK_PATH variable.")
     endif ()
 
-    # preload shaders
-    add_custom_command(
-            OUTPUT package_shaders_always_run_hack
-            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.data --preload shaders --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/shaders.js --quiet
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT "Packaging shaders..."
-    )
-    add_custom_target(package_shaders ALL DEPENDS package_shaders_always_run_hack)
-    add_dependencies(Sandbox package_shaders)
-
     # preload assets
     add_custom_command(
             OUTPUT package_assets_always_run_hack
@@ -102,16 +92,6 @@ if (EMSCRIPTEN)
     add_custom_target(package_assets ALL DEPENDS package_assets_always_run_hack)
     add_dependencies(Sandbox package_assets)
 else ()
-    # copy shaders
-    add_custom_command(
-            OUTPUT package_shaders_always_run_hack
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_CURRENT_BINARY_DIR}/dist/shaders
-            COMMENT "Packaging shaders..."
-    )
-    add_custom_target(package_shaders ALL DEPENDS package_shaders_always_run_hack)
-    add_dependencies(Sandbox package_shaders)
-
     # copy assets
     add_custom_command(
             OUTPUT package_assets_always_run_hack

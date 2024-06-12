@@ -12,25 +12,25 @@ class AssetManager {
 public:
     static void registerAssetUUIDs();
 
-    static int getOrLoadMeshFromUUID(const std::string &assetUUID);
+    template<typename T>
+    static int getOrLoadAssetFromUUID(const std::string &assetUUID);
 
-    static int getOrLoadMeshFromPath(const std::string &assetPath);
+    template<typename T>
+    static int getOrLoadAssetFromPath(const std::string &assetPath);
 
-    static Mesh &getMesh(int assetHandle);
+    template<typename T>
+    static T &getAsset(int assetHandle);
 
-    static int createMesh(Mesh mesh);
+    template<typename T>
+    static int createAsset(T asset);
 
-    static Material &getMaterial(int assetHandle);
-
-    static int createMaterial(Material material);
-
-    static Texture &getTexture(int assetHandle);
-
-    static int createTexture(Texture texture);
-
-    static int loadShader(const std::string &assetPath);
-
-    static WebGPUShader &getShader(int assetHandle);
+private:
+    template<typename T>
+    struct AssetData {
+        static std::vector<T> assets;
+    };
 };
+
+#include "AssetManager.tpp"
 
 }

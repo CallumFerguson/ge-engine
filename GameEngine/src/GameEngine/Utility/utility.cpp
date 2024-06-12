@@ -1,5 +1,6 @@
 #include "utility.hpp"
 
+#include <regex>
 #include "stb_image.h"
 
 namespace GameEngine {
@@ -52,6 +53,17 @@ void printMatrix(const glm::mat4 &matrix) {
         std::cout << std::endl;
     }
     std::cout << std::endl;
+}
+
+bool isUUID(const std::string &uuid) {
+    const std::regex pattern(
+            "^[a-fA-F0-9]{8}-"
+            "[a-fA-F0-9]{4}-"
+            "4[a-fA-F0-9]{3}-"
+            "[89abAB][a-fA-F0-9]{3}-"
+            "[a-fA-F0-9]{12}$"
+    );
+    return std::regex_match(uuid, pattern);
 }
 
 }

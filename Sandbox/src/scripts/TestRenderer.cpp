@@ -18,7 +18,7 @@ void TestRenderer::onStart() {
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
 
-    auto& shader = GameEngine::AssetManager::getShader(m_shaderHandle);
+    auto& shader = GameEngine::AssetManager::getAsset<GameEngine::WebGPUShader>(m_shaderHandle);
 
     wgpu::FragmentState fragment = {};
     fragment.module = shader.shaderModule();
@@ -114,7 +114,7 @@ void TestRenderer::onMainRenderPass() {
     std::memcpy(data + 64, glm::value_ptr(m_color), 16);
     GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(m_objectDataBuffer, 0, data, 64 + 16);
 
-    auto& mesh = GameEngine::AssetManager::getMesh(m_meshHandle);
+    auto& mesh = GameEngine::AssetManager::getAsset<GameEngine::Mesh>(m_meshHandle);
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(m_pipeline);
