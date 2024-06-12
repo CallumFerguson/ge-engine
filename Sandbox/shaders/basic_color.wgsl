@@ -10,7 +10,10 @@ struct ObjectData {
 
 @group(0) @binding(0) var<uniform> cameraData: CameraData;
 
-@group(1) @binding(0) var<uniform> objectData: ObjectData;
+@group(1) @binding(0) var textureSampler: sampler;
+@group(1) @binding(1) var albedoTexture: texture_2d<f32>;
+
+@group(2) @binding(0) var<uniform> objectData: ObjectData;
 
 struct VertexInput {
     @location(0) position: vec4f,
@@ -21,9 +24,10 @@ struct VertexInput {
 
 struct VertexOutput {
     @builtin(position) position: vec4f,
-    @location(0) tangent: vec3f,
-    @location(1) bitangent: vec3f,
-    @location(2) normal: vec3f,
+    @location(0) normal: vec3f,
+    @location(1) uv: vec2f,
+    @location(2) tangent: vec3f,
+    @location(3) bitangent: vec3f,
 }
 
 @vertex
@@ -32,6 +36,7 @@ fn vert(i: VertexInput) -> VertexOutput {
 
     o.position = cameraData.projection * cameraData.view * objectData.model * i.position;
     o.normal = normalize((objectData.model * vec4(i.normal, 0)).xyz);
+    o.uv = i.uv;
     o.tangent = normalize((objectData.model * vec4(i.tangent.xyz, 0)).xyz);
     o.bitangent = normalize((objectData.model * vec4(i.tangent.w * cross(o.normal, o.tangent), 0)).xyz);
 
@@ -40,6 +45,7 @@ fn vert(i: VertexInput) -> VertexOutput {
 
 @fragment
 fn frag(i: VertexOutput) -> @location(0) vec4f {
+
     let TBN = mat3x3(i.tangent, i.bitangent, i.normal);
 //    let tangentSpaceNormal = textureSample(normalTexture, textureSampler, i.uv).rgb * 2 - 1;
     let tangentSpaceNormal: vec3f = vec3(0, 0, 1);
@@ -48,5 +54,6 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     light = max(light, 0);
     light += 0.1;
     light = min(light, 1);
-    return vec4(light, light, light, 1.0f);
+    let albedo = textureSample(albedoTexture, textureSampler, i.uv);
+    return vec4(albedo.rgb * light, 1.0f);
 }

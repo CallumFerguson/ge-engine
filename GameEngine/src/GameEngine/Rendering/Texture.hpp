@@ -12,6 +12,8 @@ public:
 
     explicit Texture(const std::string &assetPath);
 
+    wgpu::Texture &texture();
+
 private:
     wgpu::Texture m_texture;
 };

@@ -1,5 +1,6 @@
 #include "WebGPURenderer.hpp"
 
+#include <array>
 #include <iostream>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -46,6 +47,8 @@ static wgpu::CommandEncoder s_commandEncoder;
 
 static wgpu::Buffer s_cameraDataBuffer;
 static wgpu::BindGroup s_cameraDataBindGroup;
+
+static wgpu::BindGroup s_materialBindGroup;
 
 static wgpu::RenderPipeline s_pbrRenderPipeline;
 
@@ -154,6 +157,31 @@ void WebGPURenderer::finishInit() {
 
     setUpPBRRenderPipeline();
     setUpCameraBuffer();
+
+    wgpu::SamplerDescriptor samplerDescriptor;
+    samplerDescriptor.magFilter = wgpu::FilterMode::Linear;
+    samplerDescriptor.minFilter = wgpu::FilterMode::Linear;
+    samplerDescriptor.mipmapFilter = wgpu::MipmapFilterMode::Linear;
+    auto sampler = s_device.CreateSampler(&samplerDescriptor);
+
+    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
+    bindGroupDescriptorEntry0.binding = 0;
+    bindGroupDescriptorEntry0.sampler = sampler;
+
+    Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+
+    wgpu::BindGroupEntry bindGroupDescriptorEntry1 = {};
+    bindGroupDescriptorEntry1.binding = 1;
+    bindGroupDescriptorEntry1.textureView = texture.texture().CreateView();
+
+    std::array<wgpu::BindGroupEntry, 2> bindGroupEntries = {bindGroupDescriptorEntry0, bindGroupDescriptorEntry1};
+
+    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
+    bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(1);
+    bindGroupDescriptor.entryCount = bindGroupEntries.size();
+    bindGroupDescriptor.entries = bindGroupEntries.data();
+
+    s_materialBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
 }
 
 void WebGPURenderer::createSurface() {
@@ -422,7 +450,8 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
     renderPassEncoder.SetPipeline(s_pbrRenderPipeline);
 
     renderPassEncoder.SetBindGroup(0, s_cameraDataBindGroup);
-    renderPassEncoder.SetBindGroup(1, rendererData.objectDataBindGroup);
+    renderPassEncoder.SetBindGroup(1, s_materialBindGroup);
+    renderPassEncoder.SetBindGroup(2, rendererData.objectDataBindGroup);
 
     renderPassEncoder.SetVertexBuffer(0, mesh.positionBuffer());
     renderPassEncoder.SetVertexBuffer(1, mesh.normalBuffer());
@@ -447,7 +476,7 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent() {
     bindGroupDescriptorEntry0.buffer = objectDataBuffer;
 
     wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-    bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(1);
+    bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(2);
     bindGroupDescriptor.entryCount = 1;
     bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
 

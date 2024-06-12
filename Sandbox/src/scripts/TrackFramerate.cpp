@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <imgui.h>
+#include <chrono>
 #include "GameEngine.hpp"
 
 void TrackFramerate::onImGui() {
@@ -13,6 +14,17 @@ void TrackFramerate::onImGui() {
                                   ImGuiWindowFlags_NoTitleBar);
     ImGui::Text("fps: %d", static_cast<int>(std::round(m_fpsRollingAverage.average())));
     ImGui::End();
+
+//    ImGui::Begin("test");
+//    if (ImGui::Button("test")) {
+//        auto start = std::chrono::high_resolution_clock::now();
+//        GameEngine::Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+//        std::cout << texture.assetUUID() << std::endl;
+//        auto end = std::chrono::high_resolution_clock::now();
+//        std::chrono::duration<double> duration = end - start;
+//        std::cout << "stbi_load took " << duration.count() << " seconds\n";
+//    }
+//    ImGui::End();
 }
 
 nlohmann::json TrackFramerate::toJSON() {
