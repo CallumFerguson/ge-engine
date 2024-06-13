@@ -83,8 +83,9 @@ void Scene::onUpdate() {
 }
 
 void Scene::onPBRRendererConstruct(entt::registry &, entt::entity entity) {
-    if (m_registry.get<PBRRendererComponent>(entity).initializeForRendering) {
-        Entity(entity, this).addComponent<WebGPUPBRRendererDataComponent>();
+    auto &renderer = m_registry.get<PBRRendererComponent>(entity);
+    if (renderer.initializeForRendering) {
+        Entity(entity, this).addComponent<WebGPUPBRRendererDataComponent>(renderer.materialHandle);
     }
 }
 

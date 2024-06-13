@@ -10,7 +10,9 @@ struct WebGPUPBRRendererDataComponent {
     wgpu::Buffer objectDataBuffer;
     wgpu::BindGroup objectDataBindGroup;
 
-    WebGPUPBRRendererDataComponent();
+    WebGPUPBRRendererDataComponent() = delete;
+
+    explicit WebGPUPBRRendererDataComponent(int materialHandle);
 
     [[nodiscard]] const char *objectName() const {
         return "WebGPUPBRRendererDataComponent";
@@ -73,7 +75,7 @@ private:
 
     static void setUpCameraBuffer();
 
-    static void setUpPBRRenderPipeline();
+    static wgpu::RenderPipeline createPBRRenderPipeline(const wgpu::ShaderModule &shaderModule);
 };
 
 }

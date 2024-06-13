@@ -46,11 +46,6 @@ static wgpu::RenderPassEncoder s_renderPassEncoder;
 static wgpu::CommandEncoder s_commandEncoder;
 
 static wgpu::Buffer s_cameraDataBuffer;
-static wgpu::BindGroup s_cameraDataBindGroup;
-
-static wgpu::BindGroup s_materialBindGroup;
-
-static wgpu::RenderPipeline s_pbrRenderPipeline;
 
 void WebGPURenderer::init(Window *window) {
     s_window = window;
@@ -155,51 +150,10 @@ void WebGPURenderer::finishInit() {
 
     configureSurface();
 
-    setUpPBRRenderPipeline();
     setUpCameraBuffer();
 
-    wgpu::SamplerDescriptor samplerDescriptor;
-    samplerDescriptor.magFilter = wgpu::FilterMode::Linear;
-    samplerDescriptor.minFilter = wgpu::FilterMode::Linear;
-    samplerDescriptor.mipmapFilter = wgpu::MipmapFilterMode::Linear;
-    auto sampler = s_device.CreateSampler(&samplerDescriptor);
-
-//    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
-//    bindGroupDescriptorEntry0.binding = 0;
-//    bindGroupDescriptorEntry0.sampler = sampler;
-
-    Texture albedoTexture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
-    Texture normalTexture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.getexture");
-
-//    wgpu::BindGroupEntry bindGroupDescriptorEntry1 = {};
-//    bindGroupDescriptorEntry1.binding = 1;
-//    bindGroupDescriptorEntry1.textureView = texture.texture().CreateView();
-
-    std::array<wgpu::BindGroupEntry, 6> bindGroupEntries;
-    bindGroupEntries[0].binding = 0;
-    bindGroupEntries[0].sampler = sampler;
-
-    bindGroupEntries[1].binding = 1;
-    bindGroupEntries[1].textureView = albedoTexture.texture().CreateView();
-
-    bindGroupEntries[2].binding = 2;
-    bindGroupEntries[2].textureView = normalTexture.texture().CreateView();
-
-    bindGroupEntries[3].binding = 3;
-    bindGroupEntries[3].textureView = albedoTexture.texture().CreateView();
-
-    bindGroupEntries[4].binding = 4;
-    bindGroupEntries[4].textureView = albedoTexture.texture().CreateView();
-
-    bindGroupEntries[5].binding = 5;
-    bindGroupEntries[5].textureView = albedoTexture.texture().CreateView();
-
-    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-    bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(1);
-    bindGroupDescriptor.entryCount = bindGroupEntries.size();
-    bindGroupDescriptor.entries = bindGroupEntries.data();
-
-    s_materialBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
+    WebGPUShader::registerShaderCreatePipelineFunction("3284227e-817a-4bf6-b184-8cbb3b15d503", createPBRRenderPipeline); // basic color
+    WebGPUShader::registerShaderCreatePipelineFunction("7aa2b713-86dd-4c48-a9ea-9af110d116ee", createPBRRenderPipeline); // pbr
 }
 
 void WebGPURenderer::createSurface() {
@@ -346,25 +300,44 @@ const wgpu::Buffer &WebGPURenderer::cameraDataBuffer() {
 }
 
 void WebGPURenderer::setUpCameraBuffer() {
+
+    // buffer
+
     wgpu::BufferDescriptor bufferDescriptor = {};
     bufferDescriptor.size = 208;
     bufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
     bufferDescriptor.mappedAtCreation = false;
     s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
 
-    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
-    bindGroupDescriptorEntry0.binding = 0;
-    bindGroupDescriptorEntry0.buffer = GameEngine::WebGPURenderer::cameraDataBuffer();
+//    // layout
 
-    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-    bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(0);
-    bindGroupDescriptor.entryCount = 1;
-    bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
+//    wgpu::BufferBindingLayout cameraDataBindGroupLayoutEntry0BufferBindingLayout = {};
+//    cameraDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
+//
+//    wgpu::BindGroupLayoutEntry cameraDataBindGroupLayoutEntry0 = {};
+//    cameraDataBindGroupLayoutEntry0.binding = 0;
+//    cameraDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
+//    cameraDataBindGroupLayoutEntry0.buffer = cameraDataBindGroupLayoutEntry0BufferBindingLayout;
+//
+//    wgpu::BindGroupLayoutDescriptor cameraDataBindGroupLayoutDescriptor = {};
+//    cameraDataBindGroupLayoutDescriptor.entryCount = 1;
+//    cameraDataBindGroupLayoutDescriptor.entries = &cameraDataBindGroupLayoutEntry0;
+//    s_cameraDataBindGroupLayout = s_device.CreateBindGroupLayout(&cameraDataBindGroupLayoutDescriptor);
 
-    s_cameraDataBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
+//    // bind group
+//    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
+//    bindGroupDescriptorEntry0.binding = 0;
+//    bindGroupDescriptorEntry0.buffer = GameEngine::WebGPURenderer::cameraDataBuffer();
+//
+//    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
+//    bindGroupDescriptor.layout = ;
+//    bindGroupDescriptor.entryCount = 1;
+//    bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
+//
+//    s_cameraDataBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
 }
 
-void WebGPURenderer::setUpPBRRenderPipeline() {
+wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderModule& shaderModule) {
     auto device = GameEngine::WebGPURenderer::device();
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
@@ -374,11 +347,8 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
 
-    int pbrRenderShaderHandle = AssetManager::getOrLoadAssetFromPath<WebGPUShader>("assets/shaders/basic_color.wgsl");
-    auto& shader = AssetManager::getAsset<WebGPUShader>(pbrRenderShaderHandle);
-
     wgpu::FragmentState fragment = {};
-    fragment.module = shader.shaderModule();
+    fragment.module = shaderModule;
     fragment.entryPoint = "frag";
     fragment.targetCount = 1;
     fragment.targets = &colorTargetState;
@@ -426,7 +396,7 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
     std::array<wgpu::VertexBufferLayout, 4> vertexBufferLayouts = {positionBufferLayout, normalBufferLayout, uvBufferLayout, tangentBufferLayout};
 
     wgpu::VertexState vertex = {};
-    vertex.module = shader.shaderModule();
+    vertex.module = shaderModule;
     vertex.entryPoint = "vert";
     vertex.bufferCount = vertexBufferLayouts.size();
     vertex.buffers = vertexBufferLayouts.data();
@@ -446,7 +416,7 @@ void WebGPURenderer::setUpPBRRenderPipeline() {
 
     pipelineDescriptor.depthStencil = &depthStencilState;
 
-    s_pbrRenderPipeline = device.CreateRenderPipeline(&pipelineDescriptor);
+    return device.CreateRenderPipeline(&pipelineDescriptor);
 }
 
 void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection) {
@@ -469,12 +439,13 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
 
     auto& mesh = GameEngine::AssetManager::getAsset<Mesh>(renderer.meshHandle);
     auto& material = GameEngine::AssetManager::getAsset<Material>(renderer.materialHandle);
+    auto& shader = GameEngine::AssetManager::getAsset<WebGPUShader>(material.shaderHandle);
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
-    renderPassEncoder.SetPipeline(s_pbrRenderPipeline);
+    renderPassEncoder.SetPipeline(shader.renderPipeline());
 
-    renderPassEncoder.SetBindGroup(0, s_cameraDataBindGroup);
-    renderPassEncoder.SetBindGroup(1, s_materialBindGroup);
+    renderPassEncoder.SetBindGroup(0, material.cameraBindGroup());
+    renderPassEncoder.SetBindGroup(1, material.materialBindGroup());
     renderPassEncoder.SetBindGroup(2, rendererData.objectDataBindGroup);
 
     renderPassEncoder.SetVertexBuffer(0, mesh.positionBuffer());
@@ -487,7 +458,15 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
     renderPassEncoder.DrawIndexed(mesh.indexCount());
 }
 
-WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent() {
+WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandle) {
+    if(materialHandle == -1) {
+        std::cout << "WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent materialHandle was -1" << std::endl;
+        return;
+    }
+
+    auto& material = AssetManager::getAsset<Material>(materialHandle);
+    auto& shader = AssetManager::getAsset<WebGPUShader>(material.shaderHandle);
+
     auto &device = WebGPURenderer::device();
 
     wgpu::BufferDescriptor bufferDescriptor = {};
@@ -495,16 +474,18 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent() {
     bufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
     objectDataBuffer = device.CreateBuffer(&bufferDescriptor);
 
-    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
-    bindGroupDescriptorEntry0.binding = 0;
-    bindGroupDescriptorEntry0.buffer = objectDataBuffer;
+    {
+        wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
+        bindGroupDescriptorEntry0.binding = 0;
+        bindGroupDescriptorEntry0.buffer = objectDataBuffer;
 
-    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-    bindGroupDescriptor.layout = s_pbrRenderPipeline.GetBindGroupLayout(2);
-    bindGroupDescriptor.entryCount = 1;
-    bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
+        wgpu::BindGroupDescriptor bindGroupDescriptor = {};
+        bindGroupDescriptor.layout = shader.renderPipeline().GetBindGroupLayout(2);
+        bindGroupDescriptor.entryCount = 1;
+        bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
 
-    objectDataBindGroup = device.CreateBindGroup(&bindGroupDescriptor);
+        objectDataBindGroup = device.CreateBindGroup(&bindGroupDescriptor);
+    }
 }
 
 }

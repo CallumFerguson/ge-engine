@@ -14,8 +14,14 @@ public:
 
     wgpu::ShaderModule &shaderModule();
 
+    wgpu::RenderPipeline &renderPipeline();
+
+    static void registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule)> createPipelineFunction);
+
 private:
     wgpu::ShaderModule m_shaderModule;
+
+    wgpu::RenderPipeline m_renderPipeline;
 };
 
 }

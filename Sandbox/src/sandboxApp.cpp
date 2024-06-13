@@ -25,7 +25,20 @@ void runSandboxApp() {
     auto meshHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Mesh>("assets/packaged/FlightHelmet/LeatherParts_low.gemesh");
 //    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromUUID("71cb6d06-21ea-43fb-991a-ac0ed33b16e2");
 
+    auto albedoTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+    auto normalTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.getexture");
+
+    auto shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::WebGPUShader>("assets/shaders/basic_color.wgsl");
+
     int materialHandle = GameEngine::AssetManager::createAsset<GameEngine::Material>({});
+    auto &material = GameEngine::AssetManager::getAsset<GameEngine::Material>(materialHandle);
+    material.shaderHandle = shaderHandle;
+    material.addTexture(albedoTextureHandle);
+    material.addTexture(normalTextureHandle);
+    material.addTexture(albedoTextureHandle);
+    material.addTexture(albedoTextureHandle);
+    material.addTexture(albedoTextureHandle);
+    material.initBindGroup();
 
 //    GameEngine::AssetManager::getOrLoad; // FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture
 //    GameEngine::Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");

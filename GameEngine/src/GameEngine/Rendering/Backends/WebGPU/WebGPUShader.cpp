@@ -1,5 +1,7 @@
 #include "WebGPUShader.hpp"
 
+#include <functional>
+#include <unordered_map>
 #include <fstream>
 #include <sstream>
 #include "WebGPURenderer.hpp"
@@ -7,6 +9,12 @@
 #include "../../../Utility/utility.hpp"
 
 namespace GameEngine {
+
+static std::unordered_map<std::string, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule)>> s_shaderUUIDToCreatePipelineFunction;
+
+void WebGPUShader::registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule)> createPipelineFunction) {
+    s_shaderUUIDToCreatePipelineFunction[shaderUUID] = std::move(createPipelineFunction);
+}
 
 WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
     auto device = WebGPURenderer::device();
@@ -32,10 +40,22 @@ WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
     shaderModuleDescriptor.nextInChain = &wgslDescriptor;
 
     m_shaderModule = device.CreateShaderModule(&shaderModuleDescriptor);
+
+    if (!s_shaderUUIDToCreatePipelineFunction.contains(m_assetUUID)) {
+        std::cout << "Missing createPipelineFunction for shader: " << shaderFilePath << " : " << m_assetUUID << std::endl;
+        std::cout << "register one using WebGPUShader::registerShaderCreatePipelineFunction" << std::endl;
+        return;
+    }
+
+    m_renderPipeline = s_shaderUUIDToCreatePipelineFunction[m_assetUUID](m_shaderModule);
 }
 
 wgpu::ShaderModule &WebGPUShader::shaderModule() {
     return m_shaderModule;
+}
+
+wgpu::RenderPipeline &WebGPUShader::renderPipeline() {
+    return m_renderPipeline;
 }
 
 }
