@@ -1,10 +1,12 @@
 #include "Texture.hpp"
 
+#include <thread>
+#include <mutex>
 #include <vector>
-#include <nlohmann/json.hpp>
 #include <stb_image.h>
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
+#include "../Utility/TimingHelper.hpp"
 
 //#ifdef __EMSCRIPTEN__
 //
@@ -17,6 +19,18 @@
 //#endif
 
 namespace GameEngine {
+
+const int channels = 4;
+
+struct ImageResult {
+    stbi_uc *image;
+    int width;
+    int height;
+    wgpu::Texture texture;
+};
+
+static std::mutex s_stbiImagesMutex;
+static std::vector<ImageResult> s_imageResults;
 
 Texture::Texture() : Asset(Random::uuid()) {}
 
@@ -38,11 +52,9 @@ Texture::Texture(const std::string &assetPath) {
     std::vector<uint8_t> imageData(imageByteLength);
     assetFile.read(reinterpret_cast<char *>(imageData.data()), imageByteLength);
 
-    int channels = 4;
     int width, height;
-    unsigned char *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, 4);
-    if (image == nullptr) {
-        std::cerr << "Failed to load image from memory" << std::endl;
+    if (!stbi_info_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr)) {
+        std::cerr << "Failed to get image info from memory" << std::endl;
         return;
     }
 
@@ -54,22 +66,46 @@ Texture::Texture(const std::string &assetPath) {
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst; // | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
 
-//    writeTextureJS(device, m_texture, imageData);
+    std::thread([imageData = std::move(imageData), texture = m_texture]() mutable {
+        int width, height;
+        unsigned char *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
+        if (image == nullptr) {
+            std::cerr << "Failed to load image from memory" << std::endl;
+            return;
+        }
 
-    wgpu::ImageCopyTexture destination;
-    destination.texture = m_texture;
-
-    wgpu::TextureDataLayout dataLayout;
-    dataLayout.bytesPerRow = width * channels;
-    dataLayout.rowsPerImage = height;
-
-    device.GetQueue().WriteTexture(&destination, image, width * height * channels, &dataLayout, &textureDescriptor.size);
-
-    stbi_image_free(image);
+        {
+            std::lock_guard<std::mutex> lock(s_stbiImagesMutex);
+            s_imageResults.push_back({image, width, height, std::move(texture)});
+        }
+    }).detach();
 }
 
 wgpu::Texture &Texture::texture() {
     return m_texture;
+}
+
+void Texture::writeTextures() {
+    std::lock_guard<std::mutex> lock(s_stbiImagesMutex);
+    if (s_imageResults.empty()) {
+        return;
+    }
+
+    for (auto &imageResult: s_imageResults) {
+        wgpu::ImageCopyTexture destination;
+        destination.texture = std::move(imageResult.texture);
+
+        wgpu::TextureDataLayout dataLayout;
+        dataLayout.bytesPerRow = imageResult.width * channels;
+        dataLayout.rowsPerImage = imageResult.height;
+
+        wgpu::Extent3D size = {static_cast<uint32_t>(imageResult.width), static_cast<uint32_t>(imageResult.height), 1};
+
+        WebGPURenderer::device().GetQueue().WriteTexture(&destination, imageResult.image, imageResult.width * imageResult.height * channels, &dataLayout, &size);
+
+        stbi_image_free(imageResult.image);
+    }
+    s_imageResults.clear();
 }
 
 }

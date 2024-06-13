@@ -73,6 +73,8 @@ void App::run() {
 
         Time::onUpdate();
 
+        Texture::writeTextures();
+
         WebGPURenderer::startFrame();
 
         getActiveScene().onUpdate();

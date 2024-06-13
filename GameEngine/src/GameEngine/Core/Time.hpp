@@ -8,6 +8,10 @@ public:
 
     static float deltaTime();
 
+    static double realTimeSinceStart();
+
+    static void printRealTimeSinceStartMS();
+
 private:
     static void onUpdate();
 

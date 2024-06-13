@@ -14,6 +14,8 @@ public:
 
     wgpu::Texture &texture();
 
+    static void writeTextures();
+
 private:
     wgpu::Texture m_texture;
 };

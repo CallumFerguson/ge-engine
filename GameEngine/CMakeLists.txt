@@ -20,6 +20,7 @@ add_library(
         src/GameEngine/Utility/utility.cpp
         src/GameEngine/Utility/Random.cpp
         src/GameEngine/Utility/stbImpl.cpp
+        src/GameEngine/Utility/TimingHelper.cpp
 
         src/GameEngine/Core/App.cpp
         src/GameEngine/Core/Window.cpp
