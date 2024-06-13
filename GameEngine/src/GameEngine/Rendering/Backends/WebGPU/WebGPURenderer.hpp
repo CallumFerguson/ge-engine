@@ -4,6 +4,9 @@
 #include <webgpu/webgpu_cpp.h>
 #include "../../../Scene/Entity.hpp"
 
+#define PBR_SHADER_UUID "7aa2b713-86dd-4c48-a9ea-9af110d116ee"
+#define BASIC_COLOR_SHADER_UUID "3284227e-817a-4bf6-b184-8cbb3b15d503"
+
 namespace GameEngine {
 
 struct WebGPUPBRRendererDataComponent {

@@ -10,14 +10,14 @@ void writeImageDataToFile(void *context, void *data, int size) {
     static_cast<std::ofstream *>(context)->write(reinterpret_cast<const char *>(data), size);
 }
 
-void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &meshUUID) {
+void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
     std::ofstream outputFile(outputFilePath / (name + ".getexture"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return;
     }
 
-    outputFile << meshUUID;
+    outputFile << textureUUID;
 
     stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, image.width, image.height, image.component, image.image.data(), 90);
 

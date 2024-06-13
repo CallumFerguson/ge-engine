@@ -16,8 +16,20 @@ Material::Material(const std::string &assetPath) {
         return;
     }
 
+    char uuid[37];
+    uuid[36] = '\0';
+    assetFile.read(uuid, 36);
+    m_assetUUID = uuid;
+
     nlohmann::json materialJSON;
     assetFile >> materialJSON;
+
+    shaderHandle = AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(materialJSON["shader"]["uuid"]);
+
+    for (auto &textureUUID: materialJSON["textureUUIDs"]) {
+        auto textureUUIDString = textureUUID.get<std::string>();
+        m_textureHandles.push_back(AssetManager::getOrLoadAssetFromUUID<Texture>(textureUUIDString));
+    }
 
     initBindGroup();
 }
@@ -51,7 +63,7 @@ void Material::initBindGroup() {
     }
 
     {
-        std::array<wgpu::BindGroupEntry, 6> bindGroupEntries;
+        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 1);
         bindGroupEntries[0].binding = 0;
         bindGroupEntries[0].sampler = sampler;
 

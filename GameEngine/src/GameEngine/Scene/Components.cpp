@@ -89,10 +89,11 @@ void PBRRendererComponent::onImGui() {
 nlohmann::json PBRRendererComponent::toJSON() {
     nlohmann::json result;
     result["mesh"]["uuid"] = AssetManager::getAsset<Mesh>(meshHandle).assetUUID();
+    result["material"]["uuid"] = AssetManager::getAsset<Material>(materialHandle).assetUUID();
     return result;
 }
 
-void PBRRendererComponent::initFromJSON(const nlohmann::json &componentJSON) {
+PBRRendererComponent::PBRRendererComponent(const nlohmann::json &componentJSON) {
     meshHandle = AssetManager::getOrLoadAssetFromUUID<Mesh>(componentJSON["mesh"]["uuid"]);
     materialHandle = AssetManager::getOrLoadAssetFromUUID<Material>(componentJSON["material"]["uuid"]);
 }

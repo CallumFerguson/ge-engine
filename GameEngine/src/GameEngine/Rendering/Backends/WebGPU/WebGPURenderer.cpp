@@ -152,8 +152,8 @@ void WebGPURenderer::finishInit() {
 
     setUpCameraBuffer();
 
-    WebGPUShader::registerShaderCreatePipelineFunction("3284227e-817a-4bf6-b184-8cbb3b15d503", createPBRRenderPipeline); // basic color
-    WebGPUShader::registerShaderCreatePipelineFunction("7aa2b713-86dd-4c48-a9ea-9af110d116ee", createPBRRenderPipeline); // pbr
+    WebGPUShader::registerShaderCreatePipelineFunction(BASIC_COLOR_SHADER_UUID, createPBRRenderPipeline); // basic color
+    WebGPUShader::registerShaderCreatePipelineFunction(PBR_SHADER_UUID, createPBRRenderPipeline); // pbr
 }
 
 void WebGPURenderer::createSurface() {

@@ -18,42 +18,42 @@ void runSandboxApp() {
     camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 2.5;
 
-//    auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
-//    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
-
-//    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
-    auto meshHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Mesh>("assets/packaged/FlightHelmet/LeatherParts_low.gemesh");
-//    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromUUID("71cb6d06-21ea-43fb-991a-ac0ed33b16e2");
-
-    auto albedoTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
-    auto normalTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.getexture");
-
-    auto shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::WebGPUShader>("assets/shaders/basic_color.wgsl");
-
-    int materialHandle = GameEngine::AssetManager::createAsset<GameEngine::Material>({});
-    auto &material = GameEngine::AssetManager::getAsset<GameEngine::Material>(materialHandle);
-    material.shaderHandle = shaderHandle;
-    material.addTexture(albedoTextureHandle);
-    material.addTexture(normalTextureHandle);
-    material.addTexture(albedoTextureHandle);
-    material.addTexture(albedoTextureHandle);
-    material.addTexture(albedoTextureHandle);
-    material.initBindGroup();
-
-//    GameEngine::AssetManager::getOrLoad; // FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture
-//    GameEngine::Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
-//    std::cout << texture.assetUUID() << std::endl;
-
-    float scale = 1;
-
-    GameEngine::Entity pbrRendererEntity1 = scene.createEntity("Thing 1");
-    pbrRendererEntity1.addComponent<GameEngine::PBRRendererComponent>(meshHandle, materialHandle);
-    pbrRendererEntity1.addScript<Rotator>().speed = 180;
-    pbrRendererEntity1.addScript<PBRColorRandomizer>();
-    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
-    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
-    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
+////    auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
+////    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
 //
+////    auto mesh = std::make_shared<GameEngine::Mesh>("assets/FlightHelmetPackaged/FlightHelmet.gemesh");
+//    auto meshHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Mesh>("assets/packaged/FlightHelmet/LeatherParts_low.gemesh");
+////    auto meshHandle = GameEngine::AssetManager::getOrLoadMeshFromUUID("71cb6d06-21ea-43fb-991a-ac0ed33b16e2");
+//
+//    auto albedoTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+//    auto normalTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.getexture");
+//
+//    auto shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::WebGPUShader>("assets/shaders/basic_color.wgsl");
+//
+//    int materialHandle = GameEngine::AssetManager::createAsset<GameEngine::Material>({});
+//    auto &material = GameEngine::AssetManager::getAsset<GameEngine::Material>(materialHandle);
+//    material.shaderHandle = shaderHandle;
+//    material.addTexture(albedoTextureHandle);
+//    material.addTexture(normalTextureHandle);
+//    material.addTexture(albedoTextureHandle);
+//    material.addTexture(albedoTextureHandle);
+//    material.addTexture(albedoTextureHandle);
+//    material.initBindGroup();
+//
+////    GameEngine::AssetManager::getOrLoad; // FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture
+////    GameEngine::Texture texture("assets/packaged/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_BaseColor.getexture");
+////    std::cout << texture.assetUUID() << std::endl;
+//
+//    float scale = 1;
+//
+//    GameEngine::Entity pbrRendererEntity1 = scene.createEntity("Thing 1");
+//    pbrRendererEntity1.addComponent<GameEngine::PBRRendererComponent>(meshHandle, materialHandle);
+//    pbrRendererEntity1.addScript<Rotator>().speed = 180;
+//    pbrRendererEntity1.addScript<PBRColorRandomizer>();
+//    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[0] = scale;
+//    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[1] = scale;
+//    pbrRendererEntity1.getComponent<GameEngine::TransformComponent>().localScale[2] = scale;
+
 //    GameEngine::Entity pbrRendererEntity2 = scene.createEntity("Thing 2");
 //    pbrRendererEntity2.addComponent<GameEngine::PBRRendererComponent>(meshHandle);
 //    pbrRendererEntity2.addScript<Rotator>().speed = 90;
@@ -91,10 +91,10 @@ void runSandboxApp() {
 //    auto json = GameEngine::entityToJSON(pbrRendererEntity1);
 //    GameEngine::jsonToEntity(json, entt::null, scene);
 
-//    nlohmann::json entityJSON;
-//    std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
-//    jsonFile >> entityJSON;
-//    GameEngine::jsonToEntity(entityJSON, scene);
+    nlohmann::json entityJSON;
+    std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
+    jsonFile >> entityJSON;
+    GameEngine::jsonToEntity(entityJSON, scene);
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();

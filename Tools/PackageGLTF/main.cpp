@@ -107,7 +107,9 @@ int main(int argc, char *argv[]) {
             GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
         }
 
-        entity.addComponent<GameEngine::PBRRendererComponent>(false).meshHandle = node.mesh;
+        auto &renderer = entity.addComponent<GameEngine::PBRRendererComponent>(false);
+        renderer.meshHandle = node.mesh;
+        renderer.materialHandle = primitive.material;
 
         auto &material = model.materials[primitive.material];
 
@@ -145,14 +147,19 @@ int main(int argc, char *argv[]) {
         if (!savedMaterials.contains(primitive.material)) {
             savedMaterials.insert(node.mesh);
 
+            std::vector<std::string> texturesUUIDs;
+            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[albedoTextureIndex].source).assetUUID());
+            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[normalTextureIndex].source).assetUUID());
+            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[occlusionRoughnessMetallicTextureIndex].source).assetUUID());
+
             if (!savedTextures.contains(albedoTextureIndex)) {
                 savedTextures.insert(albedoTextureIndex);
 
                 auto &texture = model.textures[albedoTextureIndex];
                 auto &image = model.images[texture.source];
 
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath,
-                                                           GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID());
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
             }
 
             if (!savedTextures.contains(normalTextureIndex)) {
@@ -161,8 +168,8 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[normalTextureIndex];
                 auto &image = model.images[texture.source];
 
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath,
-                                                           GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID());
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
             }
 
             if (!savedTextures.contains(occlusionRoughnessMetallicTextureIndex)) {
@@ -171,9 +178,23 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[occlusionRoughnessMetallicTextureIndex];
                 auto &image = model.images[texture.source];
 
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath,
-                                                           GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID());
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
             }
+
+            std::ofstream outputFile(outputFilePath / (material.name + ".gematerial"), std::ios::out | std::ios::binary);
+            if (!outputFile) {
+                std::cerr << "Error: Could not open file for writing!" << std::endl;
+                return 1;
+            }
+
+            outputFile << GameEngine::AssetManager::getAsset<GameEngine::Material>(primitive.material).assetUUID();
+
+            nlohmann::json materialJSON;
+            materialJSON["shader"]["uuid"] = BASIC_COLOR_SHADER_UUID; // hard coded shader for now
+            materialJSON["textureUUIDs"] = texturesUUIDs;
+
+            outputFile << materialJSON;
         }
 
         entities.push_back(entity);

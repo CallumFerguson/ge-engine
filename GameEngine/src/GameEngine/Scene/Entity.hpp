@@ -108,7 +108,7 @@ public:
     template<typename T>
     static void registerAddComponentFromStringFunction(const std::string &componentName) {
         registerAddComponentFromStringFunction(componentName, [](GameEngine::Entity &entity, const nlohmann::json &componenetJSON) {
-            entity.addComponent<T>().initFromJSON(componenetJSON);
+            entity.addComponent<T>(componenetJSON);
         });
     }
 

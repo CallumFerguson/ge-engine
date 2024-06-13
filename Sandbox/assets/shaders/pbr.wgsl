@@ -21,10 +21,10 @@ struct ObjectData {
 
 @group(1) @binding(0) var textureSampler: sampler;
 @group(1) @binding(1) var albedoTexture: texture_2d<f32>;
-@group(1) @binding(2) var emissionTexture: texture_2d<f32>;
-@group(1) @binding(3) var normalTexture: texture_2d<f32>;
-@group(1) @binding(4) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
-@group(1) @binding(5) var brdfLUT: texture_2d<f32>;
+@group(1) @binding(2) var normalTexture: texture_2d<f32>;
+@group(1) @binding(3) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
+@group(1) @binding(4) var emissionTexture: texture_2d<f32>;
+@group(1) @binding(5) var brdfLUTTexture: texture_2d<f32>;
 //@group(1) @binding(5) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
 //@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
 

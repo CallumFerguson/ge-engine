@@ -92,13 +92,13 @@ struct PBRRendererComponent {
 
     explicit PBRRendererComponent(bool initializeForRendering);
 
+    explicit PBRRendererComponent(const nlohmann::json &componentJSON);
+
     PBRRendererComponent(int meshHandle, int materialHandle);
 
     void onImGui();
 
     nlohmann::json toJSON();
-
-    void initFromJSON(const nlohmann::json &componentJSON);
 
     [[nodiscard]] const char *objectName() const {
         return "PBRRendererComponent";

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 #include "../Utility/utility.hpp"
 
 namespace GameEngine {
@@ -12,7 +13,7 @@ std::unordered_map<std::string, int> g_AssetManagerAssetUUIDToHandle;
 std::unordered_map<std::string, std::string> g_AssetManagerAssetUUIDToPath;
 
 void AssetManager::registerAssetUUIDs() {
-    std::vector<std::string> extensions = {".gemesh", ".getexture", ".wgsl"};
+    std::vector<std::string> extensions = {".gemesh", ".getexture", ".wgsl", ".gematerial"};
 
     for (const auto &entry: std::filesystem::recursive_directory_iterator("assets")) {
         for (const auto &extension: extensions) {
