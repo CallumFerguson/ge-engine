@@ -1,22 +1,21 @@
 #include "Texture.hpp"
 
-#include <thread>
-#include <mutex>
 #include <vector>
 #include <stb_image.h>
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "../Utility/TimingHelper.hpp"
 
-//#ifdef __EMSCRIPTEN__
-//
-//#include "../Utility/emscriptenUtility.hpp"
-//
-//#else
-//
-//#include <stb_image.h>
-//
-//#endif
+#ifdef __EMSCRIPTEN__
+
+#include "../Utility/emscriptenUtility.hpp"
+
+#else
+
+#include <mutex>
+#include "../Utility/ThreadPool.hpp"
+
+#endif
 
 namespace GameEngine {
 
@@ -66,7 +65,7 @@ Texture::Texture(const std::string &assetPath) {
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst; // | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
 
-    std::thread([imageData = std::move(imageData), texture = m_texture]() mutable {
+    ThreadPool::instance().queueJob([imageData = std::move(imageData), texture = m_texture]() mutable {
         int width, height;
         unsigned char *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
         if (image == nullptr) {
@@ -78,7 +77,7 @@ Texture::Texture(const std::string &assetPath) {
             std::lock_guard<std::mutex> lock(s_stbiImagesMutex);
             s_imageResults.push_back({image, width, height, std::move(texture)});
         }
-    }).detach();
+    });
 }
 
 wgpu::Texture &Texture::texture() {

@@ -57,11 +57,11 @@ if (EMSCRIPTEN)
             src/GameEngine/Utility/emscriptenUtility.cpp
     )
 else ()
-    #    target_sources(
-    #            GameEngine
-    #            PUBLIC
-    #
-    #    )
+    target_sources(
+            GameEngine
+            PUBLIC
+            src/GameEngine/Utility/ThreadPool.cpp
+    )
 endif ()
 
 if (EMSCRIPTEN)
