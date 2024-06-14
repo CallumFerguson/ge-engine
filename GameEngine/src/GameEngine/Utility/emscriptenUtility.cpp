@@ -6,41 +6,49 @@
 
 namespace GameEngine {
 
+// @formatter:off
+EM_JS(void, setCursor, (const char *cursor), {
+    if(Module.canvas) {
+        Module.canvas.style.cursor = UTF8ToString(cursor);
+    }
+});
+// @formatter:on
+
 void updateCursor() {
     ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
     switch (cursor) {
         case ImGuiMouseCursor_None:
-            EM_ASM({ document.body.style.cursor = "none"; });
+            setCursor("none");
             break;
         case ImGuiMouseCursor_Arrow:
-            EM_ASM({ document.body.style.cursor = "default"; });
+            setCursor("default");
             break;
         case ImGuiMouseCursor_TextInput:
-            EM_ASM({ document.body.style.cursor = "text"; });
+            setCursor("text");
             break;
         case ImGuiMouseCursor_ResizeAll:
-            EM_ASM({ document.body.style.cursor = "all-scroll"; });
+            setCursor("all-scroll");
             break;
         case ImGuiMouseCursor_ResizeNS:
-            EM_ASM({ document.body.style.cursor = "ns-resize"; });
+            setCursor("ns-resize");
             break;
         case ImGuiMouseCursor_ResizeEW:
-            EM_ASM({ document.body.style.cursor = "ew-resize"; });
+            setCursor("ew-resize");
             break;
         case ImGuiMouseCursor_ResizeNESW:
-            EM_ASM({ document.body.style.cursor = "nesw-resize"; });
+            setCursor("nesw-resize");
             break;
         case ImGuiMouseCursor_ResizeNWSE:
-            EM_ASM({ document.body.style.cursor = "nwse-resize"; });
+            setCursor("nwse-resize");
             break;
         case ImGuiMouseCursor_Hand:
-            EM_ASM({ document.body.style.cursor = "move"; });
+            setCursor("move");
             break;
         case ImGuiMouseCursor_NotAllowed:
-            EM_ASM({ document.body.style.cursor = "not-allowed"; });
+            setCursor("not-allowed");
             break;
         default:
-            EM_ASM({ document.body.style.cursor = "default"; });
+            setCursor("default");
             break;
     }
 }
