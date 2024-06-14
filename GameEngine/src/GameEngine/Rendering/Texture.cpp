@@ -21,6 +21,8 @@ namespace GameEngine {
 
 const int channels = 4;
 
+#ifndef __EMSCRIPTEN__
+
 struct ImageResult {
     stbi_uc *image;
     int width;
@@ -30,6 +32,7 @@ struct ImageResult {
 
 static std::mutex s_stbiImagesMutex;
 static std::vector<ImageResult> s_imageResults;
+#endif
 
 Texture::Texture() : Asset(Random::uuid()) {}
 
@@ -62,9 +65,15 @@ Texture::Texture(const std::string &assetPath) {
     wgpu::TextureDescriptor textureDescriptor;
     textureDescriptor.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
     textureDescriptor.format = wgpu::TextureFormat::RGBA8Unorm;
-    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst; // | wgpu::TextureUsage::RenderAttachment;
+    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst;
+#ifdef __EMSCRIPTEN__
+    textureDescriptor.usage |= wgpu::TextureUsage::RenderAttachment;
+#endif
     m_texture = device.CreateTexture(&textureDescriptor);
 
+#ifdef __EMSCRIPTEN__
+    writeTextureJSAsync(device, m_texture, imageData);
+#else
     ThreadPool::instance().queueJob([imageData = std::move(imageData), texture = m_texture]() mutable {
         int width, height;
         unsigned char *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
@@ -78,6 +87,7 @@ Texture::Texture(const std::string &assetPath) {
             s_imageResults.push_back({image, width, height, std::move(texture)});
         }
     });
+#endif
 }
 
 wgpu::Texture &Texture::texture() {
@@ -85,6 +95,7 @@ wgpu::Texture &Texture::texture() {
 }
 
 void Texture::writeTextures() {
+#ifndef __EMSCRIPTEN__
     std::lock_guard<std::mutex> lock(s_stbiImagesMutex);
     if (s_imageResults.empty()) {
         return;
@@ -105,6 +116,7 @@ void Texture::writeTextures() {
         stbi_image_free(imageResult.image);
     }
     s_imageResults.clear();
+#endif
 }
 
 }

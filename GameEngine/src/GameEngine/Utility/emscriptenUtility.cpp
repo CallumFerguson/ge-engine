@@ -45,72 +45,49 @@ void updateCursor() {
     }
 }
 
+// @formatter:off
 void resetCanvas() {
     EM_ASM({
-               const newCanvas = document.createElement("canvas");
-               newCanvas.id = "canvas";
+       const newCanvas = document.createElement("canvas");
+       newCanvas.id = "canvas";
 
-               const oldCanvas = Module.canvas;
+       const oldCanvas = Module.canvas;
 
-               oldCanvas.parentElement.replaceChild(newCanvas, oldCanvas);
-               Module.canvas = newCanvas;
-           });
+       oldCanvas.parentElement.replaceChild(newCanvas, oldCanvas);
+       Module.canvas = newCanvas;
+   });
 }
-
-//static bool s_writeTextureDone = false;
-
-//extern "C" {
-//
-//void writeTextureCallback() {
-//    s_writeTextureDone = true;
-//}
-//
-//}
+// @formatter:on
 
 // @formatter:off
-EM_JS(void, writeTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size), {
+EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size), {
     (async () => {
-            const start = performance.now();
+        const device = JsValStore.get(deviceJsHandle);
+        const texture = JsValStore.get(textureJsHandle);
 
-            const device = JsValStore.get(deviceJsHandle);
-            const texture = JsValStore.get(textureJsHandle);
+        const blob = new Blob([HEAPU8.subarray(data, data + size)], {
+            type:
+            'image/jpeg'
+        });
 
-            const blob = new Blob([HEAPU8.subarray(data, data + size)], {
-                type:
-                'image/jpeg'
-            });
+        const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: 'none'});
 
-            const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: 'none'});
+        device.queue.copyExternalImageToTexture(
+            {source: imageBitmap, flipY: true},
+            {texture},
+            {width: imageBitmap.width, height: imageBitmap.height}
+        );
 
-            device.queue.copyExternalImageToTexture(
-                {source: imageBitmap, flipY: true},
-                {texture},
-                {width: imageBitmap.width, height: imageBitmap.height}
-            );
-
-            const end = performance.now();
-            const time = end - start;
-            console.log("Execution time: " + time +" milliseconds");
-
-//            Module.ccall('writeTextureCallback', null, [], []);
+        JsValStore.remove(deviceJsHandle);
+        JsValStore.remove(textureJsHandle);
     })();
 });
 // @formatter:on
 
-void writeTextureJS(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data) {
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
-
-//    s_writeTextureDone = false;
-    writeTexture(deviceJsHandle, textureJsHandle, data.data(), static_cast<int>(data.size()));
-
-//    while (!s_writeTextureDone) {
-//        std::cout << s_writeTextureDone << std::endl;
-//        emscripten_sleep(200);
-//    }
-
-    emscripten_webgpu_release_js_handle(deviceJsHandle);
-    emscripten_webgpu_release_js_handle(textureJsHandle);
+    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data.data(), static_cast<int>(data.size()));
 }
 
 }
