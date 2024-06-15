@@ -66,7 +66,12 @@ else ()
 endif ()
 
 if (EMSCRIPTEN)
-    target_link_options(GameEngine PUBLIC -sEXIT_RUNTIME)
+    target_link_options(
+            GameEngine PUBLIC
+            -sEXIT_RUNTIME
+            -sEXPORTED_FUNCTIONS=_main,_copyExternalImageToTextureFinishCallback
+            -sEXPORTED_RUNTIME_METHODS=ccall
+    )
 endif ()
 
 target_precompile_headers(GameEngine PRIVATE src/gepch.hpp)

@@ -3,6 +3,8 @@
 #include <imgui.h>
 #include <emscripten.h>
 #include <emscripten/html5_webgpu.h>
+#include "../Rendering/Backends/WebGPU/generateMipmapWebGPU.hpp"
+#include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
 
 namespace GameEngine {
 
@@ -67,8 +69,20 @@ void resetCanvas() {
 }
 // @formatter:on
 
+extern "C" {
+
+void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGenerateMipmap) {
+    wgpu::Texture texture = wgpu::Texture::Acquire(emscripten_webgpu_import_texture(textureJsHandle));
+    emscripten_webgpu_release_js_handle(textureJsHandle);
+    if (shouldGenerateMipmap) {
+        generateMipmap(WebGPURenderer::device(), texture);
+    }
+}
+
+}
+
 // @formatter:off
-EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size), {
+EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap), {
     (async () => {
         const device = JsValStore.get(deviceJsHandle);
         const texture = JsValStore.get(textureJsHandle);
@@ -86,16 +100,16 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
             {width: imageBitmap.width, height: imageBitmap.height}
         );
 
+        Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
         JsValStore.remove(deviceJsHandle);
-        JsValStore.remove(textureJsHandle);
     })();
 });
 // @formatter:on
 
-void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data) {
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data, bool shouldGenerateMipmap) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
-    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data.data(), static_cast<int>(data.size()));
+    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data.data(), static_cast<int>(data.size()), shouldGenerateMipmap);
 }
 
 }

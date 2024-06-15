@@ -71,7 +71,7 @@ Texture::Texture(const std::string &assetPath) {
     m_texture = device.CreateTexture(&textureDescriptor);
 
 #ifdef __EMSCRIPTEN__
-    writeTextureJSAsync(device, m_texture, imageData);
+    writeTextureJSAsync(device, m_texture, imageData, true);
 #else
     ThreadPool::instance().queueJob([imageData = std::move(imageData), texture = m_texture]() mutable {
         int width, height;

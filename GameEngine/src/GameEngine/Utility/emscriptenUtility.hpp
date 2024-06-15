@@ -9,6 +9,6 @@ void updateCursor();
 
 void resetCanvas();
 
-void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data);
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data, bool shouldGenerateMipmap);
 
 }
