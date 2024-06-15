@@ -5,6 +5,7 @@
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "../Utility/TimingHelper.hpp"
+#include "Backends/WebGPU/generateMipmapWebGPU.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -64,11 +65,9 @@ Texture::Texture(const std::string &assetPath) {
 
     wgpu::TextureDescriptor textureDescriptor;
     textureDescriptor.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
+    textureDescriptor.mipLevelCount = numMipLevels(textureDescriptor.size);
     textureDescriptor.format = wgpu::TextureFormat::RGBA8Unorm;
-    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst;
-#ifdef __EMSCRIPTEN__
-    textureDescriptor.usage |= wgpu::TextureUsage::RenderAttachment;
-#endif
+    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
 
 #ifdef __EMSCRIPTEN__
@@ -114,6 +113,8 @@ void Texture::writeTextures() {
         WebGPURenderer::device().GetQueue().WriteTexture(&destination, imageResult.image, imageResult.width * imageResult.height * channels, &dataLayout, &size);
 
         stbi_image_free(imageResult.image);
+
+        generateMipmap(WebGPURenderer::device(), destination.texture);
     }
     s_imageResults.clear();
 #endif
