@@ -88,8 +88,7 @@ void WebGPURenderer::getAdapterCallback(
 
     std::vector<wgpu::FeatureName> requiredFeatures;
 
-    bool canTimestamp =
-            std::find(features.begin(), features.end(), wgpu::FeatureName::TimestampQuery) != features.end();
+    bool canTimestamp = std::find(features.begin(), features.end(), wgpu::FeatureName::TimestampQuery) != features.end();
     if (canTimestamp) {
         requiredFeatures.push_back(wgpu::FeatureName::TimestampQuery);
     }
@@ -115,7 +114,9 @@ void WebGPURenderer::getDeviceCallback(
     s_device = wgpu::Device::Acquire(cDevice);
     s_device.SetUncapturedErrorCallback(errorCallback, nullptr);
 
-    finishInit();
+    if(s_window) {
+        finishInit();
+    }
 
     s_initializedSuccessfully = true;
     s_initFinished = true;
@@ -183,7 +184,8 @@ void WebGPURenderer::deviceLostCallback(
             std::cout << "instance destroyed" << std::endl;
             break;
         case WGPUDeviceLostReason_InstanceDropped:
-            std::cout << "instance dropped" << std::endl;
+            // when app exits, this triggers. TODO: when clicking "x" on window, clean up properly
+//            std::cout << "instance dropped" << std::endl;
             break;
         case WGPUDeviceLostReason_FailedCreation:
             std::cout << "instance failed creation" << std::endl;

@@ -62,6 +62,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    GameEngine::WebGPURenderer::init(nullptr);
+
     // TODO: handle name conflicts in mesh/texture/material/etc. save file names
 
     std::set<int> savedMeshes;

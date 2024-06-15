@@ -99,6 +99,8 @@ void Texture::writeTextures() {
         return;
     }
 
+    auto &device = WebGPURenderer::device();
+
     for (auto &imageResult: s_imageResults) {
         wgpu::ImageCopyTexture destination;
         destination.texture = std::move(imageResult.texture);
@@ -109,11 +111,11 @@ void Texture::writeTextures() {
 
         wgpu::Extent3D size = {static_cast<uint32_t>(imageResult.width), static_cast<uint32_t>(imageResult.height), 1};
 
-        WebGPURenderer::device().GetQueue().WriteTexture(&destination, imageResult.image, imageResult.width * imageResult.height * channels, &dataLayout, &size);
+        device.GetQueue().WriteTexture(&destination, imageResult.image, imageResult.width * imageResult.height * channels, &dataLayout, &size);
 
         stbi_image_free(imageResult.image);
 
-        generateMipmap(WebGPURenderer::device(), destination.texture);
+        generateMipmap(device, destination.texture);
     }
     s_imageResults.clear();
 #endif
