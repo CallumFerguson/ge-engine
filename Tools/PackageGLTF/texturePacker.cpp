@@ -11,15 +11,17 @@ void writeImageDataToFile(void *context, void *data, int size) {
 }
 
 void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
-    std::ofstream outputFile(outputFilePath / (name + ".getexture"), std::ios::out | std::ios::binary);
+    auto path = outputFilePath / (name + ".getexture");
+
+    TimingHelper time("packed texture " + name);
+
+    std::ofstream outputFile(path, std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return;
     }
 
     outputFile << textureUUID;
-
-    stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, image.width, image.height, image.component, image.image.data(), 90);
 
     // PNG ends up with files that are larger than the gltf source pngs and paint.net pngs, so maybe these should be copied over directly if possible
 //    stbi_write_png_to_func(writeImageDataToFile, &outputFile, image.width, image.height, image.component, image.image.data(), image.width * image.component);
@@ -66,7 +68,8 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
         src.texture = destination.texture;
         src.mipLevel = level;
 
-        uint32_t paddedBytesPerRow = std::max(256u, mipWidth * 4);
+        uint32_t bytesPerRow = mipWidth * 4;
+        uint32_t paddedBytesPerRow = std::max(256u, bytesPerRow);
 
         wgpu::ImageCopyBuffer dst = {};
         dst.buffer = readBackBuffer;
@@ -96,12 +99,23 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
             return;
         }
 
-        // use paddedBytesPerRow to create tightly packed image data for stbi_write_jpg
+        const uint8_t *dataWithoutPadding = data;
+        std::vector<uint8_t> dataWithoutPaddingVector;
 
-        auto fileName = outputFilePath / (name + "_" + std::to_string(level) + ".png");
-        auto fileNameString = fileName.string();
-//        stbi_write_jpg(fileNameString.c_str(), static_cast<int>(mipWidth), static_cast<int>(mipHeight), 4, data, 90);
-        stbi_write_png(fileNameString.c_str(), static_cast<int>(mipWidth), static_cast<int>(mipHeight), 4, data, paddedBytesPerRow);
+        if (bytesPerRow < paddedBytesPerRow) {
+            dataWithoutPaddingVector.resize(bytesPerRow * mipHeight);
+            for (uint32_t row = 0; row < mipHeight; row++) {
+                for (uint32_t column = 0; column < bytesPerRow; column++) {
+                    dataWithoutPaddingVector[row * bytesPerRow + column] = data[row * paddedBytesPerRow + column];
+                }
+            }
+            dataWithoutPadding = dataWithoutPaddingVector.data();
+        }
+
+        uint32_t imageNumBytes = bytesPerRow * mipHeight;
+        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+
+        stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
 
         readBackBuffer.Unmap();
     }

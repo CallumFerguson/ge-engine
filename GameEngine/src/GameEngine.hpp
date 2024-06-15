@@ -27,3 +27,4 @@
 #include "GameEngine/Utility/RollingAverage.hpp"
 #include "GameEngine/Utility/utility.hpp"
 #include "GameEngine/Utility/Random.hpp"
+#include "GameEngine/Utility/TimingHelper.hpp"

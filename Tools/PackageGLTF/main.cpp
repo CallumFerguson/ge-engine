@@ -26,14 +26,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    GameEngine::WebGPURenderer::init(nullptr);
+
     std::filesystem::path inputFilePath(argv[1]);
     std::filesystem::path outputFilePath(argv[2]);
     outputFilePath /= inputFilePath.stem().string();
     std::filesystem::create_directories(outputFilePath);
 
+    std::string inputFileName = inputFilePath.stem().string();
+
     tinygltf::Model model;
     std::string err;
     std::string warn;
+
+    std::cout << "loading gltf file " << inputFileName << "..." << std::endl;
+
+    TimingHelper time("loaded gltf file");
 
     std::string inputFilePathExtension = inputFilePath.extension().string();
     bool result;
@@ -45,6 +53,8 @@ int main(int argc, char *argv[]) {
         std::cout << "unknown file extension: " << inputFilePathExtension << " extension must be either .gltf or .glb" << std::endl;
         return 1;
     }
+
+    time.stop();
 
     if (!warn.empty()) {
         std::cout << "loadModel warning: " << warn << std::endl;
@@ -61,8 +71,6 @@ int main(int argc, char *argv[]) {
         std::cout << "only gltf files with a single scene are supported. this gltf has " << model.scenes.size() << " scenes." << std::endl;
         return 1;
     }
-
-    GameEngine::WebGPURenderer::init(nullptr);
 
     // TODO: handle name conflicts in mesh/texture/material/etc. save file names
 
@@ -211,7 +219,7 @@ int main(int argc, char *argv[]) {
 
     std::set<entt::entity> rootEntities;
 
-    auto prefabRootEntity = scene.createEntity(inputFilePath.stem().string());
+    auto prefabRootEntity = scene.createEntity(inputFileName);
 
     for (auto &entity: entities) {
         rootEntities.insert(entity.getRootEntity().enttHandle());
