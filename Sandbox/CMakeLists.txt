@@ -31,6 +31,7 @@ if (EMSCRIPTEN)
             -sUSE_GLFW=3
             -sALLOW_MEMORY_GROWTH
             -sNO_DISABLE_EXCEPTION_CATCHING # probably turn off for release build?
+            -sASSERTIONS
             #            -sEXPORTED_FUNCTIONS=_main,_writeTextureCallback
             #            -sEXPORTED_RUNTIME_METHODS=ccall
             -O2
