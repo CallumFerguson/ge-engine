@@ -4,7 +4,6 @@
 #include <stb_image.h>
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
-#include "../Utility/TimingHelper.hpp"
 #include "Backends/WebGPU/generateMipmapWebGPU.hpp"
 
 #ifdef __EMSCRIPTEN__
