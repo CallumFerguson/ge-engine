@@ -23,10 +23,15 @@ const int channels = 4;
 
 #ifndef __EMSCRIPTEN__
 
-struct ImageResult {
+struct ImageResultMipLevel {
     stbi_uc *image;
     int width;
     int height;
+    int mipLevel;
+};
+
+struct ImageResult {
+    std::vector<ImageResultMipLevel> mipLevels;
     wgpu::Texture texture;
 };
 
@@ -36,23 +41,31 @@ static std::vector<ImageResult> s_imageResults;
 
 Texture::Texture() : Asset(Random::uuid()) {}
 
+std::function<void()> foo() {
+    std::vector<int> vec(5);
+
+    return [&]() {
+        std::cout << vec.size() << std::endl;
+    };
+}
+
 Texture::Texture(const std::string &assetPath) {
-    std::ifstream assetFile(assetPath, std::ios::binary | std::ios::ate);
+    auto assetFile = std::make_shared<std::ifstream>(assetPath, std::ios::binary);
     if (!assetFile) {
         std::cerr << "Error: [Texture] Could not open file " << assetPath << " for reading!" << std::endl;
         return;
     }
 
-    auto imageByteLength = static_cast<std::streamsize>(assetFile.tellg()) - 36;
-    assetFile.seekg(0, std::ios::beg);
-
     char uuid[37];
     uuid[36] = '\0';
-    assetFile.read(uuid, 36);
+    assetFile->read(uuid, 36);
     m_assetUUID = uuid;
 
-    std::vector<uint8_t> imageData(imageByteLength);
-    assetFile.read(reinterpret_cast<char *>(imageData.data()), imageByteLength);
+    uint32_t imageNumBytes;
+    assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+
+    std::vector<uint8_t> imageData(imageNumBytes);
+    assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
 
     int width, height;
     if (!stbi_info_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr)) {
@@ -72,17 +85,42 @@ Texture::Texture(const std::string &assetPath) {
 #ifdef __EMSCRIPTEN__
     writeTextureJSAsync(device, m_texture, imageData, true);
 #else
-    ThreadPool::instance().queueJob([imageData = std::move(imageData), texture = m_texture]() mutable {
-        int width, height;
-        unsigned char *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
-        if (image == nullptr) {
-            std::cerr << "Failed to load image from memory" << std::endl;
-            return;
+
+    ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture]() mutable {
+        ImageResult imageResult;
+        imageResult.texture = std::move(texture);
+
+        uint32_t numLevels;
+        {
+            int width, height;
+            stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
+            if (image == nullptr) {
+                std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
+                return;
+            }
+            imageResult.mipLevels.push_back({image, width, height, 0});
+            numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
+        }
+
+        for (uint32_t i = 1; i < numLevels; i++) {
+            uint32_t imageNumBytes;
+            assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+
+            assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
+
+            int width, height;
+            stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageNumBytes), &width, &height, nullptr, channels);
+            if (image == nullptr) {
+                std::cerr << "Failed to load image from memory: mip level: " << i << std::endl;
+                return;
+            }
+
+            imageResult.mipLevels.push_back({image, width, height, static_cast<int>(i)});
         }
 
         {
             std::lock_guard<std::mutex> lock(s_stbiImagesMutex);
-            s_imageResults.push_back({image, width, height, std::move(texture)});
+            s_imageResults.push_back(std::move(imageResult));
         }
     });
 #endif
@@ -102,20 +140,23 @@ void Texture::writeTextures() {
     auto &device = WebGPURenderer::device();
 
     for (auto &imageResult: s_imageResults) {
-        wgpu::ImageCopyTexture destination;
-        destination.texture = std::move(imageResult.texture);
+        for (auto &mipLevel: imageResult.mipLevels) {
+            wgpu::ImageCopyTexture destination;
+            destination.texture = imageResult.texture;
+            destination.mipLevel = mipLevel.mipLevel;
 
-        wgpu::TextureDataLayout dataLayout;
-        dataLayout.bytesPerRow = imageResult.width * channels;
-        dataLayout.rowsPerImage = imageResult.height;
+            wgpu::TextureDataLayout dataLayout;
+            dataLayout.bytesPerRow = mipLevel.width * channels;
+            dataLayout.rowsPerImage = mipLevel.height;
 
-        wgpu::Extent3D size = {static_cast<uint32_t>(imageResult.width), static_cast<uint32_t>(imageResult.height), 1};
+            wgpu::Extent3D size = {static_cast<uint32_t>(mipLevel.width), static_cast<uint32_t>(mipLevel.height), 1};
 
-        device.GetQueue().WriteTexture(&destination, imageResult.image, imageResult.width * imageResult.height * channels, &dataLayout, &size);
+            device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels, &dataLayout, &size);
 
-        stbi_image_free(imageResult.image);
+            stbi_image_free(mipLevel.image);
 
-        generateMipmap(device, destination.texture);
+//            generateMipmap(device, destination.texture);
+        }
     }
     s_imageResults.clear();
 #endif

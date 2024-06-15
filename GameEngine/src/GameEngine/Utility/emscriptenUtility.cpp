@@ -88,11 +88,10 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
         const texture = JsValStore.get(textureJsHandle);
 
         const blob = new Blob([HEAPU8.subarray(data, data + size)], {
-            type:
-            'image/jpeg'
+            type: "image/jpeg"
         });
 
-        const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: 'none'});
+        const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
 
         device.queue.copyExternalImageToTexture(
             {source: imageBitmap, flipY: true},

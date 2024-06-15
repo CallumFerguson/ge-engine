@@ -79,15 +79,15 @@ int main(int argc, char *argv[]) {
     std::set<int> savedTextures;
 
     for (const auto &meshId: model.meshes) {
-        GameEngine::AssetManager::createAsset<GameEngine::Mesh>({});
+        GameEngine::AssetManager::createAsset<GameEngine::Mesh>();
     }
 
     for (const auto &imageId: model.images) {
-        GameEngine::AssetManager::createAsset<GameEngine::Texture>({});
+        GameEngine::AssetManager::createAsset<GameEngine::Texture>();
     }
 
     for (const auto &materialsId: model.materials) {
-        GameEngine::AssetManager::createAsset<GameEngine::Material>({});
+        GameEngine::AssetManager::createAsset<GameEngine::Material>();
     }
 
     GameEngine::Scene scene;

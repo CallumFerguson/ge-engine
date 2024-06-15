@@ -6,8 +6,11 @@
 
 namespace GameEngineTools {
 
+static std::vector<uint8_t> s_stbImageWriteBuffer;
+
 void writeImageDataToFile(void *context, void *data, int size) {
-    static_cast<std::ofstream *>(context)->write(reinterpret_cast<const char *>(data), size);
+    auto byteData = reinterpret_cast<const char *>(data);
+    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
 }
 
 void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
@@ -112,10 +115,14 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
             dataWithoutPadding = dataWithoutPaddingVector.data();
         }
 
-        uint32_t imageNumBytes = bytesPerRow * mipHeight;
+        stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
+
+        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
         outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
+        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+
+        s_stbImageWriteBuffer.clear();
 
         readBackBuffer.Unmap();
     }

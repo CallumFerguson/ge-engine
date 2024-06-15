@@ -21,8 +21,8 @@ public:
     template<typename T>
     static T &getAsset(int assetHandle);
 
-    template<typename T>
-    static int createAsset(T asset);
+    template<typename T, typename... Args>
+    static int createAsset(Args &&... args);
 
 private:
     template<typename T>

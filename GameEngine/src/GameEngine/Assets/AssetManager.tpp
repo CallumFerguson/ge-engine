@@ -55,9 +55,9 @@ T &AssetManager::getAsset(int assetHandle) {
     return AssetData<T>::assets[assetHandle];
 }
 
-template<typename T>
-int AssetManager::createAsset(T asset) {
-    auto &assetRef = AssetData<T>::assets.emplace_back(std::move(asset));
+template<typename T, typename... Args>
+int AssetManager::createAsset(Args &&... args) {
+    auto &assetRef = AssetData<T>::assets.emplace_back(std::forward<Args>(args)...);
 
     int assetHandle = static_cast<int>(AssetData<T>::assets.size() - 1);
 
