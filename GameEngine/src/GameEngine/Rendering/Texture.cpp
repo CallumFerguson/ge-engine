@@ -61,6 +61,9 @@ Texture::Texture(const std::string &assetPath) {
     assetFile->read(uuid, 36);
     m_assetUUID = uuid;
 
+    std::string imageType;
+    std::getline(*assetFile, imageType, '\0');
+
     uint32_t imageNumBytes;
     assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
 
@@ -83,7 +86,7 @@ Texture::Texture(const std::string &assetPath) {
     m_texture = device.CreateTexture(&textureDescriptor);
 
 #ifdef __EMSCRIPTEN__
-    writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0);
+    writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0, imageType);
 
     uint32_t numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
     for (int mipLevel = 1; mipLevel < numLevels; mipLevel++) {
@@ -91,7 +94,7 @@ Texture::Texture(const std::string &assetPath) {
 
         assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
 
-        writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel);
+        writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType);
     }
 #else
     ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture]() mutable {

@@ -84,6 +84,10 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     light = min(light, 1);
     let albedo = textureSample(albedoTexture, textureSampler, i.uv);
 
+    if (albedo.a < 0.2) {
+        discard;
+    }
+
     if (i.fp.x < 0) {
         return vec4(albedo.rgb * light, 1.0f);
     } else {

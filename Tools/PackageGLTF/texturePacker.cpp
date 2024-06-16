@@ -34,6 +34,17 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
         std::cout << "writeGLTFTextureImageFile image.component should be 4" << std::endl;
     }
 
+    bool hasTransparency = false;
+    for (size_t i = 0; i < image.image.size(); i += 4) {
+        if (image.image[i + 3] != 255) {
+            hasTransparency = true;
+            break;
+        }
+    }
+
+    std::string imageType = hasTransparency ? "png" : "jpg";
+    outputFile.write(imageType.c_str(), imageType.size() + 1);
+
     auto &device = GameEngine::WebGPURenderer::device();
 
     wgpu::TextureDescriptor textureDescriptor;
@@ -115,7 +126,11 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
             dataWithoutPadding = dataWithoutPaddingVector.data();
         }
 
-        stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
+        if (hasTransparency) {
+            stbi_write_png_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, static_cast<int>(bytesPerRow));
+        } else {
+            stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
+        }
 
         uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
         outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));

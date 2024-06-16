@@ -82,13 +82,23 @@ void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGe
 }
 
 // @formatter:off
-EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel), {
+EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel, const char* imageType), {
     (async () => {
         const device = JsValStore.get(deviceJsHandle);
         const texture = JsValStore.get(textureJsHandle);
 
+        const imageTypeString = UTF8ToString(imageType);
+        let type = undefined;
+        if(imageTypeString === "jpg") {
+            type = "image/jpeg";
+        } else if(imageTypeString == "png") {
+            type = "image/png";
+        } else {
+            console.log("Unknown imageType: " + imageTypeString);
+        }
+
         const blob = new Blob([HEAPU8.subarray(data, data + size)], {
-            type: "image/jpeg"
+            type: type
         });
 
         const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
@@ -105,10 +115,10 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
 });
 // @formatter:on
 
-void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel) {
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel, const std::string &imageType) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
-    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data, dataSize, shouldGenerateMipmap, mipLevel);
+    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data, dataSize, shouldGenerateMipmap, mipLevel, imageType.c_str());
 }
 
 }
