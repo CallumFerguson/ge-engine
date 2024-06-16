@@ -82,7 +82,7 @@ void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGe
 }
 
 // @formatter:off
-EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap), {
+EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel), {
     (async () => {
         const device = JsValStore.get(deviceJsHandle);
         const texture = JsValStore.get(textureJsHandle);
@@ -94,21 +94,21 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
         const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
 
         device.queue.copyExternalImageToTexture(
-            {source: imageBitmap, flipY: true},
-            {texture},
+            {source: imageBitmap, flipY: false},
+            {texture, mipLevel},
             {width: imageBitmap.width, height: imageBitmap.height}
         );
 
-        Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
         JsValStore.remove(deviceJsHandle);
+        Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
     })();
 });
 // @formatter:on
 
-void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::vector<uint8_t> &data, bool shouldGenerateMipmap) {
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
-    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data.data(), static_cast<int>(data.size()), shouldGenerateMipmap);
+    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data, dataSize, shouldGenerateMipmap, mipLevel);
 }
 
 }

@@ -83,9 +83,17 @@ Texture::Texture(const std::string &assetPath) {
     m_texture = device.CreateTexture(&textureDescriptor);
 
 #ifdef __EMSCRIPTEN__
-    writeTextureJSAsync(device, m_texture, imageData, true);
-#else
+    writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0);
 
+    uint32_t numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
+    for (int mipLevel = 1; mipLevel < numLevels; mipLevel++) {
+        assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+
+        assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
+
+        writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel);
+    }
+#else
     ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture]() mutable {
         ImageResult imageResult;
         imageResult.texture = std::move(texture);
@@ -154,8 +162,6 @@ void Texture::writeTextures() {
             device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels, &dataLayout, &size);
 
             stbi_image_free(mipLevel.image);
-
-//            generateMipmap(device, destination.texture);
         }
     }
     s_imageResults.clear();
