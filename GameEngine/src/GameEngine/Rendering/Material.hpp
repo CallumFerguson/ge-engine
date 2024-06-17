@@ -7,9 +7,16 @@
 
 namespace GameEngine {
 
+enum class RenderQueue : uint8_t {
+    Opaque = 0,
+    Transparent = 1,
+};
+
 class Material : public Asset {
 public:
     int shaderHandle = -1;
+
+    RenderQueue renderQueue = RenderQueue::Opaque;
 
     Material();
 
@@ -17,15 +24,20 @@ public:
 
     void addTexture(int assetHandle);
 
-    void initBindGroup();
+    void initBindGroup(bool depthWrite);
 
     wgpu::BindGroup &cameraBindGroup();
 
     wgpu::BindGroup &materialBindGroup();
 
+    wgpu::RenderPipeline &renderPipeline();
+
 private:
-    wgpu::BindGroup m_cameraBindGroup;
-    wgpu::BindGroup m_materialBindGroup;
+    wgpu::BindGroup m_cameraBindGroupDepthWrite;
+    wgpu::BindGroup m_cameraBindGroupNoDepthWrite;
+
+    wgpu::BindGroup m_materialBindGroupDepthWrite;
+    wgpu::BindGroup m_materialBindGroupNoDepthWrite;
 
     std::vector<int> m_textureHandles;
 };

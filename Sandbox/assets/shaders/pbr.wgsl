@@ -23,8 +23,8 @@ struct ObjectData {
 @group(1) @binding(1) var albedoTexture: texture_2d<f32>;
 @group(1) @binding(2) var normalTexture: texture_2d<f32>;
 @group(1) @binding(3) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
-@group(1) @binding(4) var emissionTexture: texture_2d<f32>;
-@group(1) @binding(5) var brdfLUTTexture: texture_2d<f32>;
+//@group(1) @binding(4) var emissionTexture: texture_2d<f32>;
+//@group(1) @binding(5) var brdfLUTTexture: texture_2d<f32>;
 //@group(1) @binding(5) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
 //@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
 
@@ -73,12 +73,13 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     const gamma: f32 = 2.2;
     const exposure: f32 = 1;
 
-    let albedo = pow(textureSample(albedoTexture, textureSampler, i.uv).rgb, vec3(gamma));
+    let albedoTexel = textureSample(albedoTexture, textureSampler, i.uv);
+    let albedo = pow(albedoTexel.rgb, vec3(gamma));
 //    let albedo: vec3f = vec3(0.5, 0, 0);
 //    let albedo: vec3f = vec3(1, 1, 1);
 
-    let emission = pow(textureSample(emissionTexture, textureSampler, i.uv).rgb, vec3(gamma));
-//    let emission: vec3f = vec3(0, 0, 0);
+//    let emission = pow(textureSample(emissionTexture, textureSampler, i.uv).rgb, vec3(gamma));
+    let emission: vec3f = vec3(0, 0, 0);
 
     let occlusionRoughnessMetalic = textureSample(occlusionRoughnessMetalicTexture, textureSampler, i.uv).rgb;
 //    let occlusionRoughnessMetalic: vec3f = vec3(1, i.roughness, i.metallic);
@@ -156,7 +157,8 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     const MAX_REFLECTION_LOD = 4.0;
 //    let prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
     let prefilteredColor = vec3(0.5, 0.5, 0.5);
-    let envBRDF = textureSample(brdfLUT, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
+//    let envBRDF = textureSample(brdfLUT, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    let envBRDF = vec2f(1, 0);
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     let ambient = (kD * diffuse + specular) * ao;
@@ -165,7 +167,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     colorLinear = vec3(1.0) - exp(-colorLinear * exposure);
 
     let color = pow(colorLinear, vec3(1.0 / gamma));
-    return vec4(color, 1);
+    return vec4(color, albedoTexel.a);
 }
 
 fn pow5(value: f32) -> f32 {

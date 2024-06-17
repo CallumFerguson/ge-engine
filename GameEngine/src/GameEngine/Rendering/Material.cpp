@@ -31,10 +31,13 @@ Material::Material(const std::string &assetPath) {
         m_textureHandles.push_back(AssetManager::getOrLoadAssetFromUUID<Texture>(textureUUIDString));
     }
 
-    initBindGroup();
+    renderQueue = materialJSON["renderQueue"];
+
+    initBindGroup(true);
+    initBindGroup(false);
 }
 
-void Material::initBindGroup() {
+void Material::initBindGroup(bool depthWrite) {
     if (shaderHandle == -1) {
         std::cout << "Material::initBindGroup shaderHandle not set" << std::endl;
     }
@@ -55,11 +58,15 @@ void Material::initBindGroup() {
         bindGroupDescriptorEntry0.buffer = WebGPURenderer::cameraDataBuffer();
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-        bindGroupDescriptor.layout = shader.renderPipeline().GetBindGroupLayout(0);
+        bindGroupDescriptor.layout = shader.renderPipeline(depthWrite).GetBindGroupLayout(0);
         bindGroupDescriptor.entryCount = 1;
         bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
 
-        m_cameraBindGroup = device.CreateBindGroup(&bindGroupDescriptor);
+        if (depthWrite) {
+            m_cameraBindGroupDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
+        } else {
+            m_cameraBindGroupNoDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
+        }
     }
 
     {
@@ -78,24 +85,57 @@ void Material::initBindGroup() {
         }
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-        bindGroupDescriptor.layout = shader.renderPipeline().GetBindGroupLayout(1);
+        bindGroupDescriptor.layout = shader.renderPipeline(depthWrite).GetBindGroupLayout(1);
         bindGroupDescriptor.entryCount = bindGroupEntries.size();
         bindGroupDescriptor.entries = bindGroupEntries.data();
 
-        m_materialBindGroup = device.CreateBindGroup(&bindGroupDescriptor);
+        if (depthWrite) {
+            m_materialBindGroupDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
+        } else {
+            m_materialBindGroupNoDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
+        }
     }
 }
 
 wgpu::BindGroup &Material::cameraBindGroup() {
-    return m_cameraBindGroup;
+    switch (renderQueue) {
+        case RenderQueue::Opaque:
+            return m_cameraBindGroupDepthWrite;
+        case RenderQueue::Transparent:
+            return m_cameraBindGroupNoDepthWrite;
+        default:
+            std::cout << "material cameraBindGroup unknown render queue: " << static_cast<uint8_t>(renderQueue) << std::endl;
+            return m_cameraBindGroupDepthWrite;
+    }
 }
 
 wgpu::BindGroup &Material::materialBindGroup() {
-    return m_materialBindGroup;
+    switch (renderQueue) {
+        case RenderQueue::Opaque:
+            return m_materialBindGroupDepthWrite;
+        case RenderQueue::Transparent:
+            return m_materialBindGroupNoDepthWrite;
+        default:
+            std::cout << "material materialBindGroup unknown render queue: " << static_cast<uint8_t>(renderQueue) << std::endl;
+            return m_materialBindGroupDepthWrite;
+    }
 }
 
 void Material::addTexture(int assetHandle) {
     m_textureHandles.push_back(assetHandle);
+}
+
+wgpu::RenderPipeline &Material::renderPipeline() {
+    auto &shader = AssetManager::getAsset<WebGPUShader>(shaderHandle);
+    switch (renderQueue) {
+        case RenderQueue::Opaque:
+            return shader.renderPipeline(true);
+        case RenderQueue::Transparent:
+            return shader.renderPipeline(false);
+        default:
+            std::cout << "material renderPipeline unknown render queue: " << static_cast<uint8_t>(renderQueue) << std::endl;
+            return shader.renderPipeline(true);
+    }
 }
 
 }

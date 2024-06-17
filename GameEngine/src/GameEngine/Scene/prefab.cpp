@@ -96,14 +96,14 @@ bool validateEntityJSON(const nlohmann::json &entityJSON) {
     return true;
 }
 
-void jsonToEntity(const nlohmann::json &entityJSON, Scene &scene) {
-    jsonToEntity(entityJSON, entt::null, scene);
+Entity jsonToEntity(const nlohmann::json &entityJSON, Scene &scene) {
+    return jsonToEntity(entityJSON, entt::null, scene);
 }
 
-void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandle, Scene &scene) {
+Entity jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandle, Scene &scene) {
     if (!validateEntityJSON(entityJSON)) {
         std::cout << "entity is not valid" << std::endl;
-        return;
+        return {entt::null, &scene};
     }
 
     std::string name;
@@ -115,7 +115,7 @@ void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandl
 
     if (name.empty()) {
         std::cout << "could not get name" << std::endl;
-        return;
+        return {entt::null, &scene};
     }
 
     Entity entity = scene.createEntity(name);
@@ -159,6 +159,8 @@ void jsonToEntity(const nlohmann::json &entityJSON, entt::entity parentENTTHandl
     for (const auto &childJSON: entityJSON["children"]) {
         jsonToEntity(childJSON, entity.enttHandle(), scene);
     }
+
+    return entity;
 }
 
 }

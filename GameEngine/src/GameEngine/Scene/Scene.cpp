@@ -76,8 +76,10 @@ void Scene::onUpdate() {
 
     m_registry.view<PBRRendererComponent, WebGPUPBRRendererDataComponent>().each([&](auto enttEntity, auto &renderer, auto &rendererData) {
         auto entity = Entity(enttEntity, this);
-        WebGPURenderer::renderMesh(entity, renderer, rendererData);
+        WebGPURenderer::submitMeshToRenderer(entity, renderer, rendererData);
     });
+
+    WebGPURenderer::renderMeshes();
 
     WebGPURenderer::endMainRenderPass();
 }

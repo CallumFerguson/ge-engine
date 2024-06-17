@@ -14,14 +14,16 @@ public:
 
     wgpu::ShaderModule &shaderModule();
 
-    wgpu::RenderPipeline &renderPipeline();
+    wgpu::RenderPipeline &renderPipeline(bool depthWrite);
 
-    static void registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule)> createPipelineFunction);
+    static void
+    registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite)> createPipelineFunction);
 
 private:
     wgpu::ShaderModule m_shaderModule;
 
-    wgpu::RenderPipeline m_renderPipeline;
+    wgpu::RenderPipeline m_renderPipelineDepthWrite;
+    wgpu::RenderPipeline m_renderPipelineNoDepthWrite;
 };
 
 }

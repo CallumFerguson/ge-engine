@@ -1,5 +1,7 @@
 #include "WebGPURenderer.hpp"
 
+#include <vector>
+#include <map>
 #include <array>
 #include <iostream>
 #include <imgui.h>
@@ -46,6 +48,15 @@ static wgpu::RenderPassEncoder s_renderPassEncoder;
 static wgpu::CommandEncoder s_commandEncoder;
 
 static wgpu::Buffer s_cameraDataBuffer;
+
+struct MeshRenderInfo {
+    Mesh &mesh;
+    Material &material;
+    const wgpu::BindGroup& objectDataBindGroup;
+};
+
+static std::vector<MeshRenderInfo> s_opaqueMeshesToRender;
+static std::vector<MeshRenderInfo> s_transparentMeshesToRender;
 
 void WebGPURenderer::init(Window *window) {
     s_window = window;
@@ -339,15 +350,25 @@ void WebGPURenderer::setUpCameraBuffer() {
 //    s_cameraDataBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
 }
 
-wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderModule& shaderModule) {
+wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderModule& shaderModule, bool depthWrite) {
     auto device = GameEngine::WebGPURenderer::device();
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
     pipelineDescriptor.layout = nullptr; // auto layout
 
+    wgpu::BlendState blendState;
+    blendState.color.operation = wgpu::BlendOperation::Add;
+    blendState.color.srcFactor = wgpu::BlendFactor::SrcAlpha;
+    blendState.color.dstFactor = wgpu::BlendFactor::OneMinusSrcAlpha;
+
+    blendState.alpha.operation = wgpu::BlendOperation::Add;
+    blendState.alpha.srcFactor = wgpu::BlendFactor::SrcAlpha;
+    blendState.alpha.dstFactor = wgpu::BlendFactor::OneMinusSrcAlpha;
+
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
+    colorTargetState.blend = &blendState;
 
     wgpu::FragmentState fragment = {};
     fragment.module = shaderModule;
@@ -412,7 +433,7 @@ wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderM
     pipelineDescriptor.multisample.count = multisampleCount;
 
     wgpu::DepthStencilState depthStencilState = {};
-    depthStencilState.depthWriteEnabled = true;
+    depthStencilState.depthWriteEnabled = depthWrite;
     depthStencilState.depthCompare = wgpu::CompareFunction::Less;
     depthStencilState.format = wgpu::TextureFormat::Depth24Plus;
 
@@ -433,7 +454,7 @@ void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::ma
     device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 208);
 }
 
-void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData) {
+void WebGPURenderer::submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData) {
     uint8_t data[128];
     std::memcpy(data, glm::value_ptr(entity.globalModelMatrix()), 64);
     std::memcpy(data + 64, glm::value_ptr(renderer.color), 16);
@@ -441,14 +462,31 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
 
     auto& mesh = GameEngine::AssetManager::getAsset<Mesh>(renderer.meshHandle);
     auto& material = GameEngine::AssetManager::getAsset<Material>(renderer.materialHandle);
-    auto& shader = GameEngine::AssetManager::getAsset<WebGPUShader>(material.shaderHandle);
+
+    switch (material.renderQueue) {
+        case RenderQueue::Opaque:
+            s_opaqueMeshesToRender.push_back({mesh, material, rendererData.objectDataBindGroup});
+            break;
+        case RenderQueue::Transparent:
+            s_transparentMeshesToRender.push_back({mesh, material, rendererData.objectDataBindGroup});
+            break;
+        default:
+            std::cout << "material materialBindGroup unknown render queue: " << static_cast<uint8_t>(material.renderQueue) << std::endl;
+            break;
+    }
+}
+
+void renderMesh(MeshRenderInfo &meshRenderInfo) {
+    auto& mesh = meshRenderInfo.mesh;
+    auto& material= meshRenderInfo.material;
+    auto& objectDataBindGroup = meshRenderInfo.objectDataBindGroup;
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
-    renderPassEncoder.SetPipeline(shader.renderPipeline());
+    renderPassEncoder.SetPipeline(material.renderPipeline());
 
     renderPassEncoder.SetBindGroup(0, material.cameraBindGroup());
     renderPassEncoder.SetBindGroup(1, material.materialBindGroup());
-    renderPassEncoder.SetBindGroup(2, rendererData.objectDataBindGroup);
+    renderPassEncoder.SetBindGroup(2, objectDataBindGroup);
 
     renderPassEncoder.SetVertexBuffer(0, mesh.positionBuffer());
     renderPassEncoder.SetVertexBuffer(1, mesh.normalBuffer());
@@ -458,6 +496,18 @@ void WebGPURenderer::renderMesh(Entity &entity, const PBRRendererComponent &rend
     renderPassEncoder.SetIndexBuffer(mesh.indexBuffer(), wgpu::IndexFormat::Uint32);
 
     renderPassEncoder.DrawIndexed(mesh.indexCount());
+}
+
+void WebGPURenderer::renderMeshes() {
+    for(auto& meshRenderInfo : s_opaqueMeshesToRender) {
+        renderMesh(meshRenderInfo);
+    }
+    s_opaqueMeshesToRender.clear();
+
+    for(auto& meshRenderInfo : s_transparentMeshesToRender) {
+        renderMesh(meshRenderInfo);
+    }
+    s_transparentMeshesToRender.clear();
 }
 
 WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandle) {
@@ -482,7 +532,18 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
         bindGroupDescriptorEntry0.buffer = objectDataBuffer;
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-        bindGroupDescriptor.layout = shader.renderPipeline().GetBindGroupLayout(2);
+        switch (material.renderQueue) {
+            case RenderQueue::Opaque:
+                bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(2);
+                break;
+            case RenderQueue::Transparent:
+                bindGroupDescriptor.layout = shader.renderPipeline(false).GetBindGroupLayout(2);
+                break;
+            default:
+                std::cout << "WebGPUPBRRendererDataComponent unknown render queue: " << static_cast<uint8_t>(material.renderQueue) << std::endl;
+                bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(2);
+                break;
+        }
         bindGroupDescriptor.entryCount = 1;
         bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
 

@@ -16,7 +16,7 @@ void runSandboxApp() {
     auto camera = scene.createEntity("Main Camera");
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addScript<CameraController>();
-    camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 2.5;
+    camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 1;
 
 ////    auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 ////    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");
@@ -94,7 +94,8 @@ void runSandboxApp() {
     nlohmann::json entityJSON;
     std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
     jsonFile >> entityJSON;
-    GameEngine::jsonToEntity(entityJSON, scene);
+    GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(entityJSON, scene);
+    prefabEntity.getComponent<GameEngine::TransformComponent>().localPosition.y = -0.55f;
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();

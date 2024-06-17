@@ -52,7 +52,9 @@ public:
 
     static void updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection);
 
-    static void renderMesh(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
+    static void submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
+
+    static void renderMeshes();
 
 private:
     static void getAdapter();
@@ -78,7 +80,7 @@ private:
 
     static void setUpCameraBuffer();
 
-    static wgpu::RenderPipeline createPBRRenderPipeline(const wgpu::ShaderModule &shaderModule);
+    static wgpu::RenderPipeline createPBRRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
 };
 
 }

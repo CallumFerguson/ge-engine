@@ -13,7 +13,7 @@ void writeImageDataToFile(void *context, void *data, int size) {
     s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
 }
 
-void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
+bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
     auto path = outputFilePath / (name + ".getexture");
 
     TimingHelper time("packed texture " + name);
@@ -21,7 +21,7 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     std::ofstream outputFile(path, std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
-        return;
+        return false;
     }
 
     outputFile << textureUUID;
@@ -110,7 +110,7 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
         auto *data = reinterpret_cast<const uint8_t *>(readBackBuffer.GetConstMappedRange(0, mipSize));
         if (!data) {
             std::cout << "no mapped range data!" << std::endl;
-            return;
+            return false;
         }
 
         const uint8_t *dataWithoutPadding = data;
@@ -141,6 +141,8 @@ void writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
 
         readBackBuffer.Unmap();
     }
+
+    return hasTransparency;
 }
 
 }

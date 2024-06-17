@@ -77,7 +77,7 @@ private:
     glm::mat4 m_projection;
     float m_aspectRatio;
     float m_fov;
-    float m_nearClippingPlane = 0.1;
+    float m_nearClippingPlane = 0.01;
     float m_farClippingPlane = 1000;
 };
 

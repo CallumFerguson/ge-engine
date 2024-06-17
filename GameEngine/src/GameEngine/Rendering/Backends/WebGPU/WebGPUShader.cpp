@@ -10,9 +10,10 @@
 
 namespace GameEngine {
 
-static std::unordered_map<std::string, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule)>> s_shaderUUIDToCreatePipelineFunction;
+static std::unordered_map<std::string, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite)>> s_shaderUUIDToCreatePipelineFunction;
 
-void WebGPUShader::registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule)> createPipelineFunction) {
+void
+WebGPUShader::registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite)> createPipelineFunction) {
     s_shaderUUIDToCreatePipelineFunction[shaderUUID] = std::move(createPipelineFunction);
 }
 
@@ -47,15 +48,16 @@ WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
         return;
     }
 
-    m_renderPipeline = s_shaderUUIDToCreatePipelineFunction[m_assetUUID](m_shaderModule);
+    m_renderPipelineDepthWrite = s_shaderUUIDToCreatePipelineFunction[m_assetUUID](m_shaderModule, true);
+    m_renderPipelineNoDepthWrite = s_shaderUUIDToCreatePipelineFunction[m_assetUUID](m_shaderModule, false);
 }
 
 wgpu::ShaderModule &WebGPUShader::shaderModule() {
     return m_shaderModule;
 }
 
-wgpu::RenderPipeline &WebGPUShader::renderPipeline() {
-    return m_renderPipeline;
+wgpu::RenderPipeline &WebGPUShader::renderPipeline(bool depthWrite) {
+    return depthWrite ? m_renderPipelineDepthWrite : m_renderPipelineNoDepthWrite;
 }
 
 }

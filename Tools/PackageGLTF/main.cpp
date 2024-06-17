@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_map>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -154,6 +155,8 @@ int main(int argc, char *argv[]) {
 
         int occlusionRoughnessMetallicTextureIndex = occlusionTextureIndex;
 
+        std::unordered_map<int, bool> textureHasTransparency;
+
         if (!savedMaterials.contains(primitive.material)) {
             savedMaterials.insert(node.mesh);
 
@@ -169,7 +172,8 @@ int main(int argc, char *argv[]) {
                 auto &image = model.images[texture.source];
 
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
+                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
+                textureHasTransparency[albedoTextureIndex] = hasTransparency;
             }
 
             if (!savedTextures.contains(normalTextureIndex)) {
@@ -201,8 +205,9 @@ int main(int argc, char *argv[]) {
             outputFile << GameEngine::AssetManager::getAsset<GameEngine::Material>(primitive.material).assetUUID();
 
             nlohmann::json materialJSON;
-            materialJSON["shader"]["uuid"] = BASIC_COLOR_SHADER_UUID; // hard coded shader for now
+            materialJSON["shader"]["uuid"] = PBR_SHADER_UUID; // hard coded shader for now
             materialJSON["textureUUIDs"] = texturesUUIDs;
+            materialJSON["renderQueue"] = static_cast<uint8_t>(textureHasTransparency[albedoTextureIndex] ? GameEngine::RenderQueue::Transparent : GameEngine::RenderQueue::Opaque);
 
             outputFile << materialJSON;
         }
