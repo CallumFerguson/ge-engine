@@ -11,8 +11,8 @@ struct CameraData {
 
 struct ObjectData {
     model: mat4x4f,
-    color: vec4f,
-//    normalMatrix: mat4x4f,
+//    color: vec4f,
+    normalMatrix: mat4x4f,
 //    metallic: f32,
 //    roughness: f32,
 }
@@ -58,10 +58,10 @@ fn vert(i: VertexInput) -> VertexOutput {
 
     o.fragPosition = cameraData.projection * cameraData.view * objectData.model * i.position;
     o.worldPosition = (objectData.model * i.position).xyz;
-    o.normal = normalize((objectData.model * vec4(i.normal, 0)).xyz);
+    o.normal = normalize((objectData.normalMatrix * vec4(i.normal, 0)).xyz);
     o.uv = i.uv;
-    o.tangent = normalize((objectData.model * vec4(i.tangent.xyz, 0)).xyz);
-    o.bitangent = normalize((objectData.model * vec4(i.tangent.w * cross(o.normal, o.tangent), 0)).xyz);
+    o.tangent = normalize((objectData.normalMatrix * vec4(i.tangent.xyz, 0)).xyz);
+    o.bitangent = normalize((objectData.normalMatrix * vec4(i.tangent.w * cross(o.normal, o.tangent), 0)).xyz);
 //    o.metallic = objectData.metallic;
 //    o.roughness = objectData.roughness;
 
@@ -115,7 +115,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 
     // reflectance equation
     var Lo = vec3(0.0);
-    for (var n = 0; n < 0; n++)
+    for (var n = 0; n < 4; n++)
     {
         // calculate per-light radiance
         let L = normalize(lightPositions[n] - i.worldPosition);
@@ -149,14 +149,14 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     kD *= 1.0 - metallic;
 
 //    let irradiance = textureSample(environmentIrradianceCubeMapTexture, textureSampler, worldNormal * vec3f(-1, 1, 1)).rgb;
-    let irradiance = vec3f(1, 1, 1);
+    let irradiance = vec3f(0, 0, 0);
     let diffuse = irradiance * albedo;
 
     let R = reflect(-V, N);
 
     const MAX_REFLECTION_LOD = 4.0;
 //    let prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
-    let prefilteredColor = vec3(0.5, 0.5, 0.5);
+    let prefilteredColor = vec3f(0, 0, 0);
     let envBRDF = textureSample(brdfLUTTexture, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
