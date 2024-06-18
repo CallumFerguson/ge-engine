@@ -53,7 +53,7 @@ public:
 
     static const wgpu::Buffer &cameraDataBuffer();
 
-    static void updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection);
+    static void updateCameraDataBuffer(Entity &entity, TransformComponent &transform, CameraComponent &camera);
 
     static void submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
 

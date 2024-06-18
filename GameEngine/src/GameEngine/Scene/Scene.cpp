@@ -48,8 +48,9 @@ void Scene::onUpdate() {
         }
     });
 
-    m_registry.view<TransformComponent, CameraComponent>().each([](auto &transform, auto &camera) {
-        WebGPURenderer::updateCameraDataBuffer(CameraComponent::transformToView(transform), camera.projection());
+    m_registry.view<TransformComponent, CameraComponent>().each([&](auto entity, auto &transform, auto &camera) {
+        Entity e(entity, this);
+        WebGPURenderer::updateCameraDataBuffer(e, transform, camera);
     });
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {

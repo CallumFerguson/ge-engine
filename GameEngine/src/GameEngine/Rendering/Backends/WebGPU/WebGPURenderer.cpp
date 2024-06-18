@@ -442,14 +442,21 @@ wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderM
     return device.CreateRenderPipeline(&pipelineDescriptor);
 }
 
-void WebGPURenderer::updateCameraDataBuffer(const glm::mat4 &view, const glm::mat4 &projection) {
-    glm::vec3 position{0.0f, 0.0f, 0.0f};
-    glm::mat4 viewDirectionProjectionInverse{1.0f};
+void WebGPURenderer::updateCameraDataBuffer(Entity &entity, TransformComponent &transform, CameraComponent &camera) {
+    auto view = CameraComponent::transformToView(transform);
+
+    auto projection = camera.projection();
+
+    auto cameraPosition = glm::vec3(entity.globalModelMatrix()[3]);
+
+    auto viewAtOrigin = view;
+    viewAtOrigin[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    auto viewDirectionProjectionInverse = glm::inverse(projection * viewAtOrigin);
 
     uint8_t data[208];
     std::memcpy(data, glm::value_ptr(view), 64);
     std::memcpy(data + 64, glm::value_ptr(projection), 64);
-    std::memcpy(data + 128, glm::value_ptr(position), 12);
+    std::memcpy(data + 128, glm::value_ptr(cameraPosition), 12);
     std::memcpy(data + 144, glm::value_ptr(viewDirectionProjectionInverse), 64);
     device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 208);
 }
