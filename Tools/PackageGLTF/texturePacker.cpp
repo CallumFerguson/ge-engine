@@ -72,6 +72,9 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
+    bool hasMipLevels = true;
+    outputFile.write(reinterpret_cast<char *>(&hasMipLevels), 1);
+
     for (uint32_t level = 0; level < textureDescriptor.mipLevelCount; level++) {
         uint32_t mipWidth = std::max(1u, size.width >> level);
         uint32_t mipHeight = std::max(1u, size.height >> level);

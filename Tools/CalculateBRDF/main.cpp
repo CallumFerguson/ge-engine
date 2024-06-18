@@ -137,6 +137,13 @@ fn geometrySchlickGGXForBRDF(NdotV: f32, roughness: f32) -> f32 {
 }
 )";
 
+static std::vector<uint8_t> s_stbImageWriteBuffer;
+
+void writeImageDataToFile(void *context, void *data, int size) {
+    auto byteData = reinterpret_cast<const char *>(data);
+    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <resolution> <output_file_path>" << std::endl;
@@ -152,7 +159,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::filesystem::path outputFilePath(argv[2]);
-    outputFilePath /= "BRDF.png";
+    outputFilePath /= "BRDF.getexture";
 
     GameEngine::WebGPURenderer::init(nullptr);
 
@@ -249,8 +256,30 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::string outputFilePathString = outputFilePath.string();
-    stbi_write_png(outputFilePathString.c_str(), resolution, resolution, 4, data, resolution * 4);
+//    std::string outputFilePathString = outputFilePath.string();
+//    stbi_write_png(outputFilePathString.c_str(), resolution, resolution, 4, data, resolution * 4);
+
+    std::ofstream outputFile(outputFilePath, std::ios::out | std::ios::binary);
+    if (!outputFile) {
+        std::cerr << "Error: Could not open file for writing!" << std::endl;
+        return 1;
+    }
+
+    std::string uuid = BRDF_UUID;
+    outputFile << uuid;
+
+    std::string imageType = "png";
+    outputFile.write(imageType.c_str(), imageType.size() + 1);
+
+    bool hasMipLevels = false;
+    outputFile.write(reinterpret_cast<char *>(&hasMipLevels), 1);
+
+    stbi_write_png_to_func(writeImageDataToFile, &outputFile, resolution, resolution, 4, data, resolution * 4);
+
+    uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+    outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+
+    outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
 
     readBackBuffer.Unmap();
 }

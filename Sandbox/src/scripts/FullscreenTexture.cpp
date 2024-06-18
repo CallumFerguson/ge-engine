@@ -3,12 +3,6 @@
 #include <array>
 #include <stb_image.h>
 
-#ifdef __EMSCRIPTEN__
-
-#include "GameEngine/Utility/emscriptenUtility.hpp"
-
-#endif
-
 void FullscreenTexture::onStart() {
     const auto shaderUUID = "03e59a18-0eed-4892-af7a-99c36782b368";
     if(!GameEngine::WebGPUShader::shaderHasCreatePipelineFunction(shaderUUID)) {
@@ -52,6 +46,9 @@ void FullscreenTexture::onStart() {
         });
     }
 
+    int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
+    auto& brdfTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(brdfTextureHandle);
+
     auto device = GameEngine::WebGPURenderer::device();
 
     m_shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::WebGPUShader>(shaderUUID);
@@ -62,37 +59,8 @@ void FullscreenTexture::onStart() {
     bindGroupEntries[0].binding = 0;
     bindGroupEntries[0].sampler = GameEngine::WebGPURenderer::basicSampler();
 
-    wgpu::TextureDescriptor textureDescriptor;
-    textureDescriptor.size = {static_cast<uint32_t>(256), static_cast<uint32_t>(256), 1};
-    textureDescriptor.format = wgpu::TextureFormat::RGBA8Unorm;
-    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
-    auto texture = device.CreateTexture(&textureDescriptor);
-
-#ifdef __EMSCRIPTEN__
-//    GameEngine::writeTextureJSAsync(device, texture, "f-texture.png", false, 0);
-#else
-    int width, height;
-    stbi_uc *image = stbi_load("assets/f-texture.png", &width, &height, nullptr, 4);
-    if (image == nullptr) {
-        GameEngine::exitApp("failed to load image");
-    }
-
-    wgpu::ImageCopyTexture destination;
-    destination.texture = texture;
-
-    wgpu::TextureDataLayout dataLayout;
-    dataLayout.bytesPerRow = width * 4;
-    dataLayout.rowsPerImage = height;
-
-    wgpu::Extent3D size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
-
-    device.GetQueue().WriteTexture(&destination, image, width * height * 4, &dataLayout, &size);
-
-    stbi_image_free(image);
-#endif
-
     bindGroupEntries[1].binding = 1;
-    bindGroupEntries[1].textureView = texture.CreateView();
+    bindGroupEntries[1].textureView = brdfTexture.texture().CreateView();
 
     wgpu::BindGroupDescriptor bindGroupDescriptor = {};
     bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(0);

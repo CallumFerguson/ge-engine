@@ -16,7 +16,7 @@ void runSandboxApp() {
     auto camera = scene.createEntity("Main Camera");
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addScript<CameraController>();
-    camera.getComponent<GameEngine::TransformComponent>().localPosition[2] = 1;
+    camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
 
 //    auto fullscreen = scene.createEntity("Fullscreen");
 //    fullscreen.addScript<FullscreenTexture>();

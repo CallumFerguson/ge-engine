@@ -64,6 +64,9 @@ Texture::Texture(const std::string &assetPath) {
     std::string imageType;
     std::getline(*assetFile, imageType, '\0');
 
+    bool hasMipLevels;
+    assetFile->read(reinterpret_cast<char *>(&hasMipLevels), 1);
+
     uint32_t imageNumBytes;
     assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
 
@@ -80,7 +83,7 @@ Texture::Texture(const std::string &assetPath) {
 
     wgpu::TextureDescriptor textureDescriptor;
     textureDescriptor.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
-    textureDescriptor.mipLevelCount = numMipLevels(textureDescriptor.size);
+    textureDescriptor.mipLevelCount = hasMipLevels ? numMipLevels(textureDescriptor.size) : 1;
     textureDescriptor.format = wgpu::TextureFormat::RGBA8Unorm;
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
@@ -88,16 +91,18 @@ Texture::Texture(const std::string &assetPath) {
 #ifdef __EMSCRIPTEN__
     writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0, imageType);
 
-    uint32_t numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
-    for (int mipLevel = 1; mipLevel < numLevels; mipLevel++) {
-        assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+    if (hasMipLevels) {
+        uint32_t numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
+        for (int mipLevel = 1; mipLevel < numLevels; mipLevel++) {
+            assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
 
-        assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
+            assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
 
-        writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType);
+            writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType);
+        }
     }
 #else
-    ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture]() mutable {
+    ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture, hasMipLevels]() mutable {
         ImageResult imageResult;
         imageResult.texture = std::move(texture);
 
@@ -113,20 +118,22 @@ Texture::Texture(const std::string &assetPath) {
             numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
         }
 
-        for (uint32_t i = 1; i < numLevels; i++) {
-            uint32_t imageNumBytes;
-            assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+        if (hasMipLevels) {
+            for (uint32_t i = 1; i < numLevels; i++) {
+                uint32_t imageNumBytes;
+                assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
 
-            assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
+                assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
 
-            int width, height;
-            stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageNumBytes), &width, &height, nullptr, channels);
-            if (image == nullptr) {
-                std::cerr << "Failed to load image from memory: mip level: " << i << std::endl;
-                return;
+                int width, height;
+                stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageNumBytes), &width, &height, nullptr, channels);
+                if (image == nullptr) {
+                    std::cerr << "Failed to load image from memory: mip level: " << i << std::endl;
+                    return;
+                }
+
+                imageResult.mipLevels.push_back({image, width, height, static_cast<int>(i)});
             }
-
-            imageResult.mipLevels.push_back({image, width, height, static_cast<int>(i)});
         }
 
         {

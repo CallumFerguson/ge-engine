@@ -6,6 +6,7 @@
 
 #define PBR_SHADER_UUID "7aa2b713-86dd-4c48-a9ea-9af110d116ee"
 #define BASIC_COLOR_SHADER_UUID "3284227e-817a-4bf6-b184-8cbb3b15d503"
+#define BRDF_UUID "7062cece-527b-4945-b26f-a6302c632c9c"
 
 namespace GameEngine {
 
