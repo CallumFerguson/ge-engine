@@ -115,10 +115,38 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
 });
 // @formatter:on
 
+// @formatter:off
+EM_JS(void, copyExternalImageToTextureFromURL, (int deviceJsHandle, int textureJsHandle, const char* url, bool shouldGenerateMipmap, int mipLevel), {
+    (async () => {
+            const device = JsValStore.get(deviceJsHandle);
+            const texture = JsValStore.get(textureJsHandle);
+
+            const res = await fetch(UTF8ToString(url));
+            const blob = await res.blob();
+            const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
+
+            device.queue.copyExternalImageToTexture(
+                {source: imageBitmap, flipY: false},
+                {texture, mipLevel},
+                {width: imageBitmap.width, height: imageBitmap.height}
+            );
+
+            JsValStore.remove(deviceJsHandle);
+            Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
+    })();
+});
+// @formatter:on
+
 void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel, const std::string &imageType) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
     copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data, dataSize, shouldGenerateMipmap, mipLevel, imageType.c_str());
+}
+
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::string &url, bool shouldGenerateMipmap, int mipLevel) {
+    int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
+    int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
+    copyExternalImageToTextureFromURL(deviceJsHandle, textureJsHandle, url.c_str(), shouldGenerateMipmap, mipLevel);
 }
 
 }

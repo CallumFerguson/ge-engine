@@ -17,6 +17,7 @@ add_executable(
         src/scripts/CameraController.cpp
         src/scripts/Rotator.cpp
         src/scripts/PBRColorRandomizer.cpp
+        src/scripts/FullscreenTexture.cpp
 
         src/utility/utility.cpp
 )

@@ -56,7 +56,7 @@ fn vert(i: VertexInput) -> VertexOutput {
 
     var o: VertexOutput;
 
-    o.fragPosition = cameraData.projection * cameraData.view * objectData.model * i.position;
+    o.fragPosition = i.position;
     o.worldPosition = (objectData.model * i.position).xyz;
     o.normal = normalize((objectData.model * vec4(i.normal, 0)).xyz);
     o.uv = i.uv;

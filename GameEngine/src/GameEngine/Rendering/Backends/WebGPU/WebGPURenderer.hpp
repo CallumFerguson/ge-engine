@@ -26,6 +26,8 @@ class Window;
 
 class WebGPURenderer {
 public:
+    static const uint32_t multisampleCount = 4;
+
     static void init(Window *window);
 
     static void configureSurface();
@@ -55,6 +57,8 @@ public:
     static void submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
 
     static void renderMeshes();
+
+    static wgpu::Sampler &basicSampler();
 
 private:
     static void getAdapter();

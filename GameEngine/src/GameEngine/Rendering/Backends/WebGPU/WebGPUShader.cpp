@@ -14,7 +14,15 @@ static std::unordered_map<std::string, std::function<wgpu::RenderPipeline(const 
 
 void
 WebGPUShader::registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite)> createPipelineFunction) {
+    if (s_shaderUUIDToCreatePipelineFunction.contains(shaderUUID)) {
+        std::cout << "registerShaderCreatePipelineFunction shader with uuid " << shaderUUID << " already has a function." << std::endl;
+        return;
+    }
     s_shaderUUIDToCreatePipelineFunction[shaderUUID] = std::move(createPipelineFunction);
+}
+
+bool WebGPUShader::shaderHasCreatePipelineFunction(const std::string &shaderUUID) {
+    return s_shaderUUIDToCreatePipelineFunction.contains(shaderUUID);
 }
 
 WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {

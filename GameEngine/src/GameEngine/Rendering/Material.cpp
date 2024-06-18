@@ -46,15 +46,6 @@ void Material::initBindGroup(bool depthWrite) {
 
     auto &device = WebGPURenderer::device();
 
-    static wgpu::Sampler s_sampler;
-    if (!s_sampler) {
-        wgpu::SamplerDescriptor samplerDescriptor;
-        samplerDescriptor.magFilter = wgpu::FilterMode::Linear;
-        samplerDescriptor.minFilter = wgpu::FilterMode::Linear;
-        samplerDescriptor.mipmapFilter = wgpu::MipmapFilterMode::Linear;
-        s_sampler = device.CreateSampler(&samplerDescriptor);
-    }
-
     {
         wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
         bindGroupDescriptorEntry0.binding = 0;
@@ -75,7 +66,7 @@ void Material::initBindGroup(bool depthWrite) {
     {
         std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 1);
         bindGroupEntries[0].binding = 0;
-        bindGroupEntries[0].sampler = s_sampler;
+        bindGroupEntries[0].sampler = WebGPURenderer::basicSampler();
 
         int i = 1;
         for (auto &assetHandle: m_textureHandles) {

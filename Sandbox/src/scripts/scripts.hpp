@@ -6,3 +6,4 @@
 #include "TestRenderer.hpp"
 #include "TrackFramerate.hpp"
 #include "PBRColorRandomizer.hpp"
+#include "FullscreenTexture.hpp"

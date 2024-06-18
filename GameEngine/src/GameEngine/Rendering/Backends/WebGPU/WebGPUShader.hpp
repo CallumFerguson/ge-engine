@@ -19,6 +19,8 @@ public:
     static void
     registerShaderCreatePipelineFunction(const std::string &shaderUUID, std::function<wgpu::RenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite)> createPipelineFunction);
 
+    static bool shaderHasCreatePipelineFunction(const std::string &shaderUUID);
+
 private:
     wgpu::ShaderModule m_shaderModule;
 

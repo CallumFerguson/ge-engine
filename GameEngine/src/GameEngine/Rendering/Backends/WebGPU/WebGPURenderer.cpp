@@ -38,8 +38,6 @@ static wgpu::Surface s_surface;
 
 static wgpu::TextureFormat s_mainSurfacePreferredFormat;
 
-const uint32_t multisampleCount = 4;
-
 static wgpu::RenderPassColorAttachment s_colorAttachment;
 static wgpu::RenderPassDepthStencilAttachment s_depthAttachment;
 static wgpu::RenderPassDescriptor s_renderPassDescriptor;
@@ -368,7 +366,9 @@ wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderM
 
     wgpu::ColorTargetState colorTargetState = {};
     colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
-    colorTargetState.blend = &blendState;
+    if(!depthWrite) {
+        colorTargetState.blend = &blendState;
+    }
 
     wgpu::FragmentState fragment = {};
     fragment.module = shaderModule;
@@ -508,6 +508,18 @@ void WebGPURenderer::renderMeshes() {
         renderMesh(meshRenderInfo);
     }
     s_transparentMeshesToRender.clear();
+}
+
+wgpu::Sampler &WebGPURenderer::basicSampler() {
+    static wgpu::Sampler s_sampler;
+    if (!s_sampler) {
+        wgpu::SamplerDescriptor samplerDescriptor;
+        samplerDescriptor.magFilter = wgpu::FilterMode::Linear;
+        samplerDescriptor.minFilter = wgpu::FilterMode::Linear;
+        samplerDescriptor.mipmapFilter = wgpu::MipmapFilterMode::Linear;
+        s_sampler = s_device.CreateSampler(&samplerDescriptor);
+    }
+    return s_sampler;
 }
 
 WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandle) {
