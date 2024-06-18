@@ -64,16 +64,23 @@ void Material::initBindGroup(bool depthWrite) {
     }
 
     {
-        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 1);
+        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 2);
+
         bindGroupEntries[0].binding = 0;
         bindGroupEntries[0].sampler = WebGPURenderer::basicSampler();
 
-        int i = 1;
+        int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
+        auto &brdfTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(brdfTextureHandle);
+
+        bindGroupEntries[1].binding = 1;
+        bindGroupEntries[1].textureView = brdfTexture.cachedTextureView();
+
+        int i = 2;
         for (auto &assetHandle: m_textureHandles) {
             auto &texture = AssetManager::getAsset<Texture>(assetHandle);
 
             bindGroupEntries[i].binding = i;
-            bindGroupEntries[i].textureView = texture.texture().CreateView();
+            bindGroupEntries[i].textureView = texture.cachedTextureView();
 
             i++;
         }

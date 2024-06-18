@@ -178,4 +178,11 @@ void Texture::writeTextures() {
 #endif
 }
 
+wgpu::TextureView &Texture::cachedTextureView() {
+    if (!m_textureView) {
+        m_textureView = m_texture.CreateView();
+    }
+    return m_textureView;
+}
+
 }

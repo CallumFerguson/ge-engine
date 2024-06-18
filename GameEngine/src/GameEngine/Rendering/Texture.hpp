@@ -14,10 +14,14 @@ public:
 
     wgpu::Texture &texture();
 
+    wgpu::TextureView &cachedTextureView();
+
     static void writeTextures();
 
 private:
     wgpu::Texture m_texture;
+
+    wgpu::TextureView m_textureView;
 };
 
 }

@@ -60,7 +60,7 @@ void FullscreenTexture::onStart() {
     bindGroupEntries[0].sampler = GameEngine::WebGPURenderer::basicSampler();
 
     bindGroupEntries[1].binding = 1;
-    bindGroupEntries[1].textureView = brdfTexture.texture().CreateView();
+    bindGroupEntries[1].textureView = brdfTexture.cachedTextureView();
 
     wgpu::BindGroupDescriptor bindGroupDescriptor = {};
     bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(0);

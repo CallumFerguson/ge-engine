@@ -20,13 +20,13 @@ struct ObjectData {
 @group(0) @binding(0) var<uniform> cameraData: CameraData;
 
 @group(1) @binding(0) var textureSampler: sampler;
-@group(1) @binding(1) var albedoTexture: texture_2d<f32>;
-@group(1) @binding(2) var normalTexture: texture_2d<f32>;
-@group(1) @binding(3) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
-//@group(1) @binding(4) var emissionTexture: texture_2d<f32>;
-//@group(1) @binding(5) var brdfLUTTexture: texture_2d<f32>;
-//@group(1) @binding(5) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
-//@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
+@group(1) @binding(1) var brdfLUTTexture: texture_2d<f32>;
+@group(1) @binding(2) var albedoTexture: texture_2d<f32>;
+@group(1) @binding(3) var normalTexture: texture_2d<f32>;
+@group(1) @binding(4) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
+//@group(1) @binding(5) var emissionTexture: texture_2d<f32>;
+//@group(1) @binding(6) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
+//@group(1) @binding(7) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
 
 //@group(2) @binding(0) var<storage, read> objectData: array<ObjectData>;
 @group(2) @binding(0) var<uniform> objectData: ObjectData;
@@ -157,8 +157,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     const MAX_REFLECTION_LOD = 4.0;
 //    let prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
     let prefilteredColor = vec3(0.5, 0.5, 0.5);
-//    let envBRDF = textureSample(brdfLUT, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    let envBRDF = vec2f(1, 0);
+    let envBRDF = textureSample(brdfLUTTexture, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     let ambient = (kD * diffuse + specular) * ao;
