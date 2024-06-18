@@ -12,14 +12,23 @@ add_executable(
         PackageGLTF/tinygltfImpl.cpp
         PackageGLTF/texturePacker.cpp
 )
-
 target_precompile_headers(TestTool REUSE_FROM GameEngine)
-
 target_link_libraries(TestTool PRIVATE GameEngine)
-
 target_include_directories(
         TestTool PUBLIC
         ../GameEngine/src
 
         ../Dependencies/tinygltf/include
+)
+
+add_executable(
+        CalculateBRDF
+
+        CalculateBRDF/main.cpp
+)
+target_precompile_headers(CalculateBRDF REUSE_FROM GameEngine)
+target_link_libraries(CalculateBRDF PRIVATE GameEngine)
+target_include_directories(
+        CalculateBRDF PUBLIC
+        ../GameEngine/src
 )
