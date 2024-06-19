@@ -24,7 +24,7 @@ struct ObjectData {
 @group(1) @binding(2) var albedoTexture: texture_2d<f32>;
 @group(1) @binding(3) var normalTexture: texture_2d<f32>;
 @group(1) @binding(4) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
-//@group(1) @binding(5) var emissionTexture: texture_2d<f32>;
+@group(1) @binding(5) var emissiveTexture: texture_2d<f32>;
 //@group(1) @binding(6) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
 //@group(1) @binding(7) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
 
@@ -78,8 +78,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 //    let albedo: vec3f = vec3(0.5, 0, 0);
 //    let albedo: vec3f = vec3(1, 1, 1);
 
-//    let emission = pow(textureSample(emissionTexture, textureSampler, i.uv).rgb, vec3(gamma));
-    let emission: vec3f = vec3(0, 0, 0);
+    let emission = pow(textureSample(emissiveTexture, textureSampler, i.uv).rgb, vec3(gamma));
 
     let occlusionRoughnessMetalic = textureSample(occlusionRoughnessMetalicTexture, textureSampler, i.uv).rgb;
 //    let occlusionRoughnessMetalic: vec3f = vec3(1, i.roughness, i.metallic);

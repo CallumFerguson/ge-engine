@@ -148,4 +148,33 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     return hasTransparency;
 }
 
+void writeFakeTexture(const uint8_t *data, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
+    auto path = outputFilePath / (name + ".getexture");
+
+    TimingHelper time("packed texture " + name);
+
+    std::ofstream outputFile(path, std::ios::out | std::ios::binary);
+    if (!outputFile) {
+        std::cerr << "Error: Could not open file for writing!" << std::endl;
+        return;
+    }
+
+    outputFile << textureUUID;
+
+    std::string imageType = "png";
+    outputFile.write(imageType.c_str(), imageType.size() + 1);
+
+    bool hasMipLevels = false;
+    outputFile.write(reinterpret_cast<char *>(&hasMipLevels), 1);
+
+    stbi_write_png_to_func(writeImageDataToFile, &outputFile, 1, 1, 4, data, 4);
+
+    uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+    outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+
+    outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+
+    s_stbImageWriteBuffer.clear();
+}
+
 }

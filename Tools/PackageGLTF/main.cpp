@@ -87,6 +87,8 @@ int main(int argc, char *argv[]) {
     for (const auto &imageId: model.images) {
         GameEngine::AssetManager::createAsset<GameEngine::Texture>();
     }
+    size_t nextFreeTextureIndex = model.images.size();
+    int fakeEmissiveTextureIndex = -1;
 
     for (const auto &materialsId: model.materials) {
         GameEngine::AssetManager::createAsset<GameEngine::Material>();
@@ -186,7 +188,43 @@ int main(int argc, char *argv[]) {
 
         int occlusionRoughnessMetallicTextureIndex = occlusionTextureIndex;
 
+        int emissiveTextureIndex = material.emissiveTexture.index;
+        if (emissiveTextureIndex == -1) {
+            if (fakeEmissiveTextureIndex == -1) {
+                fakeEmissiveTextureIndex = static_cast<int>(nextFreeTextureIndex);
+                nextFreeTextureIndex++;
+                savedTextures.insert(fakeEmissiveTextureIndex);
+
+                GameEngine::AssetManager::createAsset<GameEngine::Texture>();
+
+                std::string textureName = "texture_" + std::to_string(fakeEmissiveTextureIndex);
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(fakeEmissiveTextureIndex).assetUUID();
+                const uint8_t data[4] = {0, 0, 0, 1};
+                GameEngineTools::writeFakeTexture(data, textureName, outputFilePath, uuid);
+            }
+            emissiveTextureIndex = fakeEmissiveTextureIndex;
+        }
+
         std::unordered_map<int, bool> textureHasTransparency;
+
+        auto writeTextureIfNeeded = [&](int textureIndex) {
+            if (!savedTextures.contains(textureIndex)) {
+                savedTextures.insert(textureIndex);
+
+                auto &texture = model.textures[textureIndex];
+                auto &image = model.images[texture.source];
+
+                std::string textureName = texture.name;
+                if (textureName.empty() || usedTextureNames.contains(textureName)) {
+                    textureName = "texture_" + std::to_string(textureIndex);
+                }
+                usedTextureNames.insert(textureName);
+
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
+                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
+                textureHasTransparency[textureIndex] = hasTransparency;
+            }
+        };
 
         if (!savedMaterials.contains(primitive.material)) {
             savedMaterials.insert(node.mesh);
@@ -195,55 +233,16 @@ int main(int argc, char *argv[]) {
             texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[albedoTextureIndex].source).assetUUID());
             texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[normalTextureIndex].source).assetUUID());
             texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[occlusionRoughnessMetallicTextureIndex].source).assetUUID());
-
-            if (!savedTextures.contains(albedoTextureIndex)) {
-                savedTextures.insert(albedoTextureIndex);
-
-                auto &texture = model.textures[albedoTextureIndex];
-                auto &image = model.images[texture.source];
-
-                std::string textureName = texture.name;
-                if (textureName.empty() || usedTextureNames.contains(textureName)) {
-                    textureName = "texture_" + std::to_string(albedoTextureIndex);
-                }
-                usedTextureNames.insert(textureName);
-
-                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
-                textureHasTransparency[albedoTextureIndex] = hasTransparency;
+            if (emissiveTextureIndex < model.textures.size()) {
+                texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[emissiveTextureIndex].source).assetUUID());
+            } else {
+                texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(emissiveTextureIndex).assetUUID());
             }
 
-            if (!savedTextures.contains(normalTextureIndex)) {
-                savedTextures.insert(normalTextureIndex);
-
-                auto &texture = model.textures[normalTextureIndex];
-                auto &image = model.images[texture.source];
-
-                std::string textureName = texture.name;
-                if (textureName.empty() || usedTextureNames.contains(textureName)) {
-                    textureName = "texture_" + std::to_string(normalTextureIndex);
-                }
-                usedTextureNames.insert(textureName);
-
-                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
-            }
-
-            if (!savedTextures.contains(occlusionRoughnessMetallicTextureIndex)) {
-                savedTextures.insert(occlusionRoughnessMetallicTextureIndex);
-
-                auto &texture = model.textures[occlusionRoughnessMetallicTextureIndex];
-                auto &image = model.images[texture.source];
-
-                std::string textureName = texture.name;
-                if (textureName.empty() || usedTextureNames.contains(textureName)) {
-                    textureName = "texture_" + std::to_string(occlusionRoughnessMetallicTextureIndex);
-                }
-                usedTextureNames.insert(textureName);
-
-                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
-            }
+            writeTextureIfNeeded(albedoTextureIndex);
+            writeTextureIfNeeded(normalTextureIndex);
+            writeTextureIfNeeded(occlusionRoughnessMetallicTextureIndex);
+            writeTextureIfNeeded(emissiveTextureIndex);
 
             std::string materialName = material.name;
             if (materialName.empty() || usedMaterialNames.contains(materialName)) {
