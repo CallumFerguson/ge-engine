@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
 
                 std::string textureName = "texture_" + std::to_string(fakeEmissiveTextureIndex);
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(fakeEmissiveTextureIndex).assetUUID();
-                const uint8_t data[4] = {0, 0, 0, 1};
+                const uint8_t data[4] = {0, 0, 0, 255};
                 GameEngineTools::writeFakeTexture(data, textureName, outputFilePath, uuid);
             }
             emissiveTextureIndex = fakeEmissiveTextureIndex;
