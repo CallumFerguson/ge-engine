@@ -78,11 +78,28 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
 
             ImGui::DragFloat3("local position", &transform.localPosition[0], 0.1f);
 
-            glm::vec3 eulerRotation = glm::eulerAngles(transform.localRotation);
-            eulerRotation = glm::degrees(eulerRotation);  // Convert to degrees for easier manipulation
-            if (ImGui::DragFloat3("local rotation", &eulerRotation[0], 0.1f)) {
-                eulerRotation = glm::radians(eulerRotation);  // Convert back to radians
-                transform.localRotation = glm::quat(eulerRotation);
+            static float s_floats[3] = {0, 0, 0};
+            static float s_previousFloats[3] = {0, 0, 0};
+            if (ImGui::DragFloat3("local rotation", s_floats, 0.1f)) {
+                float floatsDelta[3];
+                for (int i = 0; i < 3; i++) {
+                    floatsDelta[i] = s_floats[i] - s_previousFloats[i];
+                }
+
+                transform.localRotation *= glm::angleAxis(glm::radians(floatsDelta[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+                transform.localRotation *= glm::angleAxis(glm::radians(floatsDelta[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+                transform.localRotation *= glm::angleAxis(glm::radians(floatsDelta[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+            }
+            for (int i = 0; i < 3; i++) {
+                s_previousFloats[i] = s_floats[i];
+            }
+            if (!ImGui::IsItemActive()) {
+                glm::vec3 eulerRotation = glm::eulerAngles(transform.localRotation);
+                eulerRotation = glm::degrees(eulerRotation);
+
+                for (int i = 0; i < 3; i++) {
+                    s_floats[i] = eulerRotation[i];
+                }
             }
 
             ImGui::DragFloat3("local scale", &transform.localScale[0], 0.1f);
