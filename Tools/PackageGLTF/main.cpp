@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -94,9 +95,34 @@ int main(int argc, char *argv[]) {
     GameEngine::Scene scene;
     std::vector<GameEngine::Entity> entities;
 
+    std::unordered_set<std::string> usedTextureNames;
+    std::unordered_set<std::string> usedMaterialNames;
+    std::unordered_set<std::string> usedMeshNames;
+
     for (const auto &nodeId: model.scenes[0].nodes) {
         auto &node = model.nodes[nodeId];
-        auto entity = scene.createEntity(node.name);
+        std::string nodeName = node.name;
+        if (nodeName.empty()) {
+            nodeName = "node_" + std::to_string(nodeId);
+        }
+        auto entity = scene.createEntity(nodeName);
+        auto &transform = entity.getComponent<GameEngine::TransformComponent>();
+
+        for (auto i = 0; i < node.translation.size(); i++) {
+            transform.localPosition[i] = static_cast<float>(node.translation[i]);
+        }
+        for (auto i = 0; i < node.rotation.size(); i++) {
+            transform.localRotation[i] = static_cast<float>(node.rotation[i]);
+        }
+        for (auto i = 0; i < node.scale.size(); i++) {
+            transform.localScale[i] = static_cast<float>(node.scale[i]);
+        }
+
+        if (!node.matrix.empty()) {
+            // TODO: handle node matrix
+            std::cout << "node has transform matrix is not supported yet." << std::endl;
+            return 1;
+        }
 
         auto &mesh = model.meshes[node.mesh];
 
@@ -115,7 +141,12 @@ int main(int argc, char *argv[]) {
 
         if (!savedMeshes.contains(node.mesh)) {
             savedMeshes.insert(node.mesh);
-            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, mesh.name, outputFilePath.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
+            std::string meshName = mesh.name;
+            if (meshName.empty() || usedMeshNames.contains(meshName)) {
+                meshName = "mesh_" + std::to_string(node.mesh);
+            }
+            usedMeshNames.insert(meshName);
+            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, meshName, outputFilePath.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
         }
 
         auto &renderer = entity.addComponent<GameEngine::PBRRendererComponent>(false);
@@ -171,8 +202,14 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[albedoTextureIndex];
                 auto &image = model.images[texture.source];
 
+                std::string textureName = texture.name;
+                if (textureName.empty() || usedTextureNames.contains(textureName)) {
+                    textureName = "texture_" + std::to_string(albedoTextureIndex);
+                }
+                usedTextureNames.insert(textureName);
+
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
+                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
                 textureHasTransparency[albedoTextureIndex] = hasTransparency;
             }
 
@@ -182,8 +219,14 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[normalTextureIndex];
                 auto &image = model.images[texture.source];
 
+                std::string textureName = texture.name;
+                if (textureName.empty() || usedTextureNames.contains(textureName)) {
+                    textureName = "texture_" + std::to_string(normalTextureIndex);
+                }
+                usedTextureNames.insert(textureName);
+
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
             }
 
             if (!savedTextures.contains(occlusionRoughnessMetallicTextureIndex)) {
@@ -192,11 +235,22 @@ int main(int argc, char *argv[]) {
                 auto &texture = model.textures[occlusionRoughnessMetallicTextureIndex];
                 auto &image = model.images[texture.source];
 
+                std::string textureName = texture.name;
+                if (textureName.empty() || usedTextureNames.contains(textureName)) {
+                    textureName = "texture_" + std::to_string(occlusionRoughnessMetallicTextureIndex);
+                }
+                usedTextureNames.insert(textureName);
+
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(texture.name), outputFilePath, uuid);
+                GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
             }
 
-            std::ofstream outputFile(outputFilePath / (material.name + ".gematerial"), std::ios::out | std::ios::binary);
+            std::string materialName = material.name;
+            if (materialName.empty() || usedMaterialNames.contains(materialName)) {
+                materialName = "material_" + std::to_string(primitive.material);
+            }
+            usedMaterialNames.insert(materialName);
+            std::ofstream outputFile(outputFilePath / (materialName + ".gematerial"), std::ios::out | std::ios::binary);
             if (!outputFile) {
                 std::cerr << "Error: Could not open file for writing!" << std::endl;
                 return 1;
