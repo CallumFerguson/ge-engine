@@ -46,8 +46,11 @@ void FullscreenTexture::onStart() {
         });
     }
 
-    int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
-    auto& brdfTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(brdfTextureHandle);
+    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/f-texture.png");
+    auto& texture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(textureHandle);
+
+//    int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
+//    auto& brdfTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(brdfTextureHandle);
 
     auto device = GameEngine::WebGPURenderer::device();
 
@@ -60,7 +63,7 @@ void FullscreenTexture::onStart() {
     bindGroupEntries[0].sampler = GameEngine::WebGPURenderer::basicSampler();
 
     bindGroupEntries[1].binding = 1;
-    bindGroupEntries[1].textureView = brdfTexture.cachedTextureView();
+    bindGroupEntries[1].textureView = texture.cachedTextureView();
 
     wgpu::BindGroupDescriptor bindGroupDescriptor = {};
     bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(0);

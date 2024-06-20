@@ -18,8 +18,8 @@ void runSandboxApp() {
     camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
 
-//    auto fullscreen = scene.createEntity("Fullscreen");
-//    fullscreen.addScript<FullscreenTexture>();
+    auto fullscreen = scene.createEntity("Fullscreen");
+    fullscreen.addScript<FullscreenTexture>();
 
 ////    auto unlitShader = std::make_shared<GameEngine::WebGPUShader>("shaders/unlit_color.wgsl");
 ////    auto unlitShaderHandle = GameEngine::AssetManager::loadShader("shaders/unlit_color.wgsl");

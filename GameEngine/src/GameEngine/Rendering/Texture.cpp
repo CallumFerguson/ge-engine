@@ -50,25 +50,47 @@ std::function<void()> foo() {
 }
 
 Texture::Texture(const std::string &assetPath) {
-    auto assetFile = std::make_shared<std::ifstream>(assetPath, std::ios::binary);
+    auto assetFile = std::make_shared<std::ifstream>(assetPath, std::ios::binary | std::ios::ate);
     if (!assetFile) {
         std::cerr << "Error: [Texture] Could not open file " << assetPath << " for reading!" << std::endl;
         return;
     }
 
-    char uuid[37];
-    uuid[36] = '\0';
-    assetFile->read(uuid, 36);
-    m_assetUUID = uuid;
+    std::streamsize fileNumBytes = assetFile->tellg();
+    assetFile->seekg(0, std::ios::beg);
 
     std::string imageType;
-    std::getline(*assetFile, imageType, '\0');
-
     bool hasMipLevels;
-    assetFile->read(reinterpret_cast<char *>(&hasMipLevels), 1);
-
     uint32_t imageNumBytes;
-    assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+
+    std::filesystem::path path = assetPath;
+    std::string extension = path.extension().string();
+    if (extension == ".jpeg") {
+        extension = ".jpg";
+    }
+
+    if (extension == ".getexture") {
+        char uuid[37];
+        uuid[36] = '\0';
+        assetFile->read(uuid, 36);
+        m_assetUUID = uuid;
+
+        std::getline(*assetFile, imageType, '\0');
+
+        assetFile->read(reinterpret_cast<char *>(&hasMipLevels), 1);
+
+        assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+    } else {
+        m_assetUUID = Random::uuid();
+        imageType = extension.substr(1);
+        hasMipLevels = false;
+        imageNumBytes = fileNumBytes;
+    }
+
+    if (imageType != "png" && imageType != "jpg") {
+        std::cout << "Texture unsupported type " << imageType << std::endl;
+        return;
+    }
 
     std::vector<uint8_t> imageData(imageNumBytes);
     assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);

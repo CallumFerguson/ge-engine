@@ -32,3 +32,15 @@ target_include_directories(
         CalculateBRDF PUBLIC
         ../GameEngine/src
 )
+
+add_executable(
+        PackageHDRI
+
+        PackageHDRI/main.cpp
+)
+target_precompile_headers(PackageHDRI REUSE_FROM GameEngine)
+target_link_libraries(PackageHDRI PRIVATE GameEngine)
+target_include_directories(
+        PackageHDRI PUBLIC
+        ../GameEngine/src
+)
