@@ -88,26 +88,37 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
         const texture = JsValStore.get(textureJsHandle);
 
         const imageTypeString = UTF8ToString(imageType);
-        let type = undefined;
-        if(imageTypeString === "jpg") {
-            type = "image/jpeg";
-        } else if(imageTypeString == "png") {
-            type = "image/png";
+
+        if(imageTypeString === "hdr") {
+            const imageData = parseHDR(HEAPU8.subarray(data, data + size));
+            device.queue.writeTexture(
+                { texture },
+                imageData.data.buffer,
+                { bytesPerRow: imageData.width * 8 },
+                { width: imageData.width, height: imageData.height }
+            );
         } else {
-            console.log("Unknown imageType: " + imageTypeString);
+            let type = undefined;
+            if(imageTypeString === "jpg") {
+                type = "image/jpeg";
+            } else if(imageTypeString == "png") {
+                type = "image/png";
+            } else {
+                console.log("Unknown imageType: " + imageTypeString);
+            }
+
+            const blob = new Blob([HEAPU8.subarray(data, data + size)], {
+                type: type
+            });
+
+            const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
+
+            device.queue.copyExternalImageToTexture(
+                    {source: imageBitmap, flipY: false},
+                    {texture, mipLevel},
+                    {width: imageBitmap.width, height: imageBitmap.height}
+            );
         }
-
-        const blob = new Blob([HEAPU8.subarray(data, data + size)], {
-            type: type
-        });
-
-        const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
-
-        device.queue.copyExternalImageToTexture(
-            {source: imageBitmap, flipY: false},
-            {texture, mipLevel},
-            {width: imageBitmap.width, height: imageBitmap.height}
-        );
 
         JsValStore.remove(deviceJsHandle);
         Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
