@@ -3,13 +3,10 @@
 #include <unordered_set>
 #include <vector>
 #include <stb_image.h>
-#include <half.hpp>
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "Backends/WebGPU/generateMipmapWebGPU.hpp"
 #include "../Utility/TimingHelper.hpp"
-
-using half_float::half;
 
 #ifdef __EMSCRIPTEN__
 
@@ -18,7 +15,10 @@ using half_float::half;
 #else
 
 #include <mutex>
+#include <half.hpp>
 #include "../Utility/ThreadPool.hpp"
+
+using half_float::half;
 
 #endif
 

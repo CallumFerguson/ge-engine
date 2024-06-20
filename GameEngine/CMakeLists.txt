@@ -85,7 +85,6 @@ target_include_directories(
         ../Dependencies/nlohmannjson/include
         ../Dependencies/nlohmannjson/include/nlohmann # since tinygltf attempts to include json.hpp, not nlohmann/json.hpp
         ../Dependencies/stb/include
-        ../Dependencies/half/include
 )
 
 if (NOT EMSCRIPTEN)
@@ -95,6 +94,11 @@ if (NOT EMSCRIPTEN)
     target_include_directories(
             GameEngine PUBLIC
             ../dawn/third_party/glfw/include
+    )
+
+    target_include_directories(
+            GameEngine PUBLIC
+            ../Dependencies/half/include
     )
 endif ()
 
