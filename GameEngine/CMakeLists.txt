@@ -41,6 +41,7 @@ add_library(
         src/GameEngine/Rendering/Mesh.cpp
         src/GameEngine/Rendering/Material.cpp
         src/GameEngine/Rendering/Texture.cpp
+        src/GameEngine/Rendering/CubeMap.cpp
 
         ../Dependencies/imgui/src/imgui.cpp
         ../Dependencies/imgui/src/imgui_demo.cpp

@@ -39,6 +39,8 @@ struct ImageResultMipLevel {
 struct ImageResult {
     std::vector<ImageResultMipLevel> mipLevels;
     wgpu::Texture texture;
+    std::weak_ptr<bool> ready;
+    std::weak_ptr<std::function<void()>> readyCallback;
 };
 
 static std::mutex s_stbiImagesMutex;
@@ -131,9 +133,21 @@ Texture::Texture(const std::string &assetPath) {
         }
     }
 #else
-    ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture, hasMipLevels, imageType = std::move(imageType)]() mutable {
+    std::weak_ptr<bool> ready = m_ready;
+    std::weak_ptr<std::function<void()>> readyCallback = m_readyCallback;
+    ThreadPool::instance().queueJob([
+                                            assetFile = std::move(assetFile),
+                                            imageData = std::move(imageData),
+                                            texture = m_texture,
+                                            hasMipLevels,
+                                            imageType = std::move(imageType),
+                                            ready = std::move(ready),
+                                            readyCallback = std::move(readyCallback)
+                                    ]() mutable {
         ImageResult imageResult;
         imageResult.texture = std::move(texture);
+        imageResult.ready = std::move(ready);
+        imageResult.readyCallback = std::move(readyCallback);
 
         uint32_t numLevels;
         {
@@ -225,7 +239,15 @@ void Texture::writeTextures() {
                 device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels * channelByteSize, &dataLayout, &size);
                 stbi_image_free(mipLevel.image);
             }
-
+        }
+        if (auto ready = imageResult.ready.lock()) {
+            *ready = true;
+        }
+        if (auto readyCallback = imageResult.readyCallback.lock()) {
+            auto func = *readyCallback;
+            if (func) {
+                func();
+            }
         }
     }
     s_imageResults.clear();
@@ -237,6 +259,14 @@ wgpu::TextureView &Texture::cachedTextureView() {
         m_textureView = m_texture.CreateView();
     }
     return m_textureView;
+}
+
+bool Texture::ready() {
+    return *m_ready;
+}
+
+void Texture::setReadyCallback(std::function<void()> readyCallback) {
+    *m_readyCallback = std::move(readyCallback);
 }
 
 }

@@ -49,6 +49,16 @@ void FullscreenTexture::onStart() {
     int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/test.hdr");
     auto& texture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(textureHandle);
 
+    if(texture.ready()) {
+        std::cout << "ready" << std::endl;
+    } else {
+        std::cout << "not ready" << std::endl;
+    }
+
+    texture.setReadyCallback([]() {
+        std::cout << "ready" << std::endl;
+    });
+
 //    int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
 //    auto& brdfTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(brdfTextureHandle);
 
