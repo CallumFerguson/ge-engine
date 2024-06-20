@@ -61,24 +61,13 @@ target_include_directories(
         ../GameEngine/src
 )
 
-function(copy_file_relative NEW_TARGET_NAME PATH TARGET)
-    set(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/webBuildStuff/${PATH})
-    set(DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/dist/${PATH})
-
-    add_custom_command(
-            OUTPUT ${DESTINATION}
-            COMMAND ${CMAKE_COMMAND} -E copy ${SOURCE} ${DESTINATION}
-            DEPENDS ${SOURCE}
-            COMMENT "Copying ${NEW_TARGET_NAME}..."
-    )
-
-    add_custom_target(${NEW_TARGET_NAME} ALL DEPENDS ${DESTINATION})
-    add_dependencies(${TARGET} ${NEW_TARGET_NAME})
-endfunction()
+include(${CMAKE_SOURCE_DIR}/cmake/copyFileRelative.cmake)
 
 if (EMSCRIPTEN)
-    copy_file_relative(index_html index.html Sandbox)
-    copy_file_relative(favicon_ico favicon.ico Sandbox)
+    copy_file_relative(index_html SandBox/webBuildStuff index.html Sandbox)
+    copy_file_relative(favicon_ico SandBox/webBuildStuff favicon.ico Sandbox)
+    copy_file_relative(emscripten_utility_js GameEngine/src/GameEngine/Utility emscriptenUtility.js GameEngine)
+    copy_file_relative(parse_hdr_worker_js GameEngine/src/GameEngine/Utility parseHDRWorker.js GameEngine)
 
     if (NOT EMSDK_PATH)
         message(FATAL_ERROR "Please specify the path to emsdk using the EMSDK_PATH variable.")

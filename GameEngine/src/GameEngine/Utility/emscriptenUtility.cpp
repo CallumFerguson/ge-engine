@@ -90,7 +90,19 @@ EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle
         const imageTypeString = UTF8ToString(imageType);
 
         if(imageTypeString === "hdr") {
-            const imageData = parseHDR(HEAPU8.subarray(data, data + size));
+            const imageData = await new Promise((resolve, reject) => {
+                const worker = new Worker('parseHDRWorker.js');
+
+                worker.postMessage(HEAPU8.subarray(data, data + size));
+
+                worker.onmessage = function(event) {
+                    resolve(event.data);
+                };
+
+                worker.onerror = function(error) {
+                    reject(error);
+                };
+            });
             device.queue.writeTexture(
                 { texture },
                 imageData.data.buffer,

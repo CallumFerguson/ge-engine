@@ -1,7 +1,5 @@
-// whole file from https://github.com/tchayen/pbr-webgpu/blob/main/src/lib/parseHDR.ts
-
+// from https://github.com/tchayen/pbr-webgpu/blob/main/src/lib/parseHDR.ts
 // Based on https://github.com/vorg/parse-hdr
-
 // https://stackoverflow.com/questions/32633585/how-do-you-convert-to-half-floats-in-javascript
 const floatView = new Float32Array(1);
 const int32View = new Int32Array(floatView.buffer);

@@ -71,7 +71,6 @@ if (EMSCRIPTEN)
             -sEXIT_RUNTIME
             -sEXPORTED_FUNCTIONS=_main,_copyExternalImageToTextureFinishCallback
             -sEXPORTED_RUNTIME_METHODS=ccall
-            --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/src/GameEngine/Utility/emscriptenUtility.js
     )
 endif ()
 
