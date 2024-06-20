@@ -4,7 +4,10 @@
 #include <vector>
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include <half.hpp>
 #include "GameEngine.hpp"
+
+using half_float::half;
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -22,25 +25,18 @@ int main(int argc, char *argv[]) {
 //    auto device = GameEngine::WebGPURenderer::device();
 
     int width, height, channelsInFile;
-    float *imageData = stbi_loadf(inputFilePath.string().c_str(), &width, &height, &channelsInFile, 4);
-    if (!imageData) {
+    float *floatImage = stbi_loadf(inputFilePath.string().c_str(), &width, &height, &channelsInFile, 4);
+    if (!floatImage) {
         std::cout << "could not load image" << std::endl;
         return 1;
     }
 
-    stbi_image_free(imageData);
-
-    unsigned char *ldrData = new unsigned char[width * height * 4];
-    for (int i = 0; i < width * height * 4; ++i) {
-        // Simple tone mapping and gamma correction
-        float mappedValue = imageData[i] / (imageData[i] + 1.0f); // tone mapping
-        mappedValue = powf(mappedValue, 1.0f / 2.2f); // gamma correction
-        ldrData[i] = static_cast<unsigned char>(mappedValue * 255.0f);
+    // float image is twice the size needed for the image as halfs, so just reuse the memory allocated by stb
+    for (int i = 0; i < width * height * 4; i++) {
+        reinterpret_cast<half *>(floatImage)[i] = floatImage[i];
     }
 
-    std::cout << width << std::endl;
-    std::cout << height << std::endl;
-    std::cout << channelsInFile << std::endl;
+    std::cout << reinterpret_cast<half *>(floatImage)[0] << std::endl;
 
-    stbi_write_png(outputFilePath.string().c_str(), width, height, 4, ldrData, width * 4);
+    stbi_image_free(floatImage);
 }
