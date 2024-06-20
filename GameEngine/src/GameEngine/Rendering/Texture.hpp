@@ -24,17 +24,14 @@ public:
 
     void setReadyCallback(std::function<void()> readyCallback);
 
+    static void setTextureReady(int readyStateIndex);
+
 private:
     wgpu::Texture m_texture;
 
     wgpu::TextureView m_textureView;
 
-    // use pointer so ready can be set after construction even if Texture has moved
-    // texture write finish will keep a weak ref to m_ready
-    std::shared_ptr<bool> m_ready = std::make_shared<bool>(false);
-    std::shared_ptr<std::function<void()>> m_readyCallback = std::make_shared<std::function<void()>>(nullptr);
-
-//    int m_readyStateIndex = -1;
+    size_t m_readyStateIndex = -1;
 };
 
 }

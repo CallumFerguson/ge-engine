@@ -5,7 +5,8 @@ function copyExternalImageToTexture(
   size,
   shouldGenerateMipmap,
   mipLevel,
-  imageType
+  imageType,
+  readyStateIndex
 ) {
   const copyExternalImageToTextureAsync = async () => {
     const device = JsValStore.get(deviceJsHandle);
@@ -62,8 +63,8 @@ function copyExternalImageToTexture(
     Module.ccall(
       "copyExternalImageToTextureFinishCallback",
       null,
-      ["number", "boolean"],
-      [textureJsHandle, shouldGenerateMipmap]
+      ["number", "boolean", "number"],
+      [textureJsHandle, shouldGenerateMipmap, readyStateIndex]
     );
   };
   copyExternalImageToTextureAsync();
@@ -74,7 +75,8 @@ function copyExternalImageToTextureFromURL(
   textureJsHandle,
   url,
   shouldGenerateMipmap,
-  mipLevel
+  mipLevel,
+  readyStateIndex
 ) {
   const copyExternalImageToTextureFromURLAsync = async () => {
     const device = JsValStore.get(deviceJsHandle);
@@ -96,8 +98,8 @@ function copyExternalImageToTextureFromURL(
     Module.ccall(
       "copyExternalImageToTextureFinishCallback",
       null,
-      ["number", "boolean"],
-      [textureJsHandle, shouldGenerateMipmap]
+      ["number", "boolean", "number"],
+      [textureJsHandle, shouldGenerateMipmap, readyStateIndex]
     );
   };
   copyExternalImageToTextureFromURLAsync();

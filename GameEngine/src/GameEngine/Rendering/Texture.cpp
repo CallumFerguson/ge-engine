@@ -39,13 +39,19 @@ struct ImageResultMipLevel {
 struct ImageResult {
     std::vector<ImageResultMipLevel> mipLevels;
     wgpu::Texture texture;
-    std::weak_ptr<bool> ready;
-    std::weak_ptr<std::function<void()>> readyCallback;
+    size_t readyStateIndex;
 };
 
 static std::mutex s_stbiImagesMutex;
 static std::vector<ImageResult> s_imageResults;
 #endif
+
+struct TextureReadyState {
+    bool ready;
+    std::function<void()> readyCallback;
+};
+
+static std::vector<TextureReadyState> s_textureReadyStates;
 
 Texture::Texture() : Asset(Random::uuid()) {}
 
@@ -119,8 +125,11 @@ Texture::Texture(const std::string &assetPath) {
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
 
+    m_readyStateIndex = s_textureReadyStates.size();
+    s_textureReadyStates.push_back({false, nullptr});
+
 #ifdef __EMSCRIPTEN__
-    writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0, imageType);
+    writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0, imageType, static_cast<int>(m_readyStateIndex));
 
     if (hasMipLevels) {
         uint32_t numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
@@ -129,25 +138,21 @@ Texture::Texture(const std::string &assetPath) {
 
             assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
 
-            writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType);
+            writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType, static_cast<int>(m_readyStateIndex));
         }
     }
 #else
-    std::weak_ptr<bool> ready = m_ready;
-    std::weak_ptr<std::function<void()>> readyCallback = m_readyCallback;
     ThreadPool::instance().queueJob([
                                             assetFile = std::move(assetFile),
                                             imageData = std::move(imageData),
                                             texture = m_texture,
                                             hasMipLevels,
                                             imageType = std::move(imageType),
-                                            ready = std::move(ready),
-                                            readyCallback = std::move(readyCallback)
+                                            readyStateIndex = m_readyStateIndex
                                     ]() mutable {
         ImageResult imageResult;
         imageResult.texture = std::move(texture);
-        imageResult.ready = std::move(ready);
-        imageResult.readyCallback = std::move(readyCallback);
+        imageResult.readyStateIndex = readyStateIndex;
 
         uint32_t numLevels;
         {
@@ -240,15 +245,7 @@ void Texture::writeTextures() {
                 stbi_image_free(mipLevel.image);
             }
         }
-        if (auto ready = imageResult.ready.lock()) {
-            *ready = true;
-        }
-        if (auto readyCallback = imageResult.readyCallback.lock()) {
-            auto func = *readyCallback;
-            if (func) {
-                func();
-            }
-        }
+        setTextureReady(static_cast<int>(imageResult.readyStateIndex));
     }
     s_imageResults.clear();
 #endif
@@ -262,11 +259,22 @@ wgpu::TextureView &Texture::cachedTextureView() {
 }
 
 bool Texture::ready() {
-    return *m_ready;
+    return s_textureReadyStates[m_readyStateIndex].ready;
 }
 
 void Texture::setReadyCallback(std::function<void()> readyCallback) {
-    *m_readyCallback = std::move(readyCallback);
+    s_textureReadyStates[m_readyStateIndex].readyCallback = std::move(readyCallback);
+    if (s_textureReadyStates[m_readyStateIndex].ready) {
+        s_textureReadyStates[m_readyStateIndex].readyCallback();
+    }
+}
+
+void Texture::setTextureReady(int readyStateIndex) {
+    auto &readyState = s_textureReadyStates[readyStateIndex];
+    readyState.ready = true;
+    if (readyState.readyCallback) {
+        readyState.readyCallback();
+    }
 }
 
 }

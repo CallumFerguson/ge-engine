@@ -5,6 +5,7 @@
 #include <emscripten/html5_webgpu.h>
 #include "../Rendering/Backends/WebGPU/generateMipmapWebGPU.hpp"
 #include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
+#include "../Rendering/Texture.hpp"
 
 namespace GameEngine {
 
@@ -72,12 +73,13 @@ void resetCanvas() {
 // functions that js calls
 extern "C" {
 
-void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGenerateMipmap) {
+void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGenerateMipmap, int readyStateIndex) {
     wgpu::Texture texture = wgpu::Texture::Acquire(emscripten_webgpu_import_texture(textureJsHandle));
     emscripten_webgpu_release_js_handle(textureJsHandle);
     if (shouldGenerateMipmap) {
         generateMipmap(WebGPURenderer::device(), texture);
     }
+    Texture::setTextureReady(readyStateIndex);
 }
 
 }
@@ -85,22 +87,23 @@ void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGe
 // js functions
 extern "C" {
 
-extern void copyExternalImageToTexture(int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel, const char *imageType);
+extern void copyExternalImageToTexture(int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel, const char *imageType, int readyStateIndex);
 
-extern void copyExternalImageToTextureFromURL(int deviceJsHandle, int textureJsHandle, const char *url, bool shouldGenerateMipmap, int mipLevel);
+extern void copyExternalImageToTextureFromURL(int deviceJsHandle, int textureJsHandle, const char *url, bool shouldGenerateMipmap, int mipLevel, int readyStateIndex);
 
 }
 
-void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel, const std::string &imageType) {
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel, const std::string &imageType,
+                         int readyStateIndex) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
-    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data, dataSize, shouldGenerateMipmap, mipLevel, imageType.c_str());
+    copyExternalImageToTexture(deviceJsHandle, textureJsHandle, data, dataSize, shouldGenerateMipmap, mipLevel, imageType.c_str(), readyStateIndex);
 }
 
-void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::string &url, bool shouldGenerateMipmap, int mipLevel) {
+void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const std::string &url, bool shouldGenerateMipmap, int mipLevel, int readyStateIndex) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());
     int textureJsHandle = emscripten_webgpu_export_texture(texture.Get());
-    copyExternalImageToTextureFromURL(deviceJsHandle, textureJsHandle, url.c_str(), shouldGenerateMipmap, mipLevel);
+    copyExternalImageToTextureFromURL(deviceJsHandle, textureJsHandle, url.c_str(), shouldGenerateMipmap, mipLevel, readyStateIndex);
 }
 
 }
