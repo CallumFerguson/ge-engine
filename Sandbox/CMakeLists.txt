@@ -33,10 +33,9 @@ if (EMSCRIPTEN)
             -sALLOW_MEMORY_GROWTH
             -sNO_DISABLE_EXCEPTION_CATCHING # probably turn off for release build?
             -sASSERTIONS
-            #            -sEXPORTED_FUNCTIONS=_main,_writeTextureCallback
-            #            -sEXPORTED_RUNTIME_METHODS=ccall
             -O2
     )
+    set_target_properties(Sandbox PROPERTIES LINK_DEPENDS ${CMAKE_SOURCE_DIR}/GameEngine/src/GameEngine/Utility/emscriptenUtility.js)
     target_compile_options(
             Sandbox PRIVATE
             -O2
@@ -66,7 +65,6 @@ include(${CMAKE_SOURCE_DIR}/cmake/copyFileRelative.cmake)
 if (EMSCRIPTEN)
     copy_file_relative(index_html SandBox/webBuildStuff index.html Sandbox)
     copy_file_relative(favicon_ico SandBox/webBuildStuff favicon.ico Sandbox)
-    copy_file_relative(emscripten_utility_js GameEngine/src/GameEngine/Utility emscriptenUtility.js GameEngine)
     copy_file_relative(parse_hdr_worker_js GameEngine/src/GameEngine/Utility parseHDRWorker.js GameEngine)
 
     if (NOT EMSDK_PATH)

@@ -69,6 +69,7 @@ void resetCanvas() {
 }
 // @formatter:on
 
+// functions that js calls
 extern "C" {
 
 void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGenerateMipmap) {
@@ -81,84 +82,14 @@ void copyExternalImageToTextureFinishCallback(int textureJsHandle, bool shouldGe
 
 }
 
-// @formatter:off
-EM_JS(void, copyExternalImageToTexture, (int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel, const char* imageType), {
-    (async () => {
-        const device = JsValStore.get(deviceJsHandle);
-        const texture = JsValStore.get(textureJsHandle);
+// js functions
+extern "C" {
 
-        const imageTypeString = UTF8ToString(imageType);
+extern void copyExternalImageToTexture(int deviceJsHandle, int textureJsHandle, const uint8_t *data, int size, bool shouldGenerateMipmap, int mipLevel, const char *imageType);
 
-        if(imageTypeString === "hdr") {
-            const imageData = await new Promise((resolve, reject) => {
-                const worker = new Worker('parseHDRWorker.js');
+extern void copyExternalImageToTextureFromURL(int deviceJsHandle, int textureJsHandle, const char *url, bool shouldGenerateMipmap, int mipLevel);
 
-                worker.postMessage(HEAPU8.subarray(data, data + size));
-
-                worker.onmessage = function(event) {
-                    resolve(event.data);
-                };
-
-                worker.onerror = function(error) {
-                    reject(error);
-                };
-            });
-            device.queue.writeTexture(
-                { texture },
-                imageData.data.buffer,
-                { bytesPerRow: imageData.width * 8 },
-                { width: imageData.width, height: imageData.height }
-            );
-        } else {
-            let type = undefined;
-            if(imageTypeString === "jpg") {
-                type = "image/jpeg";
-            } else if(imageTypeString == "png") {
-                type = "image/png";
-            } else {
-                console.log("Unknown imageType: " + imageTypeString);
-            }
-
-            const blob = new Blob([HEAPU8.subarray(data, data + size)], {
-                type: type
-            });
-
-            const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
-
-            device.queue.copyExternalImageToTexture(
-                    {source: imageBitmap, flipY: false},
-                    {texture, mipLevel},
-                    {width: imageBitmap.width, height: imageBitmap.height}
-            );
-        }
-
-        JsValStore.remove(deviceJsHandle);
-        Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
-    })();
-});
-// @formatter:on
-
-// @formatter:off
-EM_JS(void, copyExternalImageToTextureFromURL, (int deviceJsHandle, int textureJsHandle, const char* url, bool shouldGenerateMipmap, int mipLevel), {
-    (async () => {
-            const device = JsValStore.get(deviceJsHandle);
-            const texture = JsValStore.get(textureJsHandle);
-
-            const res = await fetch(UTF8ToString(url));
-            const blob = await res.blob();
-            const imageBitmap = await createImageBitmap(blob, {colorSpaceConversion: "none"});
-
-            device.queue.copyExternalImageToTexture(
-                {source: imageBitmap, flipY: false},
-                {texture, mipLevel},
-                {width: imageBitmap.width, height: imageBitmap.height}
-            );
-
-            JsValStore.remove(deviceJsHandle);
-            Module.ccall("copyExternalImageToTextureFinishCallback", null, ["number", "boolean"], [textureJsHandle, shouldGenerateMipmap]);
-    })();
-});
-// @formatter:on
+}
 
 void writeTextureJSAsync(const wgpu::Device &device, const wgpu::Texture &texture, const uint8_t *data, int dataSize, bool shouldGenerateMipmap, int mipLevel, const std::string &imageType) {
     int deviceJsHandle = emscripten_webgpu_export_device(device.Get());

@@ -71,7 +71,9 @@ if (EMSCRIPTEN)
             -sEXIT_RUNTIME
             -sEXPORTED_FUNCTIONS=_main,_copyExternalImageToTextureFinishCallback
             -sEXPORTED_RUNTIME_METHODS=ccall
+            --js-library ${CMAKE_CURRENT_SOURCE_DIR}/src/GameEngine/Utility/emscriptenUtility.js
     )
+    set_target_properties(GameEngine PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/GameEngine/Utility/emscriptenUtility.js)
 endif ()
 
 target_precompile_headers(GameEngine PRIVATE src/gepch.hpp)
