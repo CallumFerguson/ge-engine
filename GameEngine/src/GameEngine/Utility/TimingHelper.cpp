@@ -18,6 +18,8 @@ void TimingHelper::stop() {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(end - m_start).count();
     if (duration >= m_thresholdMS) {
-        std::cout << "Timing [" << m_name << "]: " << std::fixed << std::setprecision(3) << duration << "ms" << std::endl;
+        std::ostringstream oss;
+        oss << "Timing [" << m_name << "]: " << std::fixed << std::setprecision(3) << duration << "ms";
+        std::cout << oss.str() << std::endl;
     }
 }

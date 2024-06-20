@@ -1,10 +1,15 @@
 #include "Texture.hpp"
 
+#include <unordered_set>
 #include <vector>
 #include <stb_image.h>
+#include <half.hpp>
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "Backends/WebGPU/generateMipmapWebGPU.hpp"
+#include "../Utility/TimingHelper.hpp"
+
+using half_float::half;
 
 #ifdef __EMSCRIPTEN__
 
@@ -19,12 +24,13 @@
 
 namespace GameEngine {
 
-const int channels = 4;
+static const int channels = 4;
 
 #ifndef __EMSCRIPTEN__
 
 struct ImageResultMipLevel {
     stbi_uc *image;
+    float *floatImage;
     int width;
     int height;
     int mipLevel;
@@ -56,7 +62,7 @@ Texture::Texture(const std::string &assetPath) {
         return;
     }
 
-    std::streamsize fileNumBytes = assetFile->tellg();
+    uint32_t fileNumBytes = assetFile->tellg();
     assetFile->seekg(0, std::ios::beg);
 
     std::string imageType;
@@ -87,7 +93,8 @@ Texture::Texture(const std::string &assetPath) {
         imageNumBytes = fileNumBytes;
     }
 
-    if (imageType != "png" && imageType != "jpg") {
+    static const std::unordered_set<std::string> supportedFileTypes = {"png", "jpg", "hdr"};
+    if (!supportedFileTypes.contains(imageType)) {
         std::cout << "Texture unsupported type " << imageType << std::endl;
         return;
     }
@@ -106,7 +113,7 @@ Texture::Texture(const std::string &assetPath) {
     wgpu::TextureDescriptor textureDescriptor;
     textureDescriptor.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
     textureDescriptor.mipLevelCount = hasMipLevels ? numMipLevels(textureDescriptor.size) : 1;
-    textureDescriptor.format = wgpu::TextureFormat::RGBA8Unorm;
+    textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
 
@@ -124,20 +131,37 @@ Texture::Texture(const std::string &assetPath) {
         }
     }
 #else
-    ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture, hasMipLevels]() mutable {
+    ThreadPool::instance().queueJob([assetFile = std::move(assetFile), imageData = std::move(imageData), texture = m_texture, hasMipLevels, imageType = std::move(imageType)]() mutable {
         ImageResult imageResult;
         imageResult.texture = std::move(texture);
 
         uint32_t numLevels;
         {
-            int width, height;
-            stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
-            if (image == nullptr) {
-                std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
-                return;
+            if (imageType == "hdr") {
+                int width, height;
+                float *floatImage = stbi_loadf_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
+                if (floatImage == nullptr) {
+                    std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
+                    return;
+                }
+
+                // float image is twice the size needed for the image as halfs, so just reuse the memory allocated by stb
+                for (int i = 0; i < width * height * channels; i++) {
+                    reinterpret_cast<half *>(floatImage)[i] = floatImage[i];
+                }
+
+                imageResult.mipLevels.push_back({nullptr, floatImage, width, height, 0});
+                numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
+            } else {
+                int width, height;
+                stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
+                if (image == nullptr) {
+                    std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
+                    return;
+                }
+                imageResult.mipLevels.push_back({image, nullptr, width, height, 0});
+                numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
             }
-            imageResult.mipLevels.push_back({image, width, height, 0});
-            numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
         }
 
         if (hasMipLevels) {
@@ -154,7 +178,7 @@ Texture::Texture(const std::string &assetPath) {
                     return;
                 }
 
-                imageResult.mipLevels.push_back({image, width, height, static_cast<int>(i)});
+                imageResult.mipLevels.push_back({image, nullptr, width, height, static_cast<int>(i)});
             }
         }
 
@@ -181,19 +205,27 @@ void Texture::writeTextures() {
 
     for (auto &imageResult: s_imageResults) {
         for (auto &mipLevel: imageResult.mipLevels) {
+            bool imageIsAsHalfs = mipLevel.floatImage != nullptr;
+            int channelByteSize = imageIsAsHalfs ? 2 : 1;
+
             wgpu::ImageCopyTexture destination;
             destination.texture = imageResult.texture;
             destination.mipLevel = mipLevel.mipLevel;
 
             wgpu::TextureDataLayout dataLayout;
-            dataLayout.bytesPerRow = mipLevel.width * channels;
+            dataLayout.bytesPerRow = mipLevel.width * channels * channelByteSize;
             dataLayout.rowsPerImage = mipLevel.height;
 
             wgpu::Extent3D size = {static_cast<uint32_t>(mipLevel.width), static_cast<uint32_t>(mipLevel.height), 1};
 
-            device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels, &dataLayout, &size);
+            if (imageIsAsHalfs) {
+                device.GetQueue().WriteTexture(&destination, mipLevel.floatImage, mipLevel.width * mipLevel.height * channels * channelByteSize, &dataLayout, &size);
+                stbi_image_free(mipLevel.floatImage);
+            } else {
+                device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels * channelByteSize, &dataLayout, &size);
+                stbi_image_free(mipLevel.image);
+            }
 
-            stbi_image_free(mipLevel.image);
         }
     }
     s_imageResults.clear();

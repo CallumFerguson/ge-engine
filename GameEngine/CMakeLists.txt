@@ -85,6 +85,7 @@ target_include_directories(
         ../Dependencies/nlohmannjson/include
         ../Dependencies/nlohmannjson/include/nlohmann # since tinygltf attempts to include json.hpp, not nlohmann/json.hpp
         ../Dependencies/stb/include
+        ../Dependencies/half/include
 )
 
 if (NOT EMSCRIPTEN)

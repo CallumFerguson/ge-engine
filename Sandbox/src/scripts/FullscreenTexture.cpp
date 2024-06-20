@@ -46,7 +46,7 @@ void FullscreenTexture::onStart() {
         });
     }
 
-    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/f-texture.png");
+    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/test.hdr");
     auto& texture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(textureHandle);
 
 //    int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
