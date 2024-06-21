@@ -230,6 +230,7 @@ void generateMipmap(const wgpu::Device &device, const wgpu::Texture &texture, wg
             colorAttachment.view = texture.CreateView(&textureViewDescriptor2);
             colorAttachment.loadOp = wgpu::LoadOp::Clear;
             colorAttachment.storeOp = wgpu::StoreOp::Store;
+            colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
 
             wgpu::RenderPassDescriptor renderPassDesc;
             renderPassDesc.colorAttachmentCount = 1;

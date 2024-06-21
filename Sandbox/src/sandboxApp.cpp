@@ -19,9 +19,8 @@ void runSandboxApp() {
     camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
 
     int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/test.hdr");
-    auto &texture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(textureHandle);
 
-    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(texture);
+    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
 //    auto fullscreen = scene.createEntity("Fullscreen");
 //    fullscreen.addScript<FullscreenTexture>();
