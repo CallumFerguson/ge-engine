@@ -3,6 +3,7 @@
 #include <array>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "../Assets/AssetManager.hpp"
 
@@ -10,7 +11,13 @@ namespace GameEngine {
 
 static const int cubeMapFacePixelLength = 2048;
 
+static wgpu::Buffer s_viewDirectionProjectionInversesBuffer;
+
 CubeMap::CubeMap(int equirectangularTextureHandle) {
+    if (!s_viewDirectionProjectionInversesBuffer) {
+        s_viewDirectionProjectionInversesBuffer = createViewDirectionProjectionInversesBuffer();
+    }
+
     auto &device = WebGPURenderer::device();
 
     wgpu::TextureDescriptor textureDescriptor;
@@ -73,20 +80,9 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
     int shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::WebGPUShader>(shaderUUID);
     auto &shader = GameEngine::AssetManager::getAsset<GameEngine::WebGPUShader>(shaderHandle);
 
-    glm::mat4 mat(1.0f);
-
-    wgpu::BufferDescriptor bufferDescriptor;
-    bufferDescriptor.mappedAtCreation = true;
-    bufferDescriptor.size = 64;
-    bufferDescriptor.usage = wgpu::BufferUsage::Uniform;
-    auto viewDirectionProjectionInverseBuffer = device.CreateBuffer(&bufferDescriptor);
-    auto mappedData = viewDirectionProjectionInverseBuffer.GetMappedRange();
-    std::memcpy(mappedData, glm::value_ptr(mat), 64);
-    viewDirectionProjectionInverseBuffer.Unmap();
-
     std::array<wgpu::BindGroupEntry, 3> entries;
     entries[0].binding = 0;
-    entries[0].buffer = viewDirectionProjectionInverseBuffer;
+    entries[0].buffer = s_viewDirectionProjectionInversesBuffer;
 
     entries[1].binding = 1;
     entries[1].sampler = WebGPURenderer::basicSampler();
@@ -143,6 +139,38 @@ wgpu::TextureView &CubeMap::cachedTextureView() {
         m_textureView = m_cubeMapTexture->CreateView(&textureViewDescriptor);
     }
     return m_textureView;
+}
+
+wgpu::Buffer CubeMap::createViewDirectionProjectionInversesBuffer() {
+    static const auto projection = glm::perspectiveRH_ZO(glm::radians(90.0f), 1.0f, 0.01f, 1000.0f);
+
+    static const std::array<glm::mat4, 6> views = {
+        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(-1, 0, 0), glm::vec3(0, 1, 0)),
+        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0)),
+        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, -1)),
+        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 0, 1)),
+        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(0, 1, 0)),
+        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))
+    };
+
+    wgpu::BufferDescriptor bufferDescriptor;
+    bufferDescriptor.mappedAtCreation = true;
+    bufferDescriptor.size = 64 * 6;
+    bufferDescriptor.usage = wgpu::BufferUsage::Uniform;
+    auto buffer = WebGPURenderer::device().CreateBuffer(&bufferDescriptor);
+    auto mappedData = reinterpret_cast<uint8_t *>(buffer.GetMappedRange());
+
+    for(size_t i = 0; i < 6; i++) {
+        auto viewAtOrigin = views[i];
+        viewAtOrigin[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        auto viewDirectionProjectionInverse = glm::inverse(projection * viewAtOrigin);
+
+        std::memcpy(mappedData + i * 64, glm::value_ptr(viewDirectionProjectionInverse), 64);
+    }
+
+    buffer.Unmap();
+
+    return buffer;
 }
 
 }

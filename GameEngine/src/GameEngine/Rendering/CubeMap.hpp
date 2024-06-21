@@ -22,6 +22,8 @@ private:
     static void writeCubeMapFromEquirectangularTexture(int equirectangularTextureHandle, wgpu::Texture &cubeMapTexture);
 
     wgpu::TextureView m_textureView;
+
+    static wgpu::Buffer createViewDirectionProjectionInversesBuffer();
 };
 
 }

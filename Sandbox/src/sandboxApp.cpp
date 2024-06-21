@@ -18,8 +18,7 @@ void runSandboxApp() {
     camera.addScript<CameraController>();
     camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
 
-    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/test.hdr");
-
+    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/buikslotermeerplein_1k.hdr");
     int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
     GameEngine::Entity skybox = scene.createEntity("Skybox");

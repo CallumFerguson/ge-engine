@@ -1,6 +1,6 @@
 //20b9adeb-c3d4-4bd4-8e0c-18e0b3238af9
 
-@group(0) @binding(0) var<uniform> viewDirectionProjectionInverse: mat4x4f;
+@group(0) @binding(0) var<uniform> viewDirectionProjectionInverses: array<mat4x4f, 6>;
 @group(0) @binding(1) var textureSampler: sampler;
 @group(0) @binding(2) var texture: texture_2d<f32>;
 
@@ -42,7 +42,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 //    const gamma: f32 = 2.2;
 //    const exposure: f32 = 1;
 
-    let t = viewDirectionProjectionInverse * i.pos;
+    let t = viewDirectionProjectionInverses[0] * i.pos;
     var direction = normalize(t.xyz / t.w) * vec3f(1, -1, 1);
     direction = vec3(-direction.z, direction.y, direction.x);
     let uv = sampleSphericalMap(direction);
