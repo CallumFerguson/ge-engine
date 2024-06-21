@@ -22,6 +22,9 @@ void runSandboxApp() {
 
     int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
+    GameEngine::Entity skybox = scene.createEntity("Skybox");
+    skybox.addComponent<GameEngine::Skybox>(cubeMapHandle);
+
 //    auto fullscreen = scene.createEntity("Fullscreen");
 //    fullscreen.addScript<FullscreenTexture>();
 

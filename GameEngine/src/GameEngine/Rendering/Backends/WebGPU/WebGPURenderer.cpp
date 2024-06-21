@@ -13,6 +13,7 @@
 #include "../../../Core/Exit.hpp"
 #include "../../../Utility/utility.hpp"
 #include "../../../Assets/AssetManager.hpp"
+#include "../../CubeMap.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -162,8 +163,9 @@ void WebGPURenderer::finishInit() {
 
     setUpCameraBuffer();
 
-    WebGPUShader::registerShaderCreatePipelineFunction(BASIC_COLOR_SHADER_UUID, createPBRRenderPipeline); // basic color
-    WebGPUShader::registerShaderCreatePipelineFunction(PBR_SHADER_UUID, createPBRRenderPipeline); // pbr
+    WebGPUShader::registerShaderCreatePipelineFunction(BASIC_COLOR_SHADER_UUID, createPBRRenderPipeline);
+    WebGPUShader::registerShaderCreatePipelineFunction(PBR_SHADER_UUID, createPBRRenderPipeline);
+    WebGPUShader::registerShaderCreatePipelineFunction(SKYBOX_SHADER_UUID, createSkyboxRenderPipeline);
 }
 
 void WebGPURenderer::createSurface() {
@@ -442,6 +444,45 @@ wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderM
     return device.CreateRenderPipeline(&pipelineDescriptor);
 }
 
+wgpu::RenderPipeline WebGPURenderer::createSkyboxRenderPipeline(const wgpu::ShaderModule& shaderModule, bool depthWrite) {
+    auto device = GameEngine::WebGPURenderer::device();
+
+    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+
+    pipelineDescriptor.layout = nullptr; // auto layout
+
+    wgpu::ColorTargetState colorTargetState = {};
+    colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
+
+    wgpu::FragmentState fragment = {};
+    fragment.module = shaderModule;
+    fragment.entryPoint = "frag";
+    fragment.targetCount = 1;
+    fragment.targets = &colorTargetState;
+
+    wgpu::VertexState vertex = {};
+    vertex.module = shaderModule;
+    vertex.entryPoint = "vert";
+    vertex.bufferCount = 0;
+
+    pipelineDescriptor.vertex = vertex;
+    pipelineDescriptor.fragment = &fragment;
+
+    pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
+    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
+
+    pipelineDescriptor.multisample.count = multisampleCount;
+
+    wgpu::DepthStencilState depthStencilState = {};
+    depthStencilState.depthWriteEnabled = depthWrite;
+    depthStencilState.depthCompare = wgpu::CompareFunction::LessEqual;
+    depthStencilState.format = wgpu::TextureFormat::Depth24Plus;
+
+    pipelineDescriptor.depthStencil = &depthStencilState;
+
+    return device.CreateRenderPipeline(&pipelineDescriptor);
+}
+
 void WebGPURenderer::updateCameraDataBuffer(Entity &entity, TransformComponent &transform, CameraComponent &camera) {
     auto view = CameraComponent::transformToView(transform);
 
@@ -570,6 +611,19 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
 
         objectDataBindGroup = device.CreateBindGroup(&bindGroupDescriptor);
     }
+}
+
+void WebGPURenderer::renderSkybox(const Skybox &skybox) {
+    auto& device = s_device;
+
+    auto& cubeMap = AssetManager::getAsset<CubeMap>(skybox.cubeMapHandle);
+
+    int shaderHandle = AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
+    auto &shader = AssetManager::getAsset<WebGPUShader>(shaderHandle);
+
+    s_renderPassEncoder.SetPipeline(shader.renderPipeline(true));
+    s_renderPassEncoder.SetBindGroup(0, skybox.bindGroup());
+    s_renderPassEncoder.Draw(3);
 }
 
 }

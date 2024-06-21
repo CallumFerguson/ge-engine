@@ -6,6 +6,8 @@
 #include "../Core/Window.hpp"
 #include "../Core/Exit.hpp"
 #include "../Assets/AssetManager.hpp"
+#include "../Rendering/Backends/WebGPU/WebGPURenderer.hpp"
+#include "../Rendering/CubeMap.hpp"
 
 namespace GameEngine {
 
@@ -96,6 +98,36 @@ nlohmann::json PBRRendererComponent::toJSON() {
 PBRRendererComponent::PBRRendererComponent(const nlohmann::json &componentJSON) {
     meshHandle = AssetManager::getOrLoadAssetFromUUID<Mesh>(componentJSON["mesh"]["uuid"]);
     materialHandle = AssetManager::getOrLoadAssetFromUUID<Material>(componentJSON["material"]["uuid"]);
+}
+
+Skybox::Skybox(int cubeMapHandle) : cubeMapHandle(cubeMapHandle) {
+    auto &device = WebGPURenderer::device();
+
+    int shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
+    auto &shader = GameEngine::AssetManager::getAsset<WebGPUShader>(shaderHandle);
+
+    auto &cubeMap = GameEngine::AssetManager::getAsset<CubeMap>(shaderHandle);
+
+    std::array<wgpu::BindGroupEntry, 3> entries;
+    entries[0].binding = 0;
+    entries[0].buffer = WebGPURenderer::cameraDataBuffer();
+
+    entries[1].binding = 1;
+    entries[1].sampler = WebGPURenderer::basicSampler();
+
+    entries[2].binding = 2;
+    entries[2].textureView = cubeMap.cachedTextureView();
+
+    wgpu::BindGroupDescriptor bindGroupDescriptor;
+    bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(0);
+    bindGroupDescriptor.entryCount = entries.size();
+    bindGroupDescriptor.entries = entries.data();
+
+    m_bindGroup = device.CreateBindGroup(&bindGroupDescriptor);
+}
+
+const wgpu::BindGroup &Skybox::bindGroup() const {
+    return m_bindGroup;
 }
 
 }

@@ -82,6 +82,10 @@ void Scene::onUpdate() {
 
     WebGPURenderer::renderMeshes();
 
+    m_registry.view<Skybox>().each([&](auto &skybox) {
+        WebGPURenderer::renderSkybox(skybox);
+    });
+
     WebGPURenderer::endMainRenderPass();
 }
 

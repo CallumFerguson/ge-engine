@@ -105,6 +105,22 @@ struct PBRRendererComponent {
     }
 };
 
+class Skybox {
+public:
+    int cubeMapHandle = -1;
+
+    explicit Skybox(int cubeMapHandle);
+
+    const wgpu::BindGroup &bindGroup() const;
+
+    [[nodiscard]] const char *objectName() const {
+        return "cubeMapHandle";
+    }
+
+private:
+    wgpu::BindGroup m_bindGroup;
+};
+
 // Helper to detect if a class has a specific member function
 #define HAS_MEMBER_FUNCTION(func, name)                                    \
 template<typename T, typename = std::void_t<>>                             \
