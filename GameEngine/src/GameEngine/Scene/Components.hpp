@@ -15,6 +15,7 @@ class Entity;
 struct InfoComponent {
     std::vector<std::string> componentNames;
     std::map<std::string, std::function<nlohmann::json()>> componentToJSONFunctions;
+    std::map<std::string, std::function<void()>> componentToOnImGuiInspectorFunctions;
 
     std::vector<std::string> scriptNames;
     std::map<std::string, std::function<nlohmann::json()>> scriptToJSONFunctions;
@@ -44,6 +45,8 @@ public:
 
     nlohmann::json toJSON();
 
+    void onImGuiInspector();
+
     [[nodiscard]] const char *objectName() const {
         return "TransformComponent";
     }
@@ -65,7 +68,7 @@ public:
 
     static glm::mat4 transformToView(const TransformComponent &transform);
 
-    void onImGui();
+    void onImGuiInspector();
 
     nlohmann::json toJSON();
 
@@ -96,7 +99,7 @@ struct PBRRendererComponent {
 
     PBRRendererComponent(int meshHandle, int materialHandle);
 
-    void onImGui();
+    void onImGuiInspector();
 
     nlohmann::json toJSON();
 

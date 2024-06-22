@@ -13,6 +13,7 @@
 namespace GameEngine {
 
 HAS_MEMBER_FUNCTION(toJSON, hasToJSON)
+HAS_MEMBER_FUNCTION(onImGuiInspector, hasOnImGuiInspector)
 
 class Entity {
 public:
@@ -32,6 +33,11 @@ public:
         if constexpr (hasToJSON<T>::value) {
             info.componentToJSONFunctions[component.objectName()] = [&]() -> nlohmann::json {
                 return component.toJSON();
+            };
+        }
+        if constexpr (hasOnImGuiInspector<T>::value) {
+            info.componentToOnImGuiInspectorFunctions[component.objectName()] = [&]() {
+                component.onImGuiInspector();
             };
         }
 

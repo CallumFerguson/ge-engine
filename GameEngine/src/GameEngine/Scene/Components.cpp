@@ -37,6 +37,36 @@ nlohmann::json TransformComponent::toJSON() {
     return result;
 }
 
+void TransformComponent::onImGuiInspector() {
+    ImGui::DragFloat3("local position", &localPosition[0], 0.1f);
+
+    static float s_floats[3] = {0, 0, 0};
+    static float s_previousFloats[3] = {0, 0, 0};
+    if (ImGui::DragFloat3("local rotation", s_floats, 0.1f)) {
+        float floatsDelta[3];
+        for (int i = 0; i < 3; i++) {
+            floatsDelta[i] = s_floats[i] - s_previousFloats[i];
+        }
+
+        localRotation *= glm::angleAxis(glm::radians(floatsDelta[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+        localRotation *= glm::angleAxis(glm::radians(floatsDelta[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+        localRotation *= glm::angleAxis(glm::radians(floatsDelta[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+    for (int i = 0; i < 3; i++) {
+        s_previousFloats[i] = s_floats[i];
+    }
+    if (!ImGui::IsItemActive()) {
+        glm::vec3 eulerRotation = glm::eulerAngles(localRotation);
+        eulerRotation = glm::degrees(eulerRotation);
+
+        for (int i = 0; i < 3; i++) {
+            s_floats[i] = eulerRotation[i];
+        }
+    }
+
+    ImGui::DragFloat3("local scale", &localScale[0], 0.1f);
+}
+
 CameraComponent::CameraComponent(float fieldOfView) {
     m_fov = fieldOfView;
     m_aspectRatio = Window::mainWindow().aspectRatio();
@@ -57,7 +87,7 @@ glm::mat4 CameraComponent::transformToView(const TransformComponent &transform) 
     return glm::inverse(glm::translate(glm::mat4(1.0f), transform.localPosition) * glm::mat4_cast(transform.localRotation));
 }
 
-void CameraComponent::onImGui() {
+void CameraComponent::onImGuiInspector() {
     if (ImGui::SliderFloat("FOV", &m_fov, 0.001f, 179.0f)) {
         m_projection = glm::perspectiveRH_ZO(glm::radians(m_fov), m_aspectRatio, m_nearClippingPlane, m_farClippingPlane);
     }
@@ -79,7 +109,7 @@ PBRRendererComponent::PBRRendererComponent(bool initializeForRendering) : initia
 
 PBRRendererComponent::PBRRendererComponent(int meshHandle, int materialHandle) : meshHandle(meshHandle), materialHandle(materialHandle) {}
 
-void PBRRendererComponent::onImGui() {
+void PBRRendererComponent::onImGuiInspector() {
     ImGui::Text("Mesh handle: %d", meshHandle);
     if (ImGui::TreeNode("color")) {
         auto colorPtr = glm::value_ptr(color);

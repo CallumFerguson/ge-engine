@@ -73,60 +73,17 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
 
         ImGui::Text("Components:");
 
-        if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto &transform = registry.get<TransformComponent>(s_selectedEntity);
-
-            ImGui::DragFloat3("local position", &transform.localPosition[0], 0.1f);
-
-            static float s_floats[3] = {0, 0, 0};
-            static float s_previousFloats[3] = {0, 0, 0};
-            if (ImGui::DragFloat3("local rotation", s_floats, 0.1f)) {
-                float floatsDelta[3];
-                for (int i = 0; i < 3; i++) {
-                    floatsDelta[i] = s_floats[i] - s_previousFloats[i];
-                }
-
-                transform.localRotation *= glm::angleAxis(glm::radians(floatsDelta[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-                transform.localRotation *= glm::angleAxis(glm::radians(floatsDelta[1]), glm::vec3(0.0f, 1.0f, 0.0f));
-                transform.localRotation *= glm::angleAxis(glm::radians(floatsDelta[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-            }
-            for (int i = 0; i < 3; i++) {
-                s_previousFloats[i] = s_floats[i];
-            }
-            if (!ImGui::IsItemActive()) {
-                glm::vec3 eulerRotation = glm::eulerAngles(transform.localRotation);
-                eulerRotation = glm::degrees(eulerRotation);
-
-                for (int i = 0; i < 3; i++) {
-                    s_floats[i] = eulerRotation[i];
-                }
-            }
-
-            ImGui::DragFloat3("local scale", &transform.localScale[0], 0.1f);
-        }
-
-        for (auto &componentName: registry.get<InfoComponent>(s_selectedEntity).componentNames) {
-            if (componentName == "NameComponent" || componentName == "TransformComponent") {
+        auto &info = registry.get<InfoComponent>(s_selectedEntity);
+        for (auto &componentName: info.componentNames) {
+            if (componentName == "NameComponent") {
                 continue;
             }
 
-            if (componentName == "CameraComponent") {
-                if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    auto &camera = registry.get<CameraComponent>(s_selectedEntity);
-                    camera.onImGui();
-                }
-            } else if (componentName == "PBRRendererComponent") {
-                if (ImGui::CollapsingHeader("PBRRendererComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    auto &renderer = registry.get<PBRRendererComponent>(s_selectedEntity);
-                    renderer.onImGui();
-                }
-            } else if (componentName == "WebGPUPBRRendererDataComponent") {
-                if (ImGui::CollapsingHeader("WebGPUPBRRendererDataComponent", ImGuiTreeNodeFlags_DefaultOpen)) {
-                }
-            } else {
-                if (ImGui::CollapsingHeader(componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-//                    ImGui::Text("inspector not configured for component");
-                    std::cout << "TODO: automate the above stuff with a register component like register script" << std::endl;
+
+            if (ImGui::CollapsingHeader(componentName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                auto it = info.componentToOnImGuiInspectorFunctions.find(componentName);
+                if (it != info.componentToOnImGuiInspectorFunctions.end()) {
+                    it->second();
                 }
             }
         }
@@ -137,12 +94,10 @@ void renderImGuiEntityHierarchy(entt::registry &registry) {
 
         if (registry.all_of<NativeScriptComponent>(s_selectedEntity)) {
             auto &nsc = registry.get<NativeScriptComponent>(s_selectedEntity);
-            int i = 0;
             for (auto &nscInstanceFunctions: nsc.instancesFunctions) {
                 if (ImGui::CollapsingHeader(nscInstanceFunctions.instance->objectName(), ImGuiTreeNodeFlags_DefaultOpen)) {
                     nscInstanceFunctions.instance->onImGuiInspector();
                 }
-                i++;
             }
         } else {
             ImGui::Text("none");
