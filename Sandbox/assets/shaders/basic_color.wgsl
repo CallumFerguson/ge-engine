@@ -6,6 +6,7 @@ struct CameraData {
     view: mat4x4f,
     projection: mat4x4f,
     position: vec3f,
+    exposure: f32,
     viewDirectionProjectionInverse: mat4x4f,
 }
 

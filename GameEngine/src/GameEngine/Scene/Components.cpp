@@ -91,6 +91,8 @@ void CameraComponent::onImGuiInspector() {
     if (ImGui::SliderFloat("FOV", &m_fov, 0.001f, 179.0f)) {
         m_projection = glm::perspectiveRH_ZO(glm::radians(m_fov), m_aspectRatio, m_nearClippingPlane, m_farClippingPlane);
     }
+
+    ImGui::DragFloat("Exposure", &exposure, 0.001f);
 }
 
 nlohmann::json CameraComponent::toJSON() {
@@ -98,6 +100,7 @@ nlohmann::json CameraComponent::toJSON() {
     result["fov"] = m_fov;
     result["nearClippingPlane"] = m_nearClippingPlane;
     result["farClippingPlane"] = m_farClippingPlane;
+    result["exposure"] = exposure;
     return result;
 }
 

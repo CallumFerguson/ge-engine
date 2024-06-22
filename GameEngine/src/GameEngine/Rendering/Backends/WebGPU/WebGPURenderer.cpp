@@ -498,6 +498,7 @@ void WebGPURenderer::updateCameraDataBuffer(Entity &entity, TransformComponent &
     std::memcpy(data, glm::value_ptr(view), 64);
     std::memcpy(data + 64, glm::value_ptr(projection), 64);
     std::memcpy(data + 128, glm::value_ptr(cameraPosition), 12);
+    std::memcpy(data + 140, &camera.exposure, 4);
     std::memcpy(data + 144, glm::value_ptr(viewDirectionProjectionInverse), 64);
     device().GetQueue().WriteBuffer(s_cameraDataBuffer, 0, data, 208);
 }

@@ -4,6 +4,7 @@ struct CameraData {
     view: mat4x4f,
     projection: mat4x4f,
     position: vec3f,
+    exposure: f32,
     viewDirectionProjectionInverse: mat4x4f,
 }
 
@@ -42,8 +43,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     var color = textureSampleLevel(texture, textureSampler, normalize(t.xyz / t.w) * vec3f(-1, 1, 1), 0).rgb;
 
     const gamma: f32 = 2.2;
-    const exposure: f32 = 1;
-    color = vec3(1.0) - exp(-color * exposure);
+    color = vec3(1.0) - exp(-color * cameraData.exposure);
     color = pow(color, vec3(1.0 / gamma));
 
     return vec4(color, 1);

@@ -6,6 +6,7 @@ struct CameraData {
     view: mat4x4f,
     projection: mat4x4f,
     position: vec3f,
+    exposure: f32,
     viewDirectionProjectionInverse: mat4x4f,
 }
 
@@ -71,7 +72,6 @@ fn vert(i: VertexInput) -> VertexOutput {
 @fragment
 fn frag(i: VertexOutput) -> @location(0) vec4f {
     const gamma: f32 = 2.2;
-    const exposure: f32 = 1;
 
     let albedoTexel = textureSample(albedoTexture, textureSampler, i.uv);
     let albedo = pow(albedoTexel.rgb, vec3(gamma));
@@ -162,7 +162,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     let ambient = (kD * diffuse + specular) * ao;
 
     var colorLinear = ambient + Lo + emission;
-    colorLinear = vec3(1.0) - exp(-colorLinear * exposure);
+    colorLinear = vec3(1.0) - exp(-colorLinear * cameraData.exposure);
 
     let color = pow(colorLinear, vec3(1.0 / gamma));
     return vec4(color, albedoTexel.a);

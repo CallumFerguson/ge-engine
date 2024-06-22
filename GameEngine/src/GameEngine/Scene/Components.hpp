@@ -62,6 +62,8 @@ private:
 
 class CameraComponent {
 public:
+    float exposure = 1;
+
     explicit CameraComponent(float fieldOfView);
 
     const glm::mat4 &projection();
