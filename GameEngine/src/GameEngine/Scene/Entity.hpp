@@ -102,7 +102,7 @@ public:
 
     Entity getRootEntity();
 
-    glm::mat4 globalModelMatrix();
+    glm::mat4 globalModelMatrix(bool ignoreSelfScale = false);
 
     entt::entity enttHandle();
 

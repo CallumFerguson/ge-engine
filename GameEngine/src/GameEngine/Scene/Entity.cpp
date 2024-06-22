@@ -19,9 +19,9 @@ void Entity::setParent(Entity &parentEntity) {
     parentEntity.getComponent<TransformComponent>().m_childrenENTTHandles.push_back(m_enttEntity);
 }
 
-glm::mat4 Entity::globalModelMatrix() {
+glm::mat4 Entity::globalModelMatrix(bool ignoreSelfScale) {
     auto &transform = getComponent<TransformComponent>();
-    glm::mat4 modelMatrix = transform.localModelMatrix();
+    glm::mat4 modelMatrix = transform.localModelMatrix(ignoreSelfScale);
     entt::entity parent = transform.parentENTTHandle();
 
     while (parent != entt::null) {

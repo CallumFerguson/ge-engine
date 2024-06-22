@@ -484,11 +484,11 @@ wgpu::RenderPipeline WebGPURenderer::createSkyboxRenderPipeline(const wgpu::Shad
 }
 
 void WebGPURenderer::updateCameraDataBuffer(Entity &entity, TransformComponent &transform, CameraComponent &camera) {
-    auto view = CameraComponent::modelToView(entity.globalModelMatrix());
+    auto view = CameraComponent::modelToView(entity.globalModelMatrix(true));
 
     auto projection = camera.projection();
 
-    auto cameraPosition = glm::vec3(entity.globalModelMatrix()[3]);
+    auto cameraPosition = glm::vec3(entity.globalModelMatrix(true)[3]);
 
     auto viewAtOrigin = view;
     viewAtOrigin[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);

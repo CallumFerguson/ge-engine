@@ -37,7 +37,7 @@ public:
     glm::quat localRotation = glm::identity<glm::quat>();
     glm::vec3 localScale{1.0f, 1.0f, 1.0f};
 
-    glm::mat4 localModelMatrix() const;
+    glm::mat4 localModelMatrix(bool ignoreScale = false) const;
 
     entt::entity parentENTTHandle() const;
 

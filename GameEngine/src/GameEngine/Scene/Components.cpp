@@ -17,8 +17,12 @@ nlohmann::json NameComponent::toJSON() {
     return result;
 }
 
-glm::mat4 TransformComponent::localModelMatrix() const {
-    return glm::translate(glm::mat4(1.0f), localPosition) * glm::mat4_cast(localRotation) * glm::scale(glm::mat4(1.0f), localScale);
+glm::mat4 TransformComponent::localModelMatrix(bool ignoreScale) const {
+    if (ignoreScale) {
+        return glm::translate(glm::mat4(1.0f), localPosition) * glm::mat4_cast(localRotation);
+    } else {
+        return glm::translate(glm::mat4(1.0f), localPosition) * glm::mat4_cast(localRotation) * glm::scale(glm::mat4(1.0f), localScale);
+    }
 }
 
 entt::entity TransformComponent::parentENTTHandle() const {
@@ -83,10 +87,10 @@ const glm::mat4 &CameraComponent::projection() {
 }
 
 glm::mat4 CameraComponent::modelToView(const glm::mat4 &model) {
-    // ignore scale
-    auto rotation = glm::mat4(glm::mat3(model));
-    auto translation = glm::translate(glm::mat4(1.0f), glm::vec3(model[3]));
-    return glm::inverse(translation * rotation);
+    auto cameraPosition = glm::vec3(model[3]);
+    auto forward = glm::vec3(model * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
+    auto up = glm::vec3(model * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    return glm::lookAt(cameraPosition, forward, up);
 }
 
 void CameraComponent::onImGuiInspector() {
