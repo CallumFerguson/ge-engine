@@ -20,8 +20,8 @@ void runSandboxApp() {
 
     auto camera = scene.createEntity("Main Camera");
     camera.setParent(cameraPivotX);
-    camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
-    camera.addComponent<GameEngine::CameraComponent>(90.0);
+    camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1.5f;
+    camera.addComponent<GameEngine::CameraComponent>(65.0f);
     camera.addScript<CameraController>();
 
     int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/buikslotermeerplein_1k.hdr");
