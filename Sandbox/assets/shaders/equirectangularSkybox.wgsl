@@ -32,12 +32,25 @@ fn vert(i: VertexInput) -> VertexOutput {
     return o;
 }
 
-fn sampleSphericalMap(v: vec3f) -> vec2f {
-    const invAtan = vec2(0.1591, 0.3183);
+const invAtan = vec2(0.1591, 0.3183);
+fn directionToEquirectangularCoordinates(v: vec3f) -> vec2f {
     var uv = vec2(atan2(v.z, v.x), asin(v.y));
     uv *= invAtan;
     uv += 0.5;
     return uv;
+}
+
+const invAtanInv = vec2(1.0 / 0.1591, 1.0 / 0.3183);
+fn equirectangularCoordinatesToDirection(uv: vec2f) -> vec3f {
+    var uv_transformed = (uv - 0.5) * invAtanInv;
+    var theta = uv_transformed.x;
+    var phi = uv_transformed.y;
+
+    var x = cos(phi) * cos(theta);
+    var y = sin(phi);
+    var z = cos(phi) * sin(theta);
+
+    return normalize(vec3(x, y, z));
 }
 
 @fragment
@@ -48,7 +61,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     let t = viewDirectionProjectionInverses[i.instanceIndex] * i.pos;
     var direction = normalize(t.xyz / t.w) * vec3f(1, -1, 1);
     direction = vec3(-direction.z, direction.y, direction.x);
-    let uv = sampleSphericalMap(direction);
+    let uv = directionToEquirectangularCoordinates(direction);
     var colorLinear = textureSample(texture, textureSampler, uv).rgb;
 
 //    colorLinear = vec3(1.0) - exp(-colorLinear * exposure);
