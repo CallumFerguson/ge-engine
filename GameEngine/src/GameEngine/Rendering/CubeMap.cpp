@@ -95,34 +95,35 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
     bindGroupDescriptor.layout = shader.renderPipeline(false).GetBindGroupLayout(0);
     bindGroupDescriptor.entryCount = entries.size();
     bindGroupDescriptor.entries = entries.data();
-
     auto bindGroup = device.CreateBindGroup(&bindGroupDescriptor);
-
-    wgpu::TextureViewDescriptor textureViewDescriptor;
-    textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
-    textureViewDescriptor.baseArrayLayer = 0;
-    textureViewDescriptor.arrayLayerCount = 1;
-    textureViewDescriptor.baseMipLevel = 0;
-    textureViewDescriptor.mipLevelCount = 1;
-
-    wgpu::RenderPassColorAttachment colorAttachment;
-    colorAttachment.view = cubeMapTexture.CreateView(&textureViewDescriptor);
-    colorAttachment.loadOp = wgpu::LoadOp::Clear;
-    colorAttachment.storeOp = wgpu::StoreOp::Store;
-    colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
-
-    wgpu::RenderPassDescriptor renderPassDescriptor;
-    renderPassDescriptor.colorAttachmentCount = 1;
-    renderPassDescriptor.colorAttachments = &colorAttachment;
 
     auto encoder = device.CreateCommandEncoder();
 
-    auto renderPassEncoder = encoder.BeginRenderPass(&renderPassDescriptor);
+    for(size_t i = 0; i < 6; i++) {
+        wgpu::TextureViewDescriptor textureViewDescriptor;
+        textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
+        textureViewDescriptor.baseArrayLayer = i;
+        textureViewDescriptor.arrayLayerCount = 1;
+        textureViewDescriptor.baseMipLevel = 0;
+        textureViewDescriptor.mipLevelCount = 1;
 
-    renderPassEncoder.SetPipeline(shader.renderPipeline(false));
-    renderPassEncoder.SetBindGroup(0, bindGroup);
-    renderPassEncoder.Draw(3);
-    renderPassEncoder.End();
+        wgpu::RenderPassColorAttachment colorAttachment;
+        colorAttachment.view = cubeMapTexture.CreateView(&textureViewDescriptor);
+        colorAttachment.loadOp = wgpu::LoadOp::Clear;
+        colorAttachment.storeOp = wgpu::StoreOp::Store;
+        colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
+
+        wgpu::RenderPassDescriptor renderPassDescriptor;
+        renderPassDescriptor.colorAttachmentCount = 1;
+        renderPassDescriptor.colorAttachments = &colorAttachment;
+
+        auto renderPassEncoder = encoder.BeginRenderPass(&renderPassDescriptor);
+
+        renderPassEncoder.SetPipeline(shader.renderPipeline(false));
+        renderPassEncoder.SetBindGroup(0, bindGroup);
+        renderPassEncoder.Draw(3, 1, 0, i);
+        renderPassEncoder.End();
+    }
 
     auto commandBuffer = encoder.Finish();
     device.GetQueue().Submit(1, &commandBuffer);

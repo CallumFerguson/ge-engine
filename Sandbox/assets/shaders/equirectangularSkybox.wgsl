@@ -6,11 +6,13 @@
 
 struct VertexInput {
     @builtin(vertex_index) vertexIndex: u32,
+    @builtin(instance_index) instanceIndex: u32,
 }
 
 struct VertexOutput {
     @builtin(position) position: vec4f,
     @location(0) pos: vec4f,
+    @location(1) @interpolate(flat) instanceIndex: u32,
 }
 
 @vertex
@@ -25,6 +27,7 @@ fn vert(i: VertexInput) -> VertexOutput {
 
     o.position = vec4(positions[i.vertexIndex], 1, 1);
     o.pos = o.position;
+    o.instanceIndex = i.instanceIndex;
 
     return o;
 }
@@ -42,7 +45,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 //    const gamma: f32 = 2.2;
 //    const exposure: f32 = 1;
 
-    let t = viewDirectionProjectionInverses[0] * i.pos;
+    let t = viewDirectionProjectionInverses[i.instanceIndex] * i.pos;
     var direction = normalize(t.xyz / t.w) * vec3f(1, -1, 1);
     direction = vec3(-direction.z, direction.y, direction.x);
     let uv = sampleSphericalMap(direction);
