@@ -59,7 +59,9 @@ public:
 
     static void submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
 
-    static void renderMeshes();
+    static void renderOpaqueMeshes();
+
+    static void renderTransparentMeshes();
 
     static wgpu::Sampler &basicSampler();
 

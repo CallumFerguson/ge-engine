@@ -80,11 +80,13 @@ void Scene::onUpdate() {
         WebGPURenderer::submitMeshToRenderer(entity, renderer, rendererData);
     });
 
-    WebGPURenderer::renderMeshes();
+    WebGPURenderer::renderOpaqueMeshes();
 
     m_registry.view<Skybox>().each([&](auto &skybox) {
         WebGPURenderer::renderSkybox(skybox);
     });
+
+    WebGPURenderer::renderTransparentMeshes();
 
     WebGPURenderer::endMainRenderPass();
 }

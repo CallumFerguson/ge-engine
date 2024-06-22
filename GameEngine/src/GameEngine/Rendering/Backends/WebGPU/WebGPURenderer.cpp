@@ -550,12 +550,14 @@ void renderMesh(MeshRenderInfo &meshRenderInfo) {
     renderPassEncoder.DrawIndexed(mesh.indexCount());
 }
 
-void WebGPURenderer::renderMeshes() {
+void WebGPURenderer::renderOpaqueMeshes() {
     for(auto& meshRenderInfo : s_opaqueMeshesToRender) {
         renderMesh(meshRenderInfo);
     }
     s_opaqueMeshesToRender.clear();
+}
 
+void WebGPURenderer::renderTransparentMeshes() {
     for(auto& meshRenderInfo : s_transparentMeshesToRender) {
         renderMesh(meshRenderInfo);
     }
