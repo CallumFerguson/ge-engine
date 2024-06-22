@@ -1,7 +1,11 @@
 #include "CameraController.hpp"
 
+#include <imgui.h>
+
 void CameraController::onUpdate() {
-    auto &transform = getComponent<GameEngine::TransformComponent>();
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) || ImGui::IsAnyItemActive()) {
+        return;
+    }
 
     auto pivotX = getEntity().getParent();
     auto pivotY = pivotX.getParent();
