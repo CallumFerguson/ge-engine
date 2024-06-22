@@ -26,6 +26,10 @@ public:
         static_assert(!std::is_same<T, NativeScriptComponent>::value, "NativeScriptComponent cannot be directly added. Use addScript instead");
         static_assert(!std::is_base_of<ScriptableEntity, T>::value, "It looks like T is a script. use addScript instead");
 
+        if (m_scene->m_registry.all_of<T>(m_enttEntity)) {
+            std::cout << "entity already has component!" << std::endl;
+        }
+
         T &component = m_scene->m_registry.emplace<T>(m_enttEntity, std::forward<Args>(args)...);
 
         auto &info = getComponent<InfoComponent>();

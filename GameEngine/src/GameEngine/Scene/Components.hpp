@@ -37,7 +37,7 @@ public:
     glm::quat localRotation = glm::identity<glm::quat>();
     glm::vec3 localScale{1.0f, 1.0f, 1.0f};
 
-    glm::mat4 localModelMatrix();
+    glm::mat4 localModelMatrix() const;
 
     entt::entity parentENTTHandle() const;
 
@@ -68,7 +68,7 @@ public:
 
     const glm::mat4 &projection();
 
-    static glm::mat4 transformToView(const TransformComponent &transform);
+    static glm::mat4 modelToView(const glm::mat4 &model);
 
     void onImGuiInspector();
 

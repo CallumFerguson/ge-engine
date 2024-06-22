@@ -13,10 +13,16 @@ void runSandboxApp() {
 
     GameEngine::Scene &scene = app.getActiveScene();
 
+    auto cameraPivotY = scene.createEntity("Camera Pivot");
+
+    auto cameraPivotX = scene.createEntity("Camera Pivot");
+    cameraPivotX.setParent(cameraPivotY);
+
     auto camera = scene.createEntity("Main Camera");
+    camera.setParent(cameraPivotX);
+    camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
     camera.addComponent<GameEngine::CameraComponent>(90.0);
     camera.addScript<CameraController>();
-    camera.getComponent<GameEngine::TransformComponent>().localPosition.z = 1;
 
     int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/buikslotermeerplein_1k.hdr");
     int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);

@@ -17,7 +17,7 @@ nlohmann::json NameComponent::toJSON() {
     return result;
 }
 
-glm::mat4 TransformComponent::localModelMatrix() {
+glm::mat4 TransformComponent::localModelMatrix() const {
     return glm::translate(glm::mat4(1.0f), localPosition) * glm::mat4_cast(localRotation) * glm::scale(glm::mat4(1.0f), localScale);
 }
 
@@ -82,9 +82,11 @@ const glm::mat4 &CameraComponent::projection() {
     return m_projection;
 }
 
-glm::mat4 CameraComponent::transformToView(const TransformComponent &transform) {
-    // ignore transform scale
-    return glm::inverse(glm::translate(glm::mat4(1.0f), transform.localPosition) * glm::mat4_cast(transform.localRotation));
+glm::mat4 CameraComponent::modelToView(const glm::mat4 &model) {
+    // ignore scale
+    auto rotation = glm::mat4(glm::mat3(model));
+    auto translation = glm::translate(glm::mat4(1.0f), glm::vec3(model[3]));
+    return glm::inverse(translation * rotation);
 }
 
 void CameraComponent::onImGuiInspector() {
