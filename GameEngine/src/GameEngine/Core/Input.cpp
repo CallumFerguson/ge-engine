@@ -20,6 +20,9 @@ static bool s_mouseButtonLeftDown = false, s_mouseButtonRightDown = false, s_mou
 static std::unordered_map<KeyCode, bool> s_keyStates;
 static std::unordered_map<KeyCode, bool> s_previousKeyStates;
 
+static float s_accumulatedWheelDeltaX = 0, s_accumulatedWheelDeltaY = 0;
+static float s_wheelDeltaX = 0, s_wheelDeltaY = 0;
+
 bool Input::getKey(KeyCode keyCode) {
     return glfwGetKey(s_window->m_glfwWindow, static_cast<int>(keyCode));
 }
@@ -62,6 +65,12 @@ void Input::onUpdate() {
 
     s_lastMousePositionX = s_mousePositionX;
     s_lastMousePositionY = s_mousePositionY;
+
+    s_wheelDeltaX = s_accumulatedWheelDeltaX;
+    s_wheelDeltaY = s_accumulatedWheelDeltaY;
+
+    s_accumulatedWheelDeltaX = 0;
+    s_accumulatedWheelDeltaY = 0;
 }
 
 void Input::swapKeyStates() {
@@ -93,6 +102,9 @@ bool Input::getMouseButton(Input::MouseButton mouseButton) {
             return s_mouseButtonRight;
         case MouseButton::middle:
             return s_mouseButtonMiddle;
+        default:
+            std::cout << "unknown getMouseButton button: " << (int) mouseButton << std::endl;
+            return false;
     }
 }
 
@@ -104,7 +116,23 @@ bool Input::getMouseButtonDown(Input::MouseButton mouseButton) {
             return s_mouseButtonRightDown;
         case MouseButton::middle:
             return s_mouseButtonMiddleDown;
+        default:
+            std::cout << "unknown getMouseButtonDown button: " << (int) mouseButton << std::endl;
+            return false;
     }
+}
+
+void Input::scrollCallback(float deltaX, float deltaY) {
+    s_accumulatedWheelDeltaX += deltaX;
+    s_accumulatedWheelDeltaY += deltaY;
+}
+
+float Input::wheelDeltaX() {
+    return s_wheelDeltaX;
+}
+
+float Input::wheelDeltaY() {
+    return s_wheelDeltaY;
 }
 
 }

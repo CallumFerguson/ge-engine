@@ -32,6 +32,8 @@ private:
 
     static double getWindowTime();
 
+    static void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+
     friend class Time;
 
     friend class WebGPURenderer;

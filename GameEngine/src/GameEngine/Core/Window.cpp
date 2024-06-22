@@ -32,6 +32,10 @@ static void framebufferSizeCallback(GLFWwindow *, int, int) {
 
 #endif
 
+void Window::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+    Input::scrollCallback(static_cast<float>(xoffset * -100.0), static_cast<float>(yoffset * -100.0));
+}
+
 void Window::init(const std::function<void()> &rerenderRequiredCallback) {
     s_rerenderRequiredCallback = rerenderRequiredCallback;
 
@@ -79,6 +83,7 @@ void Window::init(const std::function<void()> &rerenderRequiredCallback) {
 #endif
 
     Input::s_window = this;
+    glfwSetScrollCallback(m_glfwWindow, scrollCallback);
 }
 
 bool Window::shouldClose() {

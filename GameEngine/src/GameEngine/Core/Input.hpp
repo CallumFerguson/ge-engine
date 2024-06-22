@@ -25,6 +25,10 @@ public:
 
     static float mouseDeltaY();
 
+    static float wheelDeltaX();
+
+    static float wheelDeltaY();
+
     static bool getMouseButton(MouseButton mouseButton);
 
     static bool getMouseButtonDown(MouseButton mouseButton);
@@ -35,6 +39,8 @@ private:
     static void onUpdate();
 
     static void swapKeyStates();
+
+    static void scrollCallback(float deltaX, float deltaY);
 
     friend class Window;
 };

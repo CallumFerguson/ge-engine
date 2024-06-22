@@ -1,5 +1,6 @@
 #include "CameraController.hpp"
 
+#include <algorithm>
 #include <imgui.h>
 
 void CameraController::onUpdate() {
@@ -24,6 +25,11 @@ void CameraController::onUpdate() {
         }
         pivotXTransform.localRotation = glm::quat(glm::radians(pivotXEulerAngles));
     }
+
+    static const float minDist = 0.5;
+    static const float maxDist = 10;
+    auto &transform = getComponent<GameEngine::TransformComponent>();
+    transform.localPosition.z = std::clamp(transform.localPosition.z * (1 + GameEngine::Input::wheelDeltaY() / 750.0f), minDist, maxDist);
 }
 
 void CameraController::initFromJSON(const nlohmann::json &scriptJSON) {
