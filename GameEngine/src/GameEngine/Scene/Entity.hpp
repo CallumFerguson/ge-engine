@@ -98,6 +98,8 @@ public:
 
     void setParent(Entity &parentEntity);
 
+    Entity getParent();
+
     Entity getRootEntity();
 
     glm::mat4 globalModelMatrix();

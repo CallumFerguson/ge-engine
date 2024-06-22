@@ -88,7 +88,7 @@ bool Window::shouldClose() {
 bool Window::onUpdate() {
     glfwPollEvents();
 
-    Input::swapKeyStates();
+    Input::onUpdate();
 
     int currentRenderSurfaceWidth, currentRenderSurfaceHeight;
     glfwGetFramebufferSize(m_glfwWindow, &currentRenderSurfaceWidth, &currentRenderSurfaceHeight);

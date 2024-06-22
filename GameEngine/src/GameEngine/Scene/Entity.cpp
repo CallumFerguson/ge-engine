@@ -117,4 +117,8 @@ void Entity::registerAddComponentFromStringFunction(const std::string &component
     s_addComponentFromStringFunctions[componentName] = std::move(addComponentFunction);
 }
 
+Entity Entity::getParent() {
+    return {getComponent<TransformComponent>().m_parentENTTHandle, m_scene};
+}
+
 }

@@ -106,11 +106,27 @@ void runSandboxApp() {
 //    auto json = GameEngine::entityToJSON(pbrRendererEntity1);
 //    GameEngine::jsonToEntity(json, entt::null, scene);
 
-    nlohmann::json entityJSON;
-    std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
-    jsonFile >> entityJSON;
-    GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(entityJSON, scene);
-    prefabEntity.getComponent<GameEngine::TransformComponent>().localPosition.y = -0.55f;
+    {
+        nlohmann::json entityJSON;
+        std::ifstream jsonFile("assets/packaged/FlightHelmet/FlightHelmet.geprefab");
+        jsonFile >> entityJSON;
+        GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(entityJSON, scene);
+        auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
+        transform.localPosition.x = 0.3f;
+        transform.localPosition.y = -0.35f;
+    }
+
+    {
+        nlohmann::json entityJSON;
+        std::ifstream jsonFile("assets/packaged/BoomBox/BoomBox.geprefab");
+        jsonFile >> entityJSON;
+        GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(entityJSON, scene);
+        auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
+        transform.localPosition.x = -0.3f;
+        transform.localScale.x = 25.0f;
+        transform.localScale.y = 25.0f;
+        transform.localScale.z = 25.0f;
+    }
 
 //    GameEngine::Entity imGuiDemoWindow = scene.createEntity();
 //    imGuiDemoWindow.addScript<ImGuiDemoWindow>();
