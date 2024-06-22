@@ -12,8 +12,8 @@ struct CameraData {
 
 struct ObjectData {
     model: mat4x4f,
-//    color: vec4f,
     normalMatrix: mat4x4f,
+    color: vec4f,
 //    metallic: f32,
 //    roughness: f32,
 }
@@ -74,7 +74,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     const gamma: f32 = 2.2;
 
     let albedoTexel = textureSample(albedoTexture, textureSampler, i.uv);
-    let albedo = pow(albedoTexel.rgb, vec3(gamma));
+    let albedo = pow(albedoTexel.rgb * objectData.color.rgb, vec3(gamma));
 //    let albedo: vec3f = vec3(0.5, 0, 0);
 //    let albedo: vec3f = vec3(1, 1, 1);
 

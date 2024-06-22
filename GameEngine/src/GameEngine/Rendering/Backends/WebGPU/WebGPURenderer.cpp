@@ -506,10 +506,11 @@ void WebGPURenderer::updateCameraDataBuffer(Entity &entity, TransformComponent &
 void WebGPURenderer::submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData) {
     glm::mat4 normalMatrix = glm::transpose(glm::inverse(entity.globalModelMatrix()));
 
-    uint8_t data[128];
-    std::memcpy(data, glm::value_ptr(entity.globalModelMatrix()), 64);
-    std::memcpy(data + 64, glm::value_ptr(normalMatrix), 64);
-    GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(rendererData.objectDataBuffer, 0, data, 128);
+    std::array<uint8_t, 64 + 64 + 16> data;
+    std::memcpy(data.data(), glm::value_ptr(entity.globalModelMatrix()), 64);
+    std::memcpy(data.data() + 64, glm::value_ptr(normalMatrix), 64);
+    std::memcpy(data.data() + 128, glm::value_ptr(renderer.color), 12);
+    GameEngine::WebGPURenderer::device().GetQueue().WriteBuffer(rendererData.objectDataBuffer, 0, data.data(), data.size());
 
     auto& mesh = GameEngine::AssetManager::getAsset<Mesh>(renderer.meshHandle);
     auto& material = GameEngine::AssetManager::getAsset<Material>(renderer.materialHandle);
@@ -585,7 +586,7 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
     auto &device = WebGPURenderer::device();
 
     wgpu::BufferDescriptor bufferDescriptor = {};
-    bufferDescriptor.size = 128;
+    bufferDescriptor.size = 64 + 64 + 16;
     bufferDescriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::Uniform;
     objectDataBuffer = device.CreateBuffer(&bufferDescriptor);
 
