@@ -36,15 +36,18 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
+    uint32_t textureWidth = 256;
+    auto textureHeight = static_cast<uint32_t>(std::round(static_cast<float>(textureWidth) / static_cast<float>(equirectangularTexture.size().width) * static_cast<float>(equirectangularTexture.size().height)));
+
     wgpu::TextureDescriptor textureDescriptor;
-    textureDescriptor.size = equirectangularTexture.size();
+    textureDescriptor.size = {textureWidth, textureHeight, 1};
+//    textureDescriptor.size = equirectangularTexture.size();
     textureDescriptor.format = wgpu::TextureFormat::RGBA16Float;
     textureDescriptor.usage = wgpu::TextureUsage::CopySrc | wgpu::TextureUsage::RenderAttachment;
     auto renderTexture = device.CreateTexture(&textureDescriptor);
 
     wgpu::BufferDescriptor descriptor;
-    auto &size = equirectangularTexture.size();
-    descriptor.size = size.width * size.height * 8;
+    descriptor.size = textureDescriptor.size.width * textureDescriptor.size.height * 8;
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
@@ -101,19 +104,15 @@ int main(int argc, char *argv[]) {
         wgpu::ImageCopyTexture src = {};
         src.texture = renderTexture;
 
-        uint32_t bytesPerRow = equirectangularTexture.size().width * 8;
-        if (bytesPerRow < 256) {
-            std::cout << "Bytes per row cannot be less than 256" << std::endl;
-            return 1;
-        }
+        uint32_t bytesPerRow = textureDescriptor.size.width * 8;
 
         wgpu::ImageCopyBuffer dst = {};
         dst.buffer = readBackBuffer;
         dst.layout.offset = 0;
         dst.layout.bytesPerRow = bytesPerRow;
-        dst.layout.rowsPerImage = equirectangularTexture.size().height;
+        dst.layout.rowsPerImage = textureDescriptor.size.height;
 
-        encoder.CopyTextureToBuffer(&src, &dst, &equirectangularTexture.size());
+        encoder.CopyTextureToBuffer(&src, &dst, &textureDescriptor.size);
 
         wgpu::CommandBuffer commands = encoder.Finish();
         device.GetQueue().Submit(1, &commands);
@@ -121,6 +120,7 @@ int main(int argc, char *argv[]) {
         readBackBuffer.MapAsync(wgpu::MapMode::Read, 0, descriptor.size, [](WGPUBufferMapAsyncStatus status, void *userData) {
             if (status != WGPUBufferMapAsyncStatus_Success) {
                 std::cout << "Failed to map buffer for reading." << std::endl;
+                exit(1);
             }
         }, nullptr);
 
@@ -134,14 +134,14 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        std::vector<float> imageFloats(size.width * size.height * 3);
-        for (size_t i = 0; i < size.width * size.height; i++) {
+        std::vector<float> imageFloats(textureDescriptor.size.width * textureDescriptor.size.height * 3);
+        for (size_t i = 0; i < textureDescriptor.size.width * textureDescriptor.size.height; i++) {
             imageFloats[i * 3 + 0] = imageHalfs[i * 4 + 0];
             imageFloats[i * 3 + 1] = imageHalfs[i * 4 + 1];
             imageFloats[i * 3 + 2] = imageHalfs[i * 4 + 2];
         }
 
-        stbi_write_hdr(outputFilePath.string().c_str(), static_cast<int>(size.width), static_cast<int>(size.height), 3, imageFloats.data());
+        stbi_write_hdr(outputFilePath.string().c_str(), static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
 
         readBackBuffer.Unmap();
     }

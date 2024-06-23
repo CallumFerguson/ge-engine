@@ -3,6 +3,8 @@
 #include <chrono>
 #include <string>
 
+namespace GameEngine {
+
 class TimingHelper {
 public:
     explicit TimingHelper(std::string name, double thresholdMS = 0.0);
@@ -20,3 +22,5 @@ private:
 
     bool m_stopped = false;
 };
+
+}

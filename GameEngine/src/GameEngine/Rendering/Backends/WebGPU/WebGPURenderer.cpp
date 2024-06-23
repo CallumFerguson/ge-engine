@@ -14,6 +14,7 @@
 #include "../../../Utility/utility.hpp"
 #include "../../../Assets/AssetManager.hpp"
 #include "../../CubeMap.hpp"
+#include "../../../Utility/TimingHelper.hpp"
 
 #ifdef __EMSCRIPTEN__
 

@@ -2,6 +2,8 @@
 
 #include <utility>
 
+namespace GameEngine {
+
 TimingHelper::TimingHelper(std::string name, double thresholdMS)
         : m_name(std::move(name)), m_start(std::chrono::high_resolution_clock::now()), m_thresholdMS(thresholdMS) {}
 
@@ -22,4 +24,6 @@ void TimingHelper::stop() {
         oss << "Timing [" << m_name << "]: " << std::fixed << std::setprecision(3) << duration << "ms";
         std::cout << oss.str() << std::endl;
     }
+}
+
 }
