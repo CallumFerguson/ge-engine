@@ -26,7 +26,7 @@ bool WebGPUShader::shaderHasCreatePipelineFunction(const std::string &shaderUUID
 }
 
 WebGPUShader::WebGPUShader(const std::string &shaderFilePath) {
-    auto device = WebGPURenderer::device();
+    auto &device = WebGPURenderer::device();
 
     std::ifstream shaderFile(shaderFilePath, std::ios::binary);
     if (!shaderFile) {

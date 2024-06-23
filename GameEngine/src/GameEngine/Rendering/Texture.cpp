@@ -119,7 +119,8 @@ Texture::Texture(const std::string &assetPath) {
     auto &device = WebGPURenderer::device();
 
     wgpu::TextureDescriptor textureDescriptor;
-    textureDescriptor.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
+    m_size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
+    textureDescriptor.size = m_size;
     textureDescriptor.mipLevelCount = hasMipLevels ? numMipLevels(textureDescriptor.size) : 1;
     textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
@@ -276,5 +277,10 @@ void Texture::setTextureReady(int readyStateIndex) {
         readyState.readyCallback();
     }
 }
+
+const wgpu::Extent3D &Texture::size() const {
+    return m_size;
+}
+
 
 }

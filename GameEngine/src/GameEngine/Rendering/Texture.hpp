@@ -26,12 +26,16 @@ public:
 
     static void setTextureReady(int readyStateIndex);
 
+    [[nodiscard]] const wgpu::Extent3D &size() const;
+
 private:
     wgpu::Texture m_texture;
 
     wgpu::TextureView m_textureView;
 
     size_t m_readyStateIndex = -1;
+
+    wgpu::Extent3D m_size;
 };
 
 }

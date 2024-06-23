@@ -10,7 +10,7 @@ namespace GameEngine {
 
 class AssetManager {
 public:
-    static void registerAssetUUIDs();
+    static void registerAssetUUIDs(const std::string &assetsPath = "assets");
 
     template<typename T>
     static int getOrLoadAssetFromUUID(const std::string &assetUUID);

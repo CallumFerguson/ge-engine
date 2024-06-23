@@ -39,44 +39,15 @@ CubeMap::CubeMap(int equirectangularTextureHandle) {
     });
 }
 
-void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureHandle, wgpu::Texture& cubeMapTexture) {
+void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureHandle, wgpu::Texture &cubeMapTexture) {
     auto &device = WebGPURenderer::device();
 
     const auto shaderUUID = EQUIRECTANGULAR_SKYBOX_SHADER_UUID;
-    if(!GameEngine::WebGPUShader::shaderHasCreatePipelineFunction(shaderUUID)) {
+    if (!GameEngine::WebGPUShader::shaderHasCreatePipelineFunction(shaderUUID)) {
         GameEngine::WebGPUShader::registerShaderCreatePipelineFunction(shaderUUID, [](const wgpu::ShaderModule &shaderModule, bool depthWrite) {
-            auto device = GameEngine::WebGPURenderer::device();
-
-            wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
-
-            pipelineDescriptor.layout = nullptr; // auto layout
-
-            wgpu::ColorTargetState colorTargetState = {};
-            colorTargetState.format = wgpu::TextureFormat::RGBA16Float;
-
-            wgpu::FragmentState fragment = {};
-            fragment.module = shaderModule;
-            fragment.entryPoint = "frag";
-            fragment.targetCount = 1;
-            fragment.targets = &colorTargetState;
-
-            wgpu::VertexState vertex = {};
-            vertex.module = shaderModule;
-            vertex.entryPoint = "vert";
-            vertex.bufferCount = 0;
-
-            pipelineDescriptor.vertex = vertex;
-            pipelineDescriptor.fragment = &fragment;
-
-            pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
-            pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
-
-            pipelineDescriptor.multisample.count = 1;
-
-            return device.CreateRenderPipeline(&pipelineDescriptor);
+            return WebGPURenderer::createBasicPipeline(shaderModule, false, false, wgpu::TextureFormat::RGBA16Float);
         });
     }
-
     int shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::WebGPUShader>(shaderUUID);
     auto &shader = GameEngine::AssetManager::getAsset<GameEngine::WebGPUShader>(shaderHandle);
 
@@ -87,7 +58,7 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
     entries[1].binding = 1;
     entries[1].sampler = WebGPURenderer::basicSampler();
 
-    auto& equirectangularTexture = AssetManager::getAsset<Texture>(equirectangularTextureHandle);
+    auto &equirectangularTexture = AssetManager::getAsset<Texture>(equirectangularTextureHandle);
     entries[2].binding = 2;
     entries[2].textureView = equirectangularTexture.cachedTextureView();
 
@@ -99,7 +70,7 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
 
     auto encoder = device.CreateCommandEncoder();
 
-    for(size_t i = 0; i < 6; i++) {
+    for (size_t i = 0; i < 6; i++) {
         wgpu::TextureViewDescriptor textureViewDescriptor;
         textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
         textureViewDescriptor.baseArrayLayer = i;
@@ -146,12 +117,12 @@ wgpu::Buffer CubeMap::createViewDirectionProjectionInversesBuffer() {
     static const auto projection = glm::perspectiveRH_ZO(glm::radians(90.0f), 1.0f, 0.01f, 1000.0f);
 
     static const std::array<glm::mat4, 6> views = {
-        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(-1, 0, 0), glm::vec3(0, 1, 0)),
-        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0)),
-        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, -1)),
-        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 0, 1)),
-        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(0, 1, 0)),
-        glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))
+            glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(-1, 0, 0), glm::vec3(0, 1, 0)),
+            glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0)),
+            glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, -1)),
+            glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 0, 1)),
+            glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(0, 1, 0)),
+            glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0))
     };
 
     wgpu::BufferDescriptor bufferDescriptor;
@@ -161,7 +132,7 @@ wgpu::Buffer CubeMap::createViewDirectionProjectionInversesBuffer() {
     auto buffer = WebGPURenderer::device().CreateBuffer(&bufferDescriptor);
     auto mappedData = reinterpret_cast<uint8_t *>(buffer.GetMappedRange());
 
-    for(size_t i = 0; i < 6; i++) {
+    for (size_t i = 0; i < 6; i++) {
         auto viewAtOrigin = views[i];
         viewAtOrigin[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         auto viewDirectionProjectionInverse = glm::inverse(projection * viewAtOrigin);

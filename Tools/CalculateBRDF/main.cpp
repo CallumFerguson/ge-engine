@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 
     GameEngine::WebGPURenderer::init(nullptr);
 
-    auto device = GameEngine::WebGPURenderer::device();
+    auto &device = GameEngine::WebGPURenderer::device();
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 

@@ -9,6 +9,7 @@
 #define BRDF_UUID "7062cece-527b-4945-b26f-a6302c632c9c"
 #define EQUIRECTANGULAR_SKYBOX_SHADER_UUID "20b9adeb-c3d4-4bd4-8e0c-18e0b3238af9"
 #define SKYBOX_SHADER_UUID "8c9465d7-3898-4516-b48e-24ef8a1b3296"
+#define CALCULATE_IRRADIANCE_SHADER_UUID "cb03c587-a565-4da6-8325-227596aa4dcd"
 
 namespace GameEngine {
 
@@ -67,6 +68,8 @@ public:
 
     static void renderSkybox(const Skybox &skybox);
 
+    static wgpu::RenderPipeline createBasicPipeline(const wgpu::ShaderModule &shaderModule, bool renderToScreen, bool depthWrite, wgpu::TextureFormat textureFormat = wgpu::TextureFormat::Undefined);
+
 private:
     static void getAdapter();
 
@@ -92,8 +95,6 @@ private:
     static void setUpCameraBuffer();
 
     static wgpu::RenderPipeline createPBRRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
-
-    static wgpu::RenderPipeline createSkyboxRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
 };
 
 }

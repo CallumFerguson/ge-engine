@@ -9,7 +9,7 @@
 TestRenderer::TestRenderer(int shaderHandle, int meshHandle): m_shaderHandle(shaderHandle), m_meshHandle(meshHandle) {}
 
 void TestRenderer::onStart() {
-    auto device = GameEngine::WebGPURenderer::device();
+    auto &device = GameEngine::WebGPURenderer::device();
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
