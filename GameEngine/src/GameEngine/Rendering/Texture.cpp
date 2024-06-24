@@ -63,7 +63,7 @@ std::function<void()> foo() {
     };
 }
 
-Texture::Texture(const std::string &assetPath) {
+Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat) {
     auto assetFile = std::make_shared<std::ifstream>(assetPath, std::ios::binary | std::ios::ate);
     if (!assetFile) {
         std::cerr << "Error: [Texture] Could not open file " << assetPath << " for reading!" << std::endl;
@@ -123,6 +123,11 @@ Texture::Texture(const std::string &assetPath) {
     textureDescriptor.size = m_size;
     textureDescriptor.mipLevelCount = hasMipLevels ? numMipLevels(textureDescriptor.size) : 1;
     textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
+#ifndef __EMSCRIPTEN__
+    if (requestedFormat != wgpu::TextureFormat::Undefined) {
+        textureDescriptor.format = requestedFormat;
+    }
+#endif
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
     m_texture = device.CreateTexture(&textureDescriptor);
 
@@ -149,7 +154,8 @@ Texture::Texture(const std::string &assetPath) {
                                             texture = m_texture,
                                             hasMipLevels,
                                             imageType = std::move(imageType),
-                                            readyStateIndex = m_readyStateIndex
+                                            readyStateIndex = m_readyStateIndex,
+                                            textureFormat = textureDescriptor.format
                                     ]() mutable {
         ImageResult imageResult;
         imageResult.texture = std::move(texture);
@@ -165,9 +171,24 @@ Texture::Texture(const std::string &assetPath) {
                     return;
                 }
 
-                // float image is twice the size needed for the image as halfs, so just reuse the memory allocated by stb
-                for (int i = 0; i < width * height * channels; i++) {
-                    reinterpret_cast<half *>(floatImage)[i] = floatImage[i];
+                if (textureFormat == wgpu::TextureFormat::RGBA16Float) {
+                    bool clampedValue = false;
+                    half *halfImage = reinterpret_cast<half *>(floatImage);
+                    // float image is twice the size needed for the image as halfs, so just reuse the memory allocated by stb
+                    for (int i = 0; i < width * height * channels; i++) {
+                        float value = floatImage[i];
+                        // prevent float from getting turned into infinity when represented as a half
+                        if (value > 65500) {
+                            value = 65500;
+                            if (!clampedValue) {
+                                clampedValue = true;
+                                std::cout << "clamping float because it would have been converted to inf when turned into a half" << std::endl;
+                            }
+                        }
+                        halfImage[i] = value;
+                    }
+                } else if (textureFormat != wgpu::TextureFormat::RGBA32Float) {
+                    std::cout << "bad texture format for hdr texture" << std::endl;
                 }
 
                 imageResult.mipLevels.push_back({nullptr, floatImage, width, height, 0});
@@ -226,7 +247,7 @@ void Texture::writeTextures() {
     for (auto &imageResult: s_imageResults) {
         for (auto &mipLevel: imageResult.mipLevels) {
             bool imageIsAsHalfs = mipLevel.floatImage != nullptr;
-            int channelByteSize = imageIsAsHalfs ? 2 : 1;
+            int channelByteSize = imageIsAsHalfs ? 4 : 1;
 
             wgpu::ImageCopyTexture destination;
             destination.texture = imageResult.texture;

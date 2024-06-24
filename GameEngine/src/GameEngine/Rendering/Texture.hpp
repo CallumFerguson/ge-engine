@@ -12,7 +12,8 @@ class Texture : public Asset {
 public:
     Texture();
 
-    explicit Texture(const std::string &assetPath);
+    // requested format may not always be honored
+    explicit Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined);
 
     wgpu::Texture &texture();
 

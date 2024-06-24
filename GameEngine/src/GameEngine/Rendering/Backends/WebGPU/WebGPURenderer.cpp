@@ -58,8 +58,11 @@ struct MeshRenderInfo {
 static std::vector<MeshRenderInfo> s_opaqueMeshesToRender;
 static std::vector<MeshRenderInfo> s_transparentMeshesToRender;
 
-void WebGPURenderer::init(Window *window) {
+static std::vector<wgpu::FeatureName> s_requiredFeatures;
+
+void WebGPURenderer::init(Window *window, std::vector<wgpu::FeatureName> requiredFeatures) {
     s_window = window;
+    s_requiredFeatures = std::move(requiredFeatures);
     s_initFinished = false;
     s_instance = wgpu::CreateInstance();
     getAdapter();
@@ -97,18 +100,16 @@ void WebGPURenderer::getAdapterCallback(
         s_adapter.EnumerateFeatures(features.data());
     }
 
-    std::vector<wgpu::FeatureName> requiredFeatures;
-
     bool canTimestamp = std::find(features.begin(), features.end(), wgpu::FeatureName::TimestampQuery) != features.end();
     if (canTimestamp) {
-        requiredFeatures.push_back(wgpu::FeatureName::TimestampQuery);
+        s_requiredFeatures.push_back(wgpu::FeatureName::TimestampQuery);
     }
 
     wgpu::RequiredLimits limits = {};
 
     wgpu::DeviceDescriptor deviceDescriptor = {};
-    deviceDescriptor.requiredFeatures = requiredFeatures.data();
-    deviceDescriptor.requiredFeatureCount = requiredFeatures.size();
+    deviceDescriptor.requiredFeatures = s_requiredFeatures.data();
+    deviceDescriptor.requiredFeatureCount = s_requiredFeatures.size();
     deviceDescriptor.requiredLimits = &limits;
 
 #ifndef __EMSCRIPTEN__
