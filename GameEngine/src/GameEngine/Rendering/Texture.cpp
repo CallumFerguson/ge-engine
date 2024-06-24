@@ -33,6 +33,7 @@ struct ImageResultMipLevel {
     float *floatImage;
     int width;
     int height;
+    int channelByteSize;
     int mipLevel;
 };
 
@@ -171,7 +172,9 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                     return;
                 }
 
+                int channelByteSize = 1;
                 if (textureFormat == wgpu::TextureFormat::RGBA16Float) {
+                    channelByteSize = 2;
                     bool clampedValue = false;
                     half *halfImage = reinterpret_cast<half *>(floatImage);
                     // float image is twice the size needed for the image as halfs, so just reuse the memory allocated by stb
@@ -187,11 +190,13 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                         }
                         halfImage[i] = value;
                     }
-                } else if (textureFormat != wgpu::TextureFormat::RGBA32Float) {
+                } else if (textureFormat == wgpu::TextureFormat::RGBA32Float) {
+                    channelByteSize = 4;
+                } else {
                     std::cout << "bad texture format for hdr texture" << std::endl;
                 }
 
-                imageResult.mipLevels.push_back({nullptr, floatImage, width, height, 0});
+                imageResult.mipLevels.push_back({nullptr, floatImage, width, height, channelByteSize, 0});
                 numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
             } else {
                 int width, height;
@@ -200,7 +205,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                     std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
                     return;
                 }
-                imageResult.mipLevels.push_back({image, nullptr, width, height, 0});
+                imageResult.mipLevels.push_back({image, nullptr, width, height, 1, 0});
                 numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
             }
         }
@@ -219,7 +224,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                     return;
                 }
 
-                imageResult.mipLevels.push_back({image, nullptr, width, height, static_cast<int>(i)});
+                imageResult.mipLevels.push_back({image, nullptr, width, height, 1, static_cast<int>(i)});
             }
         }
 
@@ -247,23 +252,22 @@ void Texture::writeTextures() {
     for (auto &imageResult: s_imageResults) {
         for (auto &mipLevel: imageResult.mipLevels) {
             bool imageIsAsHalfs = mipLevel.floatImage != nullptr;
-            int channelByteSize = imageIsAsHalfs ? 4 : 1;
 
             wgpu::ImageCopyTexture destination;
             destination.texture = imageResult.texture;
             destination.mipLevel = mipLevel.mipLevel;
 
             wgpu::TextureDataLayout dataLayout;
-            dataLayout.bytesPerRow = mipLevel.width * channels * channelByteSize;
+            dataLayout.bytesPerRow = mipLevel.width * channels * mipLevel.channelByteSize;
             dataLayout.rowsPerImage = mipLevel.height;
 
             wgpu::Extent3D size = {static_cast<uint32_t>(mipLevel.width), static_cast<uint32_t>(mipLevel.height), 1};
 
             if (imageIsAsHalfs) {
-                device.GetQueue().WriteTexture(&destination, mipLevel.floatImage, mipLevel.width * mipLevel.height * channels * channelByteSize, &dataLayout, &size);
+                device.GetQueue().WriteTexture(&destination, mipLevel.floatImage, mipLevel.width * mipLevel.height * channels * mipLevel.channelByteSize, &dataLayout, &size);
                 stbi_image_free(mipLevel.floatImage);
             } else {
-                device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels * channelByteSize, &dataLayout, &size);
+                device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels * mipLevel.channelByteSize, &dataLayout, &size);
                 stbi_image_free(mipLevel.image);
             }
         }
