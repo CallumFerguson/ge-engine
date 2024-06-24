@@ -98,8 +98,6 @@ function parseHDR(buffer) {
 
   readPixelsRawRLE(buffer, data, 0, fileOffset, scanlineWidth, scanlinesCount);
 
-  let maxIntensity = 0;
-
   const channels = 4;
   let floatData = new Uint16Array(width * height * channels);
   // for (let row = 0; row < height; row++) {
@@ -128,25 +126,23 @@ function parseHDR(buffer) {
     // don't flip
     const floatOffset = offset;
 
+    if (r > 65500) {
+      r = 65500;
+    }
+    if (g > 65500) {
+      g = 65500;
+    }
+    if (b > 65500) {
+      b = 65500;
+    }
+
     floatData[floatOffset] = toHalf(r);
     floatData[floatOffset + 1] = toHalf(g);
     floatData[floatOffset + 2] = toHalf(b);
     floatData[floatOffset + 3] = oneAsHalf;
-
-    const intensity = (r + g + b) / 3;
-    if (intensity > maxIntensity) {
-      maxIntensity = intensity;
-    }
   }
   //   }
   // }
-
-  if (maxIntensity > 25) {
-    console.log(
-      "hdr image has very high intensities. the intensity will be clamped to 25 for the irradiance map."
-    );
-    console.log("max intensity: " + maxIntensity);
-  }
 
   return {
     width,

@@ -586,8 +586,6 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
 void WebGPURenderer::renderSkybox(const Skybox &skybox) {
     auto& device = s_device;
 
-    auto& cubeMap = AssetManager::getAsset<CubeMap>(skybox.cubeMapHandle);
-
     int shaderHandle = AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
     auto &shader = AssetManager::getAsset<WebGPUShader>(shaderHandle);
 

@@ -27,9 +27,10 @@ void runSandboxApp() {
 //    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/buikslotermeerplein_1k.hdr");
 //    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/buikslotermeerplein_1k_irradiance.hdr");
 
-//    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/rosendal_plains_1_2k.hdr");
-    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_irradiance.hdr");
+    int irradianceTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_irradiance.hdr");
+    int irradianceCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(irradianceTextureHandle);
 
+    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/rosendal_plains_1_2k.hdr");
     int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
     GameEngine::Entity skybox = scene.createEntity("Skybox");

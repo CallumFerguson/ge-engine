@@ -4,6 +4,7 @@
 #include "../Utility/Random.hpp"
 #include "../Assets/AssetManager.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
+#include "CubeMap.hpp"
 
 namespace GameEngine {
 
@@ -64,13 +65,13 @@ void Material::initBindGroup(bool depthWrite) {
     }
 
     {
-        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 2);
+        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 3);
 
         bindGroupEntries[0].binding = 0;
         bindGroupEntries[0].sampler = WebGPURenderer::basicSampler();
 
-        int brdfTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::Texture>(BRDF_UUID);
-        auto &brdfTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(brdfTextureHandle);
+        int brdfTextureHandle = AssetManager::getOrLoadAssetFromUUID<Texture>(BRDF_UUID);
+        auto &brdfTexture = AssetManager::getAsset<Texture>(brdfTextureHandle);
 
         bindGroupEntries[1].binding = 1;
         bindGroupEntries[1].textureView = brdfTexture.cachedTextureView();
@@ -84,6 +85,9 @@ void Material::initBindGroup(bool depthWrite) {
 
             i++;
         }
+
+        bindGroupEntries[i].binding = i;
+        bindGroupEntries[i].textureView = AssetManager::getAsset<CubeMap>(0).cachedTextureView();
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
         bindGroupDescriptor.layout = shader.renderPipeline(depthWrite).GetBindGroupLayout(1);

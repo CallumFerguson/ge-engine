@@ -145,7 +145,7 @@ Skybox::Skybox(int cubeMapHandle) : cubeMapHandle(cubeMapHandle) {
     int shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
     auto &shader = GameEngine::AssetManager::getAsset<WebGPUShader>(shaderHandle);
 
-    auto &cubeMap = GameEngine::AssetManager::getAsset<CubeMap>(shaderHandle);
+    auto &cubeMap = GameEngine::AssetManager::getAsset<CubeMap>(cubeMapHandle);
 
     std::array<wgpu::BindGroupEntry, 3> entries;
     entries[0].binding = 0;

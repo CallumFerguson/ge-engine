@@ -185,7 +185,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                             value = 65500;
                             if (!clampedValue) {
                                 clampedValue = true;
-                                std::cout << "clamping float because it would have been converted to inf when turned into a half" << std::endl;
+//                                std::cout << "clamping float because it would have been converted to inf when turned into a half" << std::endl;
                             }
                         }
                         halfImage[i] = value;
