@@ -628,10 +628,10 @@ wgpu::RenderPipeline WebGPURenderer::createBasicPipeline(const wgpu::ShaderModul
     pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
     pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
 
+    wgpu::DepthStencilState depthStencilState = {};
     if(renderToScreen) {
         pipelineDescriptor.multisample.count = multisampleCount;
 
-        wgpu::DepthStencilState depthStencilState = {};
         depthStencilState.depthWriteEnabled = depthWrite;
         depthStencilState.depthCompare = wgpu::CompareFunction::LessEqual;
         depthStencilState.format = wgpu::TextureFormat::Depth24Plus;
@@ -647,6 +647,11 @@ wgpu::Instance &WebGPURenderer::instance() {
 }
 
 wgpu::QueueWorkDoneStatus WebGPURenderer::waitForDeviceIdle() {
+#ifdef __EMSCRIPTEN__
+    std::cout << "waitForDeviceIdle probably doesn't work with emscripten." << std::endl;
+    return wgpu::QueueWorkDoneStatus::Error;
+#endif
+
     std::promise<wgpu::QueueWorkDoneStatus> promise;
     std::future<wgpu::QueueWorkDoneStatus> future = promise.get_future();
 
@@ -656,7 +661,9 @@ wgpu::QueueWorkDoneStatus WebGPURenderer::waitForDeviceIdle() {
     }, &promise);
 
     while (future.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
+#ifndef __EMSCRIPTEN__
         s_device.Tick();
+#endif
     }
 
     auto status = future.get();

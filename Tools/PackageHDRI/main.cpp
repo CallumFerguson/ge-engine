@@ -76,7 +76,6 @@ int main(int argc, char *argv[]) {
         std::memcpy(renderInfoData.data() + 8, reinterpret_cast<uint8_t *>(&thetaRange), 4);
         std::memcpy(renderInfoData.data() + 12, reinterpret_cast<uint8_t *>(&numPhiSamples), 4);
         std::memcpy(renderInfoData.data() + 16, reinterpret_cast<uint8_t *>(&numThetaSamples), 4);
-//        std::memcpy(renderInfoData.data() + 20, reinterpret_cast<uint8_t *>(&phiSample), 4);
         device.GetQueue().WriteBuffer(renderInfoBuffer, 0, renderInfoData.data(), renderInfoData.size());
     };
 
