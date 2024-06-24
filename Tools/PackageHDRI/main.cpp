@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
-    uint32_t textureWidth = 128;
+    uint32_t textureWidth = 256;
     auto textureHeight = static_cast<uint32_t>(std::round(static_cast<float>(textureWidth) / static_cast<float>(equirectangularTexture.size().width) * static_cast<float>(equirectangularTexture.size().height)));
     uint32_t renderTextureNumPixels = textureWidth * textureHeight;
 
@@ -64,9 +64,6 @@ int main(int argc, char *argv[]) {
     float thetaRange = 0.5 * std::numbers::pi_v<float>;
     auto numPhiSamples = static_cast<int32_t>(phiRange / sampleDelta);
     auto numThetaSamples = static_cast<int32_t>(thetaRange / sampleDelta);
-    std::cout << numPhiSamples << std::endl;
-    std::cout << numThetaSamples << std::endl;
-    
 
     uint64_t maxSamplesPerDraw = 3750000000;
     auto maxPhiSamplePerDraw = static_cast<int32_t>(maxSamplesPerDraw / static_cast<uint64_t>(numThetaSamples * renderTextureNumPixels));
