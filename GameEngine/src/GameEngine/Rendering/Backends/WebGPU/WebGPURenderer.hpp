@@ -50,6 +50,8 @@ public:
 
     static wgpu::Device &device();
 
+    static wgpu::Instance &instance();
+
     static wgpu::RenderPassEncoder &renderPassEncoder();
 
     static wgpu::CommandEncoder &commandEncoder();
@@ -69,6 +71,8 @@ public:
     static void renderSkybox(const Skybox &skybox);
 
     static wgpu::RenderPipeline createBasicPipeline(const wgpu::ShaderModule &shaderModule, bool renderToScreen, bool depthWrite, wgpu::TextureFormat textureFormat = wgpu::TextureFormat::Undefined);
+
+    static wgpu::QueueWorkDoneStatus waitForDeviceIdle();
 
 private:
     static void getAdapter();

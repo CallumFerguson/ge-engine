@@ -1,11 +1,9 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <fstream>
 #include <string>
 #include <filesystem>
 #include <vector>
-#include <stb_image.h>
 #include <stb_image_write.h>
 #include <half.hpp>
 #include <numbers>
@@ -20,6 +18,9 @@ int main(int argc, char *argv[]) {
     }
 
     GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
+
+    std::cout << "loading resources..." << std::endl;
+
     GameEngine::AssetManager::registerAssetUUIDs("../../Sandbox/assets");
 
     std::filesystem::path inputFilePath(argv[1]);
@@ -30,7 +31,6 @@ int main(int argc, char *argv[]) {
     auto &device = GameEngine::WebGPURenderer::device();
 
     int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float);
-//    int equirectangularTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>(inputFilePath.string());
     auto &equirectangularTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(equirectangularTextureHandle);
 
     while (!equirectangularTexture.ready()) {
@@ -59,13 +59,14 @@ int main(int argc, char *argv[]) {
     renderInfoBufferDescriptor.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
     auto renderInfoBuffer = device.CreateBuffer(&renderInfoBufferDescriptor);
 
-    float sampleDelta = 0.0005;
-//    float sampleDelta = 0.01;
+    float sampleDelta = 0.001;
     float phiRange = 2.0 * std::numbers::pi_v<float>;
     float thetaRange = 0.5 * std::numbers::pi_v<float>;
     auto numPhiSamples = static_cast<int32_t>(phiRange / sampleDelta);
     auto numThetaSamples = static_cast<int32_t>(thetaRange / sampleDelta);
-//    int32_t phiSample = 0;
+    std::cout << numPhiSamples << std::endl;
+    std::cout << numThetaSamples << std::endl;
+    
 
     uint64_t maxSamplesPerDraw = 3750000000;
     auto maxPhiSamplePerDraw = static_cast<int32_t>(maxSamplesPerDraw / static_cast<uint64_t>(numThetaSamples * renderTextureNumPixels));
@@ -155,8 +156,13 @@ int main(int argc, char *argv[]) {
     bindGroupDescriptor.entries = bindGroupEntries.data();
     auto bindGroup = device.CreateBindGroup(&bindGroupDescriptor);
 
+    int numRenderPasses = static_cast<int>(std::ceil(static_cast<double>(numPhiSamples) / static_cast<double>(maxPhiSamplePerDraw)));
+    std::vector<std::string> completeMessages(numRenderPasses);
+
+    std::cout << "computing irradiance..." << std::endl;
+
     for (int32_t i = 0; i < numPhiSamples; i += maxPhiSamplePerDraw) {
-        std::cout << static_cast<int>(static_cast<float>(i) / static_cast<float>(numPhiSamples) * 100.0f) << "%" << std::endl;
+        int renderPassIndex = i / maxPhiSamplePerDraw;
 
         auto encoder = device.CreateCommandEncoder();
 
@@ -164,13 +170,22 @@ int main(int argc, char *argv[]) {
 
         renderPassEncoder.SetPipeline(shader.renderPipeline(false));
         renderPassEncoder.SetBindGroup(0, bindGroup);
+
         renderPassEncoder.Draw(3, std::min(numPhiSamples - i, maxPhiSamplePerDraw), 0, i);
+
         renderPassEncoder.End();
 
         auto commandBuffer = encoder.Finish();
         device.GetQueue().Submit(1, &commandBuffer);
+
+        int percentage = static_cast<int>(static_cast<float>(renderPassIndex + 1) / static_cast<float>(numRenderPasses) * 100.0f);
+        completeMessages[renderPassIndex] = std::to_string(percentage) + "% complete. pass (" + std::to_string(renderPassIndex + 1) + "/" + std::to_string(numRenderPasses) + ")";
+        device.GetQueue().OnSubmittedWorkDone([](WGPUQueueWorkDoneStatus status, void * userdata) {
+            std::cout << *reinterpret_cast<std::string*>(userdata) << std::endl;
+        }, &completeMessages[renderPassIndex]);
+
+        device.Tick();
     }
-    std::cout << "100%" << std::endl;
 
     {
         auto encoder = device.CreateCommandEncoder();

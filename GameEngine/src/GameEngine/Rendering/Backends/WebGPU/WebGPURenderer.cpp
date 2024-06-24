@@ -1,5 +1,6 @@
 #include "WebGPURenderer.hpp"
 
+#include <future>
 #include <vector>
 #include <map>
 #include <array>
@@ -639,6 +640,31 @@ wgpu::RenderPipeline WebGPURenderer::createBasicPipeline(const wgpu::ShaderModul
     }
 
     return s_device.CreateRenderPipeline(&pipelineDescriptor);
+}
+
+wgpu::Instance &WebGPURenderer::instance() {
+    return s_instance;
+}
+
+wgpu::QueueWorkDoneStatus WebGPURenderer::waitForDeviceIdle() {
+    std::promise<wgpu::QueueWorkDoneStatus> promise;
+    std::future<wgpu::QueueWorkDoneStatus> future = promise.get_future();
+
+    s_device.GetQueue().OnSubmittedWorkDone([](WGPUQueueWorkDoneStatus status, void * userdata) {
+        auto promise = static_cast<std::promise<wgpu::QueueWorkDoneStatus>*>(userdata);
+        promise->set_value(static_cast<wgpu::QueueWorkDoneStatus>(status));
+    }, &promise);
+
+    while (future.wait_for(std::chrono::milliseconds(1)) != std::future_status::ready) {
+        s_device.Tick();
+    }
+
+    auto status = future.get();
+    if(status != wgpu::QueueWorkDoneStatus::Success) {
+        std::cout << "waitForDeviceIdle not successful: " << static_cast<uint32_t>(status) << std::endl;
+    }
+
+    return status;
 }
 
 }
