@@ -126,6 +126,7 @@ function parseHDR(buffer) {
     // don't flip
     const floatOffset = offset;
 
+    // prevent float from getting turned into infinity when represented as a half
     if (r > 65500) {
       r = 65500;
     }

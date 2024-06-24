@@ -175,7 +175,6 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                 int channelByteSize = 1;
                 if (textureFormat == wgpu::TextureFormat::RGBA16Float) {
                     channelByteSize = 2;
-                    bool clampedValue = false;
                     half *halfImage = reinterpret_cast<half *>(floatImage);
                     // float image is twice the size needed for the image as halfs, so just reuse the memory allocated by stb
                     for (int i = 0; i < width * height * channels; i++) {
@@ -183,10 +182,6 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                         // prevent float from getting turned into infinity when represented as a half
                         if (value > 65500) {
                             value = 65500;
-                            if (!clampedValue) {
-                                clampedValue = true;
-//                                std::cout << "clamping float because it would have been converted to inf when turned into a half" << std::endl;
-                            }
                         }
                         halfImage[i] = value;
                     }
