@@ -13,7 +13,7 @@ public:
     Texture();
 
     // requested format may not always be honored
-    explicit Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined);
+    explicit Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined, bool forceMipLevels = false, wgpu::TextureUsage extraFlags = wgpu::TextureUsage::None);
 
     wgpu::Texture &texture();
 

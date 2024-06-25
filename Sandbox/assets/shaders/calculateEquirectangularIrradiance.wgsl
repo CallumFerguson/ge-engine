@@ -70,7 +70,7 @@ fn equirectangularCoordinatesToDirection(uv: vec2f) -> vec3f {
 
 @fragment
 fn frag(i: VertexOutput) -> @location(0) vec4f {
-    let direction = equirectangularCoordinatesToDirection(i.uv);;
+    let direction = equirectangularCoordinatesToDirection(i.uv);
 
     var irradiance = vec3f(0, 0, 0);
 
@@ -91,7 +91,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
         let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * direction;
         let uv = directionToEquirectangularCoordinates(sampleVec);
 
-        let linearColorSample = textureSample(texture, textureSampler, uv).rgb * cos(theta) * sin(theta);
+        let linearColorSample = textureSampleLevel(texture, textureSampler, uv, 0).rgb * cos(theta) * sin(theta);
 //        irradiance += min(linearColorSample, vec3(25, 25, 25));
         irradiance += linearColorSample;
     }

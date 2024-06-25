@@ -64,7 +64,7 @@ std::function<void()> foo() {
     };
 }
 
-Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat) {
+Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat, bool forceMipLevels, wgpu::TextureUsage extraFlags) {
     auto assetFile = std::make_shared<std::ifstream>(assetPath, std::ios::binary | std::ios::ate);
     if (!assetFile) {
         std::cerr << "Error: [Texture] Could not open file " << assetPath << " for reading!" << std::endl;
@@ -122,14 +122,14 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     wgpu::TextureDescriptor textureDescriptor;
     m_size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
     textureDescriptor.size = m_size;
-    textureDescriptor.mipLevelCount = hasMipLevels ? numMipLevels(textureDescriptor.size) : 1;
+    textureDescriptor.mipLevelCount = (hasMipLevels || forceMipLevels) ? numMipLevels(textureDescriptor.size) : 1;
     textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
 #ifndef __EMSCRIPTEN__
     if (requestedFormat != wgpu::TextureFormat::Undefined) {
         textureDescriptor.format = requestedFormat;
     }
 #endif
-    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
+    textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment | extraFlags;
     m_texture = device.CreateTexture(&textureDescriptor);
 
     m_readyStateIndex = s_textureReadyStates.size();

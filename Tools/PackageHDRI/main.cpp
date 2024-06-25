@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     std::filesystem::path outputFilePath(argv[2]);
     std::filesystem::create_directories(outputFilePath);
 
-    int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float);
+    int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float, true);
     auto &equirectangularTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(equirectangularTextureHandle);
 
     while (!equirectangularTexture.ready()) {
@@ -31,7 +31,8 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
-    computePreFilter(equirectangularTexture);
+    std::filesystem::path preFilterOutputPath = outputFilePath / (inputFilePath.stem().string() + "_prefilter.hdr");
+    computePreFilter(equirectangularTexture, preFilterOutputPath);
 
 //    std::filesystem::path irradianceOutputPath = outputFilePath / (inputFilePath.stem().string() + "_irradiance.hdr");
 //    computeIrradiance(equirectangularTexture, irradianceOutputPath);

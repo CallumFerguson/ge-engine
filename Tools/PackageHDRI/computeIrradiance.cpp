@@ -204,7 +204,6 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, const std::f
             imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
-
         stbi_write_hdr(irradianceOutputPath.string().c_str(), static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
 
         readBackBuffer.Unmap();

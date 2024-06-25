@@ -16,7 +16,7 @@ void writeImageDataToFile(void *context, void *data, int size) {
 bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
     auto path = outputFilePath / (name + ".getexture");
 
-    TimingHelper time("packed texture " + name);
+    GameEngine::TimingHelper time("packed texture " + name);
 
     std::ofstream outputFile(path, std::ios::out | std::ios::binary);
     if (!outputFile) {
@@ -151,7 +151,7 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
 void writeFakeTexture(const uint8_t *data, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
     auto path = outputFilePath / (name + ".getexture");
 
-    TimingHelper time("packed texture " + name);
+    GameEngine::TimingHelper time("packed texture " + name);
 
     std::ofstream outputFile(path, std::ios::out | std::ios::binary);
     if (!outputFile) {
