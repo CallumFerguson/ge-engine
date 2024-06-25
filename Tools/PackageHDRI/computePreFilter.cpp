@@ -40,15 +40,8 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     bindGroupEntries[0].binding = 0;
     bindGroupEntries[0].sampler = GameEngine::WebGPURenderer::basicSampler();
 
-    wgpu::TextureViewDescriptor textureViewDescriptor;
-    textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
-    textureViewDescriptor.baseArrayLayer = 0;
-    textureViewDescriptor.arrayLayerCount = 1;
-    textureViewDescriptor.baseMipLevel = 0;
-    textureViewDescriptor.mipLevelCount = 1;
-
     bindGroupEntries[1].binding = 1;
-    bindGroupEntries[1].textureView = equirectangularTexture.texture().CreateView(&textureViewDescriptor);
+    bindGroupEntries[1].textureView = equirectangularTexture.cachedTextureView();
 
     wgpu::BufferDescriptor roughnessBufferDescriptor;
     roughnessBufferDescriptor.size = 4;
