@@ -58,9 +58,16 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
     entries[1].binding = 1;
     entries[1].sampler = WebGPURenderer::basicSampler();
 
+    wgpu::TextureViewDescriptor textureViewDescriptor;
+    textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
+    textureViewDescriptor.baseArrayLayer = 0;
+    textureViewDescriptor.arrayLayerCount = 1;
+    textureViewDescriptor.baseMipLevel = 0;
+    textureViewDescriptor.mipLevelCount = 1;
+
     auto &equirectangularTexture = AssetManager::getAsset<Texture>(equirectangularTextureHandle);
     entries[2].binding = 2;
-    entries[2].textureView = equirectangularTexture.cachedTextureView();
+    entries[2].textureView = equirectangularTexture.texture().CreateView(&textureViewDescriptor);
 
     wgpu::BindGroupDescriptor bindGroupDescriptor;
     bindGroupDescriptor.layout = shader.renderPipeline(false).GetBindGroupLayout(0);

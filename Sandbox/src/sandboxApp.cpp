@@ -33,8 +33,11 @@ void runSandboxApp() {
 //    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/rosendal_plains_1_2k.hdr");
 //    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
-//    GameEngine::Entity skybox = scene.createEntity("Skybox");
-//    skybox.addComponent<GameEngine::Skybox>(cubeMapHandle);
+    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k.getexture");
+    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
+
+    GameEngine::Entity skybox = scene.createEntity("Skybox");
+    skybox.addComponent<GameEngine::Skybox>(cubeMapHandle);
 
 //    auto fullscreen = scene.createEntity("Fullscreen");
 //    fullscreen.addScript<FullscreenTexture>();

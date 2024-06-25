@@ -72,8 +72,8 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
-    bool hasMipLevels = true;
-    outputFile.write(reinterpret_cast<char *>(&hasMipLevels), 1);
+    uint32_t mipLevelsInFile = textureDescriptor.mipLevelCount;
+    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
     for (uint32_t level = 0; level < textureDescriptor.mipLevelCount; level++) {
         uint32_t mipWidth = std::max(1u, size.width >> level);
@@ -164,8 +164,8 @@ void writeFakeTexture(const uint8_t *data, const std::string &name, const std::f
     std::string imageType = "png";
     outputFile.write(imageType.c_str(), imageType.size() + 1);
 
-    bool hasMipLevels = false;
-    outputFile.write(reinterpret_cast<char *>(&hasMipLevels), 1);
+    uint32_t mipLevelsInFile = 1;
+    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
     stbi_write_png_to_func(writeImageDataToFile, &outputFile, 1, 1, 4, data, 4);
 

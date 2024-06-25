@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "loading gltf file " << inputFileName << "..." << std::endl;
 
-    TimingHelper time("loaded gltf file");
+    GameEngine::TimingHelper time("loaded gltf file");
 
     std::string inputFilePathExtension = inputFilePath.extension().string();
     bool result;

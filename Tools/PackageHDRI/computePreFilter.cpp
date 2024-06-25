@@ -179,7 +179,13 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
-    outputFile.write(reinterpret_cast<const char *>(&roughnessMipLevels), sizeof(uint32_t));
+    outputFile << GameEngine::Random::uuid();
+
+    std::string imageType = "hdr";
+    outputFile.write(imageType.c_str(), imageType.size() + 1);
+
+    uint32_t mipLevelsInFile = roughnessMipLevels;
+    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
     {
         int x, y;

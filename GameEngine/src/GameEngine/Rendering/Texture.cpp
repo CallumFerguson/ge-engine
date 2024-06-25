@@ -75,7 +75,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     assetFile->seekg(0, std::ios::beg);
 
     std::string imageType;
-    bool hasMipLevels;
+    uint32_t mipLevelsInFile;
     uint32_t imageNumBytes;
 
     std::filesystem::path path = assetPath;
@@ -92,13 +92,13 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
 
         std::getline(*assetFile, imageType, '\0');
 
-        assetFile->read(reinterpret_cast<char *>(&hasMipLevels), 1);
+        assetFile->read(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
         assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
     } else {
         m_assetUUID = Random::uuid();
         imageType = extension.substr(1);
-        hasMipLevels = false;
+        mipLevelsInFile = 1;
         imageNumBytes = fileNumBytes;
     }
 
@@ -122,7 +122,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     wgpu::TextureDescriptor textureDescriptor;
     m_size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
     textureDescriptor.size = m_size;
-    textureDescriptor.mipLevelCount = (hasMipLevels || forceMipLevels) ? numMipLevels(textureDescriptor.size) : 1;
+    textureDescriptor.mipLevelCount = forceMipLevels ? numMipLevels(textureDescriptor.size) : mipLevelsInFile;
     textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
 #ifndef __EMSCRIPTEN__
     if (requestedFormat != wgpu::TextureFormat::Undefined) {
@@ -136,11 +136,12 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     s_textureReadyStates.push_back({false, nullptr});
 
 #ifdef __EMSCRIPTEN__
+    std::cout << "TODO: this" << std::endl;
+
     writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0, imageType, static_cast<int>(m_readyStateIndex));
 
-    if (hasMipLevels) {
-        uint32_t numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
-        for (int mipLevel = 1; mipLevel < numLevels; mipLevel++) {
+    if (mipLevelsInFile > 1) {
+        for (int mipLevel = 1; mipLevel < mipLevelsInFile; mipLevel++) {
             assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
 
             assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
@@ -153,7 +154,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                                             assetFile = std::move(assetFile),
                                             imageData = std::move(imageData),
                                             texture = m_texture,
-                                            hasMipLevels,
+                                            mipLevelsInFile,
                                             imageType = std::move(imageType),
                                             readyStateIndex = m_readyStateIndex,
                                             textureFormat = textureDescriptor.format
@@ -162,13 +163,19 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
         imageResult.texture = std::move(texture);
         imageResult.readyStateIndex = readyStateIndex;
 
-        uint32_t numLevels;
-        {
+        for (uint32_t mipLevel = 0; mipLevel < mipLevelsInFile; mipLevel++) {
+            if (mipLevel > 0) {
+                uint32_t imageNumBytes;
+                assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
+
+                assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
+            }
+
             if (imageType == "hdr") {
                 int width, height;
                 float *floatImage = stbi_loadf_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
                 if (floatImage == nullptr) {
-                    std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
+                    std::cout << "Failed to load image from memory: mip level: " << mipLevel << std::endl;
                     return;
                 }
 
@@ -191,8 +198,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                     std::cout << "bad texture format for hdr texture" << std::endl;
                 }
 
-                imageResult.mipLevels.push_back({nullptr, floatImage, width, height, channelByteSize, 0});
-                numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
+                imageResult.mipLevels.push_back({nullptr, floatImage, width, height, channelByteSize, static_cast<int>(mipLevel)});
             } else {
                 int width, height;
                 stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr, channels);
@@ -200,26 +206,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
                     std::cerr << "Failed to load image from memory. mip level: 0" << std::endl;
                     return;
                 }
-                imageResult.mipLevels.push_back({image, nullptr, width, height, 1, 0});
-                numLevels = numMipLevels({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1});
-            }
-        }
-
-        if (hasMipLevels) {
-            for (uint32_t i = 1; i < numLevels; i++) {
-                uint32_t imageNumBytes;
-                assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
-
-                assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
-
-                int width, height;
-                stbi_uc *image = stbi_load_from_memory(imageData.data(), static_cast<int>(imageNumBytes), &width, &height, nullptr, channels);
-                if (image == nullptr) {
-                    std::cerr << "Failed to load image from memory: mip level: " << i << std::endl;
-                    return;
-                }
-
-                imageResult.mipLevels.push_back({image, nullptr, width, height, 1, static_cast<int>(i)});
+                imageResult.mipLevels.push_back({image, nullptr, width, height, 1, static_cast<int>(mipLevel)});
             }
         }
 

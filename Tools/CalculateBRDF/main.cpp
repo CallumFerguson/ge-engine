@@ -271,8 +271,8 @@ int main(int argc, char *argv[]) {
     std::string imageType = "png";
     outputFile.write(imageType.c_str(), imageType.size() + 1);
 
-    bool hasMipLevels = false;
-    outputFile.write(reinterpret_cast<char *>(&hasMipLevels), 1);
+    uint32_t mipLevelsInFile = 1;
+    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
     stbi_write_png_to_func(writeImageDataToFile, &outputFile, resolution, resolution, 4, data, resolution * 4);
 
