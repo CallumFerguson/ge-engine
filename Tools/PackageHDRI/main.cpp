@@ -17,6 +17,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    GameEngine::TimingHelper time("Package HDRI");
+
     GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
 
     std::cout << "loading resources..." << std::endl;
@@ -26,7 +28,6 @@ int main(int argc, char *argv[]) {
     std::filesystem::path inputFilePath(argv[1]);
     std::filesystem::path outputFilePath(argv[2]);
     std::filesystem::create_directories(outputFilePath);
-    outputFilePath /= inputFilePath.stem().string() + "_irradiance.hdr";
 
     auto &device = GameEngine::WebGPURenderer::device();
 
@@ -44,7 +45,6 @@ int main(int argc, char *argv[]) {
 
     wgpu::TextureDescriptor textureDescriptor;
     textureDescriptor.size = {textureWidth, textureHeight, 1};
-//    textureDescriptor.size = equirectangularTexture.size();
     textureDescriptor.format = wgpu::TextureFormat::RGBA32Float;
     textureDescriptor.usage = wgpu::TextureUsage::CopySrc | wgpu::TextureUsage::RenderAttachment;
     auto renderTexture = device.CreateTexture(&textureDescriptor);
@@ -65,8 +65,11 @@ int main(int argc, char *argv[]) {
     auto numPhiSamples = static_cast<int32_t>(phiRange / sampleDelta);
     auto numThetaSamples = static_cast<int32_t>(thetaRange / sampleDelta);
 
-    uint64_t maxSamplesPerDraw = 3750000000;
-    auto maxPhiSamplePerDraw = static_cast<int32_t>(maxSamplesPerDraw / static_cast<uint64_t>(numThetaSamples * renderTextureNumPixels));
+//    uint64_t maxSamplesPerDraw = 3750000000;
+//    auto maxPhiSamplePerDraw = static_cast<int32_t>(maxSamplesPerDraw / static_cast<uint64_t>(numThetaSamples * renderTextureNumPixels));
+
+    // having many draw calls seems to be just as fast and doesn't completely block the gpu causing the OS to slow down
+    int maxPhiSamplePerDraw = 1;
 
     std::array<uint8_t, 20> renderInfoData;
 
@@ -226,7 +229,8 @@ int main(int argc, char *argv[]) {
             imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
-        stbi_write_hdr(outputFilePath.string().c_str(), static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
+        std::filesystem::path irradianceOutputPath = outputFilePath / (inputFilePath.stem().string() + "_irradiance.hdr");
+        stbi_write_hdr(irradianceOutputPath.string().c_str(), static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
 
         readBackBuffer.Unmap();
     }
