@@ -21,21 +21,57 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     const auto shaderUUID = CALCULATE_PRE_FILTER_SHADER_UUID;
     if (!GameEngine::WebGPUShader::shaderHasCreatePipelineFunction(shaderUUID)) {
         GameEngine::WebGPUShader::registerShaderCreatePipelineFunction(shaderUUID, [](const wgpu::ShaderModule &shaderModule, bool depthWrite) {
-            return GameEngine::WebGPURenderer::createBasicPipeline(shaderModule, false, false, wgpu::TextureFormat::RGBA32Float);
+            auto &device = GameEngine::WebGPURenderer::device();
+
+            wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+
+            pipelineDescriptor.layout = nullptr; // auto layout
+
+            wgpu::BlendState blendState;
+            blendState.color.operation = wgpu::BlendOperation::Add;
+            blendState.color.srcFactor = wgpu::BlendFactor::One;
+            blendState.color.dstFactor = wgpu::BlendFactor::One;
+
+            blendState.alpha.operation = wgpu::BlendOperation::Add;
+            blendState.alpha.srcFactor = wgpu::BlendFactor::One;
+            blendState.alpha.dstFactor = wgpu::BlendFactor::One;
+
+            wgpu::ColorTargetState colorTargetState = {};
+            colorTargetState.format = wgpu::TextureFormat::RGBA32Float;
+            colorTargetState.blend = &blendState;
+
+            wgpu::FragmentState fragment = {};
+            fragment.module = shaderModule;
+            fragment.entryPoint = "frag";
+            fragment.targetCount = 1;
+            fragment.targets = &colorTargetState;
+
+            wgpu::VertexState vertex = {};
+            vertex.module = shaderModule;
+            vertex.entryPoint = "vert";
+            vertex.bufferCount = 0;
+
+            pipelineDescriptor.vertex = vertex;
+            pipelineDescriptor.fragment = &fragment;
+
+            pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
+            pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
+
+            return device.CreateRenderPipeline(&pipelineDescriptor);
         });
     }
     int shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<GameEngine::WebGPUShader>(shaderUUID);
     auto &shader = GameEngine::AssetManager::getAsset<GameEngine::WebGPUShader>(shaderHandle);
 
     wgpu::RenderPassColorAttachment colorAttachment;
-    colorAttachment.loadOp = wgpu::LoadOp::Clear;
+    colorAttachment.loadOp = wgpu::LoadOp::Load;
     colorAttachment.storeOp = wgpu::StoreOp::Store;
 
     wgpu::RenderPassDescriptor renderPassDescriptor;
     renderPassDescriptor.colorAttachmentCount = 1;
     renderPassDescriptor.colorAttachments = &colorAttachment;
 
-    std::array<wgpu::BindGroupEntry, 3> bindGroupEntries;
+    std::array<wgpu::BindGroupEntry, 4> bindGroupEntries;
 
     bindGroupEntries[0].binding = 0;
     bindGroupEntries[0].sampler = GameEngine::WebGPURenderer::basicSampler();
@@ -51,13 +87,39 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     bindGroupEntries[2].binding = 2;
     bindGroupEntries[2].buffer = roughnessBuffer;
 
+    uint32_t sampleCount = 65536;
+    uint32_t samplesPerDraw = 1024;
+    uint32_t numDraws = sampleCount / samplesPerDraw;
+    uint32_t newSampleCount = samplesPerDraw * numDraws;
+    if(newSampleCount != sampleCount) {
+        std::cout << "requested sample count: " << sampleCount << ". Actual sample count: " << newSampleCount << std::endl;
+        sampleCount = newSampleCount;
+    }
+
+    wgpu::BufferDescriptor renderInfoBufferDescriptor;
+    renderInfoBufferDescriptor.mappedAtCreation = true;
+    renderInfoBufferDescriptor.size = 12;
+    renderInfoBufferDescriptor.usage = wgpu::BufferUsage::Uniform;
+    auto renderInfoBuffer = device.CreateBuffer(&renderInfoBufferDescriptor);
+    auto renderInfoBufferData = static_cast<uint8_t *>(renderInfoBuffer.GetMappedRange());
+    std::memcpy(renderInfoBufferData + 0, &sampleCount, 4);
+    std::memcpy(renderInfoBufferData + 4, &samplesPerDraw, 4);
+    std::memcpy(renderInfoBufferData + 8, &numDraws, 4);
+    renderInfoBuffer.Unmap();
+
+    bindGroupEntries[3].binding = 3;
+    bindGroupEntries[3].buffer = renderInfoBuffer;
+
     wgpu::BindGroupDescriptor bindGroupDescriptor = {};
     bindGroupDescriptor.layout = shader.renderPipeline(false).GetBindGroupLayout(0);
     bindGroupDescriptor.entryCount = bindGroupEntries.size();
     bindGroupDescriptor.entries = bindGroupEntries.data();
     auto bindGroup = device.CreateBindGroup(&bindGroupDescriptor);
 
-    for (int mipLevel = 0; mipLevel < roughnessMipLevels; mipLevel++) {
+    std::vector<std::string> completeMessages((roughnessMipLevels - 1) * numDraws);
+
+    int drawIndex = 0;
+    for (int mipLevel = roughnessMipLevels - 1; mipLevel >= 1; mipLevel--) {
         float roughness = static_cast<float>(mipLevel) / (static_cast<float>(roughnessMipLevels) - 1.0f);
         device.GetQueue().WriteBuffer(roughnessBuffer, 0, &roughness, 4);
 
@@ -70,19 +132,36 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
 
         colorAttachment.view = equirectangularTextureOutput.CreateView(&outputTextureViewDescriptor);
 
-        auto encoder = device.CreateCommandEncoder();
+        for(uint32_t draw = 0; draw < numDraws; draw++) {
+            auto encoder = device.CreateCommandEncoder();
 
-        auto renderPassEncoder = encoder.BeginRenderPass(&renderPassDescriptor);
+            auto renderPassEncoder = encoder.BeginRenderPass(&renderPassDescriptor);
 
-        renderPassEncoder.SetPipeline(shader.renderPipeline(false));
-        renderPassEncoder.SetBindGroup(0, bindGroup);
+            renderPassEncoder.SetPipeline(shader.renderPipeline(false));
+            renderPassEncoder.SetBindGroup(0, bindGroup);
 
-        renderPassEncoder.Draw(3);
+            renderPassEncoder.Draw(3, 1, 0, draw);
 
-        renderPassEncoder.End();
+            renderPassEncoder.End();
 
-        auto commandBuffer = encoder.Finish();
-        device.GetQueue().Submit(1, &commandBuffer);
+            auto commandBuffer = encoder.Finish();
+            device.GetQueue().Submit(1, &commandBuffer);
+
+            float percentageFloat = static_cast<float>(drawIndex + 1) / static_cast<float>((roughnessMipLevels - 1) * numDraws);
+            percentageFloat = percentageFloat * percentageFloat;
+            int percentageInt = static_cast<int>(percentageFloat * 100.0f);
+            if(percentageInt == 0) {
+                percentageInt = 1;
+            }
+            std::string message = std::to_string(percentageInt) + "% complete. pass (" + std::to_string(drawIndex + 1) + "/" + std::to_string((roughnessMipLevels - 1) * numDraws) + ")";
+            completeMessages[drawIndex] = message;
+            device.GetQueue().OnSubmittedWorkDone([](WGPUQueueWorkDoneStatus status, void * userdata) {
+                std::cout << *reinterpret_cast<std::string*>(userdata) << std::endl;
+            }, &completeMessages[drawIndex]);
+
+            device.Tick();
+            drawIndex++;
+        }
     }
 
     wgpu::BufferDescriptor descriptor;
@@ -90,7 +169,7 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
-    for (uint32_t level = 0; level < roughnessMipLevels; level++) {
+    for (uint32_t level = 1; level < roughnessMipLevels; level++) {
         uint32_t mipWidth = std::max(1u, equirectangularTexture.size().width >> level);
         uint32_t mipHeight = std::max(1u, equirectangularTexture.size().height >> level);
         uint32_t mipSize = mipWidth * mipHeight * 16;

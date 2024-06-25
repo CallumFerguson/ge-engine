@@ -2,17 +2,26 @@
 
 const PI = 3.14159265359;
 
+struct RenderInfo {
+    sampleCount: u32,
+    samplesPerDraw: u32,
+    numDraws: u32,
+}
+
 @group(0) @binding(0) var textureSampler: sampler;
 @group(0) @binding(1) var texture: texture_2d<f32>;
 @group(0) @binding(2) var<uniform> roughness: f32;
+@group(0) @binding(3) var<uniform> renderInfo: RenderInfo;
 
 struct VertexInput {
     @builtin(vertex_index) vertexIndex: u32,
+    @builtin(instance_index) instanceIndex: u32,
 }
 
 struct VertexOutput {
     @builtin(position) position: vec4f,
     @location(0) uv: vec2f,
+    @location(1) @interpolate(flat) instanceIndex: u32,
 }
 
 @vertex
@@ -32,6 +41,7 @@ fn vert(i: VertexInput) -> VertexOutput {
 
     o.position = vec4(positions[i.vertexIndex], 1, 1);
     o.uv = uvs[i.vertexIndex];
+    o.instanceIndex = i.instanceIndex;
 
     return o;
 }
@@ -65,12 +75,11 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     let R = N;
     let V = R;
 
-    const SAMPLE_COUNT: u32 = 1024;
     var totalWeight = 0.0;
     var prefilteredColor = vec3(0.0);
-    for(var i = 0u; i < SAMPLE_COUNT; i++)
+    for(var n = 0u; n < renderInfo.samplesPerDraw; n++)
     {
-        let Xi = hammersley(i, SAMPLE_COUNT);
+        let Xi = hammersley(i.instanceIndex * renderInfo.samplesPerDraw + n, renderInfo.sampleCount);
         let H = importanceSampleGGX(Xi, N, roughness);
         let L = normalize(2.0 * dot(V, H) * H - V);
 
@@ -84,11 +93,10 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 
         let resolution: f32 = 2048; // resolution of source cubemap (per face)
         let saTexel  = 4.0 * PI / (6.0 * resolution * resolution);
-        let saSample = 1.0 / (f32(SAMPLE_COUNT) * pdf + 0.0001);
+        let saSample = 1.0 / (f32(renderInfo.sampleCount) * pdf + 0.0001);
 
-        let mipLevel = select(0.5 * log2(saSample / saTexel), 0.0, roughness == 0.0);
-//        let sampleColor = textureSampleLevel(texture, textureSampler, L, mipLevel).rgb;
         let uv = directionToEquirectangularCoordinates(L);
+        let mipLevel = select(0.5 * log2(saSample / saTexel), 0.0, roughness == 0.0);
         let sampleColor = textureSampleLevel(texture, textureSampler, uv, mipLevel).rgb;
 
         if(NdotL > 0.0)
@@ -97,7 +105,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
             totalWeight += NdotL;
         }
     }
-    prefilteredColor = prefilteredColor / totalWeight;
+    prefilteredColor = prefilteredColor / totalWeight / f32(renderInfo.numDraws);
 
     return vec4(prefilteredColor, 1);
 }
