@@ -37,6 +37,7 @@ add_executable(
         PackageHDRI
 
         PackageHDRI/main.cpp
+        PackageHDRI/computePreFilter.cpp
         PackageHDRI/computeIrradiance.cpp
 )
 target_precompile_headers(PackageHDRI REUSE_FROM GameEngine)

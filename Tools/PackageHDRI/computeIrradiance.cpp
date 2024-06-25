@@ -10,6 +10,8 @@
 #include "GameEngine.hpp"
 
 void computeIrradiance(GameEngine::Texture& equirectangularTexture, const std::filesystem::path &irradianceOutputPath) {
+    GameEngine::TimingHelper time("Compute Irradiance");
+
     auto &device = GameEngine::WebGPURenderer::device();
 
     uint32_t textureWidth = 256;

@@ -1,16 +1,9 @@
 #include <iostream>
 #include <thread>
-#include <chrono>
-#include <string>
 #include <filesystem>
-#include <vector>
-#include <stb_image_write.h>
-#include <half.hpp>
-#include <numbers>
 #include "GameEngine.hpp"
+#include "computePreFilter.hpp"
 #include "computeIrradiance.hpp"
-
-using half_float::half;
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -18,7 +11,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    GameEngine::TimingHelper time("Package HDRI");
+    GameEngine::TimingHelper time("Total");
 
     GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
 
@@ -38,8 +31,10 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
-    std::filesystem::path irradianceOutputPath = outputFilePath / (inputFilePath.stem().string() + "_irradiance.hdr");
-    computeIrradiance(equirectangularTexture, irradianceOutputPath);
+    computePreFilter(equirectangularTexture);
+
+//    std::filesystem::path irradianceOutputPath = outputFilePath / (inputFilePath.stem().string() + "_irradiance.hdr");
+//    computeIrradiance(equirectangularTexture, irradianceOutputPath);
 
     std::cout << "done" << std::endl;
 }
