@@ -130,9 +130,9 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
         }
 
         if (hasTransparency) {
-            stbi_write_png_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, static_cast<int>(bytesPerRow));
+            stbi_write_png_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, static_cast<int>(bytesPerRow));
         } else {
-            stbi_write_jpg_to_func(writeImageDataToFile, &outputFile, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
+            stbi_write_jpg_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
         }
 
         uint32_t imageNumBytes = s_stbImageWriteBuffer.size();

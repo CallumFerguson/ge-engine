@@ -9,7 +9,14 @@
 #include <numbers>
 #include "GameEngine.hpp"
 
-void computeIrradiance(GameEngine::Texture& equirectangularTexture, const std::filesystem::path &irradianceOutputPath) {
+static std::vector<uint8_t> s_stbImageWriteBuffer;
+
+static void writeImageDataToFile(void *context, void *data, int size) {
+    auto byteData = reinterpret_cast<const char *>(data);
+    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
+}
+
+void computeIrradiance(GameEngine::Texture& equirectangularTexture, std::ofstream &outputFile) {
     GameEngine::TimingHelper time("Compute Irradiance");
 
     auto &device = GameEngine::WebGPURenderer::device();
@@ -152,8 +159,12 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, const std::f
         auto commandBuffer = encoder.Finish();
         device.GetQueue().Submit(1, &commandBuffer);
 
-        int percentage = static_cast<int>(static_cast<float>(renderPassIndex + 1) / static_cast<float>(numRenderPasses) * 100.0f);
-        completeMessages[renderPassIndex] = std::to_string(percentage) + "% complete. pass (" + std::to_string(renderPassIndex + 1) + "/" + std::to_string(numRenderPasses) + ")";
+        float percentageFloat = static_cast<float>(renderPassIndex + 1) / static_cast<float>(numRenderPasses);
+        int percentageInt = static_cast<int>(percentageFloat * 100.0f);
+        if(percentageInt == 0) {
+            percentageInt = 1;
+        }
+        completeMessages[renderPassIndex] = std::to_string(percentageInt) + "% irradiance. pass (" + std::to_string(renderPassIndex + 1) + "/" + std::to_string(numRenderPasses) + ")";
         device.GetQueue().OnSubmittedWorkDone([](WGPUQueueWorkDoneStatus status, void * userdata) {
             std::cout << *reinterpret_cast<std::string*>(userdata) << std::endl;
         }, &completeMessages[renderPassIndex]);
@@ -204,7 +215,14 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, const std::f
             imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
-        stbi_write_hdr(irradianceOutputPath.string().c_str(), static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
+        stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
+
+        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+
+        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+
+        s_stbImageWriteBuffer.clear();
 
         readBackBuffer.Unmap();
     }

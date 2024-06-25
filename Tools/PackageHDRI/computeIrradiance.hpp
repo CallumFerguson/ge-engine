@@ -1,6 +1,7 @@
 #pragma once
 
+#include <fstream>
 #include <filesystem>
 #include "GameEngine.hpp"
 
-void computeIrradiance(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &irradianceOutputPath);
+void computeIrradiance(GameEngine::Texture &equirectangularTexture, std::ofstream &outputFile);

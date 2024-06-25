@@ -31,11 +31,18 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
-    std::filesystem::path preFilterOutputPath = outputFilePath / (inputFilePath.stem().string() + "_prefilter.hdr");
-    computePreFilter(equirectangularTexture, preFilterOutputPath);
+    std::filesystem::path outputPath = outputFilePath / (inputFilePath.stem().string() + ".geenvironment");
+    std::ofstream outputFile(outputPath, std::ios::out | std::ios::binary);
+    if (!outputFile) {
+        std::cerr << "Error: Could not open file for writing!" << std::endl;
+        return 1;
+    }
 
-//    std::filesystem::path irradianceOutputPath = outputFilePath / (inputFilePath.stem().string() + "_irradiance.hdr");
-//    computeIrradiance(equirectangularTexture, irradianceOutputPath);
+    outputFile << GameEngine::Random::uuid();
+
+    computePreFilter(equirectangularTexture, inputFilePath, outputFile);
+
+    computeIrradiance(equirectangularTexture, outputFile);
 
     std::cout << "done" << std::endl;
 }

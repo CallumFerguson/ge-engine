@@ -1,10 +1,18 @@
 #include "computePreFilter.hpp"
 
+#include <stb_image.h>
 #include <stb_image_write.h>
 
-static const int roughnessMipLevels = 5;
+static const uint32_t roughnessMipLevels = 5;
 
-void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &preFilterOutputPath) {
+static std::vector<uint8_t> s_stbImageWriteBuffer;
+
+static void writeImageDataToFile(void *context, void *data, int size) {
+    auto byteData = reinterpret_cast<const char *>(data);
+    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
+}
+
+void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &inputFilePath, std::ofstream &outputFile) {
     GameEngine::TimingHelper time("Compute Pre Filter");
 
     auto &device = GameEngine::WebGPURenderer::device();
@@ -118,6 +126,8 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
 
     std::vector<std::string> completeMessages((roughnessMipLevels - 1) * numDraws);
 
+    std::cout << "computing pre filter..." << std::endl;
+
     int drawIndex = 0;
     for (int mipLevel = roughnessMipLevels - 1; mipLevel >= 1; mipLevel--) {
         float roughness = static_cast<float>(mipLevel) / (static_cast<float>(roughnessMipLevels) - 1.0f);
@@ -153,7 +163,7 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
             if(percentageInt == 0) {
                 percentageInt = 1;
             }
-            std::string message = std::to_string(percentageInt) + "% complete. pass (" + std::to_string(drawIndex + 1) + "/" + std::to_string((roughnessMipLevels - 1) * numDraws) + ")";
+            std::string message = std::to_string(percentageInt) + "% pre filter. pass (" + std::to_string(drawIndex + 1) + "/" + std::to_string((roughnessMipLevels - 1) * numDraws) + ")";
             completeMessages[drawIndex] = message;
             device.GetQueue().OnSubmittedWorkDone([](WGPUQueueWorkDoneStatus status, void * userdata) {
                 std::cout << *reinterpret_cast<std::string*>(userdata) << std::endl;
@@ -168,6 +178,22 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     descriptor.size = equirectangularTexture.size().width * equirectangularTexture.size().width * 16;
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
+
+    outputFile.write(reinterpret_cast<const char *>(&roughnessMipLevels), sizeof(uint32_t));
+
+    {
+        int x, y;
+        float *imageFloats = stbi_loadf(inputFilePath.string().c_str(), &x, &y, nullptr, 3);
+
+        stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(x), static_cast<int>(y), 3, imageFloats);
+
+        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+
+        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+
+        s_stbImageWriteBuffer.clear();
+    }
 
     for (uint32_t level = 1; level < roughnessMipLevels; level++) {
         uint32_t mipWidth = std::max(1u, equirectangularTexture.size().width >> level);
@@ -232,8 +258,14 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
             imageFloats[i * 3 + 2] = floatData[i * 4 + 2];
         }
 
-        std::filesystem::path filePath = preFilterOutputPath.string() + "_mip_" + std::to_string(level) + ".hdr";
-        stbi_write_hdr(filePath.string().c_str(), static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
+        stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
+
+        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+
+        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+
+        s_stbImageWriteBuffer.clear();
 
         readBackBuffer.Unmap();
     }

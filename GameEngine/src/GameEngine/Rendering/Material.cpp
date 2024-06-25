@@ -65,7 +65,7 @@ void Material::initBindGroup(bool depthWrite) {
     }
 
     {
-        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 3);
+        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 2);
 
         bindGroupEntries[0].binding = 0;
         bindGroupEntries[0].sampler = WebGPURenderer::basicSampler();
@@ -86,8 +86,8 @@ void Material::initBindGroup(bool depthWrite) {
             i++;
         }
 
-        bindGroupEntries[i].binding = i;
-        bindGroupEntries[i].textureView = AssetManager::getAsset<CubeMap>(0).cachedTextureView();
+//        bindGroupEntries[i].binding = i;
+//        bindGroupEntries[i].textureView = AssetManager::getAsset<CubeMap>(0).cachedTextureView();
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
         bindGroupDescriptor.layout = shader.renderPipeline(depthWrite).GetBindGroupLayout(1);
