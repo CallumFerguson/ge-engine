@@ -33,14 +33,19 @@ void runSandboxApp() {
 //    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/rosendal_plains_1_2k.hdr");
 //    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
-    int prefilterTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_prefilter.getexture");
-    int prefilterCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(prefilterTextureHandle);
+//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/buikslotermeerplein_1k.geenvironmentmap");
+//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/rosendal_plains_1_2k.geenvironmentmap");
+    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/overcast_soil_puresky_2k.geenvironmentmap");
+    auto environmentMap = GameEngine::AssetManager::getAsset<GameEngine::EnvironmentMap>(environmentMapHandle);
 
-    int irradianceTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_irradiance.getexture");
-    int irradianceCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(irradianceTextureHandle);
+//    int prefilterTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_prefilter.getexture");
+//    int prefilterCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(prefilterTextureHandle);
+//
+//    int irradianceTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_irradiance.getexture");
+//    int irradianceCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(irradianceTextureHandle);
 
     GameEngine::Entity skybox = scene.createEntity("Skybox");
-    skybox.addComponent<GameEngine::Skybox>(prefilterCubeMapHandle);
+    skybox.addComponent<GameEngine::Skybox>(environmentMap.skyboxCubeMapHandle());
 
 //    auto fullscreen = scene.createEntity("Fullscreen");
 //    fullscreen.addScript<FullscreenTexture>();

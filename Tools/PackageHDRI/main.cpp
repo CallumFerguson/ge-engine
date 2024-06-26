@@ -31,19 +31,24 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
-//    std::filesystem::path outputPath = outputFilePath / (inputFilePath.stem().string() + ".geenvironment");
-    std::filesystem::path outputPath = outputFilePath / (inputFilePath.stem().string() + ".getexture");
+    std::filesystem::path outputPath = outputFilePath / (inputFilePath.stem().string() + ".geenvironmentmap");
     std::ofstream outputFile(outputPath, std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return 1;
     }
 
-//    outputFile << GameEngine::Random::uuid();
+    outputFile << GameEngine::Random::uuid();
 
-//    computePreFilter(equirectangularTexture, inputFilePath, outputFile);
+    auto preFilterDataString = computePreFilter(equirectangularTexture, inputFilePath).str();
+    uint32_t preFilterByteSize = preFilterDataString.size();
+    outputFile.write(reinterpret_cast<char *>(&preFilterByteSize), sizeof(uint32_t));
+    outputFile << preFilterDataString;
 
-//    computeIrradiance(equirectangularTexture, outputFile);
+    auto irradianceDataString = computeIrradiance(equirectangularTexture).str();
+    uint32_t irradianceByteSize = irradianceDataString.size();
+    outputFile.write(reinterpret_cast<char *>(&irradianceByteSize), sizeof(uint32_t));
+    outputFile << irradianceDataString;
 
     std::cout << "done" << std::endl;
 }

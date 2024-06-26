@@ -12,7 +12,7 @@ static void writeImageDataToFile(void *context, void *data, int size) {
     s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
 }
 
-void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &inputFilePath, std::ofstream &outputFile) {
+std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &inputFilePath) {
     GameEngine::TimingHelper time("Compute Pre Filter");
 
     auto &device = GameEngine::WebGPURenderer::device();
@@ -179,13 +179,15 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
-    outputFile << GameEngine::Random::uuid();
+    std::ostringstream outputStream;
+
+    outputStream << GameEngine::Random::uuid();
 
     std::string imageType = "hdr";
-    outputFile.write(imageType.c_str(), imageType.size() + 1);
+    outputStream.write(imageType.c_str(), imageType.size() + 1);
 
     uint32_t mipLevelsInFile = roughnessMipLevels;
-    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+    outputStream.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
     {
         int x, y;
@@ -194,9 +196,9 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
         stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(x), static_cast<int>(y), 3, imageFloats);
 
         uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
-        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+        outputStream.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
 
         s_stbImageWriteBuffer.clear();
     }
@@ -239,7 +241,7 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
         auto *data = reinterpret_cast<const uint8_t *>(readBackBuffer.GetConstMappedRange(0, mipSize));
         if (!data) {
             std::cout << "no mapped range data!" << std::endl;
-            return;
+            exit(1);
         }
 
         const uint8_t *dataWithoutPadding = data;
@@ -267,12 +269,14 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
         stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
 
         uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
-        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+        outputStream.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
 
         s_stbImageWriteBuffer.clear();
 
         readBackBuffer.Unmap();
     }
+
+    return outputStream;
 }

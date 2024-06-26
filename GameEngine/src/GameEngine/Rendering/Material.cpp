@@ -4,6 +4,7 @@
 #include "../Utility/Random.hpp"
 #include "../Assets/AssetManager.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
+#include "EnvironmentMap.hpp"
 #include "CubeMap.hpp"
 
 namespace GameEngine {
@@ -86,12 +87,16 @@ void Material::initBindGroup(bool depthWrite) {
             i++;
         }
 
+        auto environmentMap = AssetManager::getAsset<EnvironmentMap>(0);
+        auto preFilterCubeMap = AssetManager::getAsset<CubeMap>(environmentMap.preFilterCubeMapHandle());
+        auto irradianceCubeMap = AssetManager::getAsset<CubeMap>(environmentMap.irradianceCubeMapHandle());
+
         bindGroupEntries[i].binding = i;
-        bindGroupEntries[i].textureView = AssetManager::getAsset<CubeMap>(0).cachedTextureView();
+        bindGroupEntries[i].textureView = preFilterCubeMap.cachedTextureView();
         i++;
 
         bindGroupEntries[i].binding = i;
-        bindGroupEntries[i].textureView = AssetManager::getAsset<CubeMap>(1).cachedTextureView();
+        bindGroupEntries[i].textureView = irradianceCubeMap.cachedTextureView();
         i++;
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};

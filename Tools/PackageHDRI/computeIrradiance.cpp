@@ -16,7 +16,7 @@ static void writeImageDataToFile(void *context, void *data, int size) {
     s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
 }
 
-void computeIrradiance(GameEngine::Texture& equirectangularTexture, std::ofstream &outputFile) {
+std::ostringstream computeIrradiance(GameEngine::Texture& equirectangularTexture) {
     GameEngine::TimingHelper time("Compute Irradiance");
 
     auto &device = GameEngine::WebGPURenderer::device();
@@ -172,6 +172,8 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, std::ofstrea
         device.Tick();
     }
 
+    std::ostringstream outputStream;
+
     {
         auto encoder = device.CreateCommandEncoder();
 
@@ -205,7 +207,7 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, std::ofstrea
         auto *imageFloatsWithAlpha = reinterpret_cast<const float *>(readBackBuffer.GetConstMappedRange());
         if (!imageFloatsWithAlpha) {
             std::cout << "no mapped range data!" << std::endl;
-            return;
+            exit(0);
         }
 
         std::vector<float> imageFloats(textureDescriptor.size.width * textureDescriptor.size.height * 3);
@@ -215,23 +217,25 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, std::ofstrea
             imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
-        outputFile << GameEngine::Random::uuid();
+        outputStream << GameEngine::Random::uuid();
 
         std::string imageType = "hdr";
-        outputFile.write(imageType.c_str(), imageType.size() + 1);
+        outputStream.write(imageType.c_str(), imageType.size() + 1);
 
         uint32_t mipLevelsInFile = 1;
-        outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+        outputStream.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
         stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
 
         uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
-        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+        outputStream.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
 
         s_stbImageWriteBuffer.clear();
 
         readBackBuffer.Unmap();
     }
+
+    return outputStream;
 }

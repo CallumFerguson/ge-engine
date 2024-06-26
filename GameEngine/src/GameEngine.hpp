@@ -23,6 +23,7 @@
 #include "GameEngine/Rendering/Mesh.hpp"
 #include "GameEngine/Rendering/Material.hpp"
 #include "GameEngine/Rendering/CubeMap.hpp"
+#include "GameEngine/Rendering/EnvironmentMap.hpp"
 
 #include "GameEngine/Utility/emscriptenUtility.hpp"
 #include "GameEngine/Utility/RollingAverage.hpp"
