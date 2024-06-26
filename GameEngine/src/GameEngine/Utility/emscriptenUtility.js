@@ -29,7 +29,7 @@ function copyExternalImageToTexture(
         };
       });
       device.queue.writeTexture(
-        { texture },
+        { texture, mipLevel },
         imageData.data.buffer,
         { bytesPerRow: imageData.width * 8 },
         { width: imageData.width, height: imageData.height }

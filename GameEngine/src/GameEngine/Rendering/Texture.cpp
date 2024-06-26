@@ -48,6 +48,8 @@ static std::vector<ImageResult> s_imageResults;
 #endif
 
 struct TextureReadyState {
+    int readyCount;
+    int mipLevelCount;
     bool ready;
     std::function<void()> readyCallback;
 };
@@ -133,21 +135,17 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     m_texture = device.CreateTexture(&textureDescriptor);
 
     m_readyStateIndex = s_textureReadyStates.size();
-    s_textureReadyStates.push_back({false, nullptr});
+    s_textureReadyStates.push_back({0, static_cast<int>(mipLevelsInFile), false, nullptr});
 
 #ifdef __EMSCRIPTEN__
-    std::cout << "TODO: this" << std::endl;
-
-    writeTextureJSAsync(device, m_texture, imageData.data(), imageData.size(), false, 0, imageType, static_cast<int>(m_readyStateIndex));
-
-    if (mipLevelsInFile > 1) {
-        for (int mipLevel = 1; mipLevel < mipLevelsInFile; mipLevel++) {
+    for (int mipLevel = 0; mipLevel < mipLevelsInFile; mipLevel++) {
+        if (mipLevel > 0) {
             assetFile->read(reinterpret_cast<char *>(&imageNumBytes), sizeof(uint32_t));
 
             assetFile->read(reinterpret_cast<char *>(imageData.data()), imageNumBytes);
-
-            writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType, static_cast<int>(m_readyStateIndex));
         }
+
+        writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType, static_cast<int>(m_readyStateIndex));
     }
 #else
     ThreadPool::instance().queueJob([
@@ -252,8 +250,8 @@ void Texture::writeTextures() {
                 device.GetQueue().WriteTexture(&destination, mipLevel.image, mipLevel.width * mipLevel.height * channels * mipLevel.channelByteSize, &dataLayout, &size);
                 stbi_image_free(mipLevel.image);
             }
+            setTextureReady(static_cast<int>(imageResult.readyStateIndex));
         }
-        setTextureReady(static_cast<int>(imageResult.readyStateIndex));
     }
     s_imageResults.clear();
 #endif
@@ -279,9 +277,16 @@ void Texture::setReadyCallback(std::function<void()> readyCallback) {
 
 void Texture::setTextureReady(int readyStateIndex) {
     auto &readyState = s_textureReadyStates[readyStateIndex];
-    readyState.ready = true;
-    if (readyState.readyCallback) {
-        readyState.readyCallback();
+    readyState.readyCount++;
+    if (readyState.readyCount >= readyState.mipLevelCount) {
+        if (!readyState.ready) {
+            readyState.ready = true;
+            if (readyState.readyCallback) {
+                readyState.readyCallback();
+            }
+        } else {
+            std::cout << "setTextureReady " << readyStateIndex << " was already ready!" << std::endl;
+        }
     }
 }
 
