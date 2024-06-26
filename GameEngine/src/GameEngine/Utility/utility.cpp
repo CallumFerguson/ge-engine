@@ -66,4 +66,20 @@ bool isUUID(const std::string &uuid) {
     return std::regex_match(uuid, pattern);
 }
 
+static std::vector<uint8_t> s_imageWriteBuffer;
+
+void writeImageDataToBuffer(void *context, void *data, int size) {
+    auto byteData = reinterpret_cast<const char *>(data);
+    s_imageWriteBuffer.insert(s_imageWriteBuffer.end(), byteData, byteData + size);
+}
+
+void clearImageDataBuffer() {
+    s_imageWriteBuffer.clear();
+    imageDataBuffer();
+}
+
+const std::vector<uint8_t> &imageDataBuffer() {
+    return s_imageWriteBuffer;
+}
+
 }

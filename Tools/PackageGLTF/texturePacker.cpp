@@ -6,13 +6,6 @@
 
 namespace GameEngineTools {
 
-static std::vector<uint8_t> s_stbImageWriteBuffer;
-
-void writeImageDataToFile(void *context, void *data, int size) {
-    auto byteData = reinterpret_cast<const char *>(data);
-    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
-}
-
 bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &name, const std::filesystem::path &outputFilePath, const std::string &textureUUID) {
     auto path = outputFilePath / (name + ".getexture");
 
@@ -27,7 +20,7 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     outputFile << textureUUID;
 
     // PNG ends up with files that are larger than the gltf source pngs and paint.net pngs, so maybe these should be copied over directly if possible
-//    stbi_write_png_to_func(writeImageDataToFile, &outputFile, image.width, image.height, image.component, image.image.data(), image.width * image.component);
+//    stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, image.width, image.height, image.component, image.image.data(), image.width * image.component);
 
     if (image.component != 4) {
         // TODO: this might not even be needed. if it is, there should be some way to make it not needed
@@ -129,18 +122,18 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
             dataWithoutPadding = dataWithoutPaddingVector.data();
         }
 
+        GameEngine::clearImageDataBuffer();
+
         if (hasTransparency) {
-            stbi_write_png_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, static_cast<int>(bytesPerRow));
+            stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, static_cast<int>(bytesPerRow));
         } else {
-            stbi_write_jpg_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
+            stbi_write_jpg_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), image.component, dataWithoutPadding, 90);
         }
 
-        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
         outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
-
-        s_stbImageWriteBuffer.clear();
+        outputFile.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
 
         readBackBuffer.Unmap();
     }
@@ -167,14 +160,14 @@ void writeFakeTexture(const uint8_t *data, const std::string &name, const std::f
     uint32_t mipLevelsInFile = 1;
     outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
-    stbi_write_png_to_func(writeImageDataToFile, &outputFile, 1, 1, 4, data, 4);
+    GameEngine::clearImageDataBuffer();
 
-    uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+    stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, 1, 1, 4, data, 4);
+
+    uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
     outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-    outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
-
-    s_stbImageWriteBuffer.clear();
+    outputFile.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
 }
 
 }

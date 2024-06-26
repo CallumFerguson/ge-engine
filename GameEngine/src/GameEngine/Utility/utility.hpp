@@ -17,4 +17,10 @@ void printMatrix(const glm::mat4 &matrix);
 
 bool isUUID(const std::string &uuid);
 
+void writeImageDataToBuffer(void *context, void *data, int size);
+
+void clearImageDataBuffer();
+
+const std::vector<uint8_t> &imageDataBuffer();
+
 }

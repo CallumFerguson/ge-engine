@@ -5,13 +5,6 @@
 
 static const uint32_t roughnessMipLevels = 5;
 
-static std::vector<uint8_t> s_stbImageWriteBuffer;
-
-static void writeImageDataToFile(void *context, void *data, int size) {
-    auto byteData = reinterpret_cast<const char *>(data);
-    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
-}
-
 std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &inputFilePath) {
     GameEngine::TimingHelper time("Compute Pre Filter");
 
@@ -193,14 +186,14 @@ std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture,
         int x, y;
         float *imageFloats = stbi_loadf(inputFilePath.string().c_str(), &x, &y, nullptr, 3);
 
-        stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(x), static_cast<int>(y), 3, imageFloats);
+        GameEngine::clearImageDataBuffer();
 
-        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(x), static_cast<int>(y), 3, imageFloats);
+
+        uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
         outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputStream.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
-
-        s_stbImageWriteBuffer.clear();
+        outputStream.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
     }
 
     for (uint32_t level = 1; level < roughnessMipLevels; level++) {
@@ -266,14 +259,14 @@ std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture,
             imageFloats[i * 3 + 2] = floatData[i * 4 + 2];
         }
 
-        stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
+        GameEngine::clearImageDataBuffer();
 
-        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
+
+        uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
         outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputStream.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
-
-        s_stbImageWriteBuffer.clear();
+        outputStream.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
 
         readBackBuffer.Unmap();
     }

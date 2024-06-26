@@ -9,13 +9,6 @@
 #include <numbers>
 #include "GameEngine.hpp"
 
-static std::vector<uint8_t> s_stbImageWriteBuffer;
-
-static void writeImageDataToFile(void *context, void *data, int size) {
-    auto byteData = reinterpret_cast<const char *>(data);
-    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
-}
-
 std::ostringstream computeIrradiance(GameEngine::Texture& equirectangularTexture) {
     GameEngine::TimingHelper time("Compute Irradiance");
 
@@ -225,14 +218,14 @@ std::ostringstream computeIrradiance(GameEngine::Texture& equirectangularTexture
         uint32_t mipLevelsInFile = 1;
         outputStream.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
-        stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
+        GameEngine::clearImageDataBuffer();
 
-        uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
+
+        uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
         outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-        outputStream.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
-
-        s_stbImageWriteBuffer.clear();
+        outputStream.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
 
         readBackBuffer.Unmap();
     }

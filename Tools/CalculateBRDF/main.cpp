@@ -137,13 +137,6 @@ fn geometrySchlickGGXForBRDF(NdotV: f32, roughness: f32) -> f32 {
 }
 )";
 
-static std::vector<uint8_t> s_stbImageWriteBuffer;
-
-void writeImageDataToFile(void *context, void *data, int size) {
-    auto byteData = reinterpret_cast<const char *>(data);
-    s_stbImageWriteBuffer.insert(s_stbImageWriteBuffer.end(), byteData, byteData + size);
-}
-
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <resolution> <output_file_path>" << std::endl;
@@ -274,12 +267,14 @@ int main(int argc, char *argv[]) {
     uint32_t mipLevelsInFile = 1;
     outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
 
-    stbi_write_png_to_func(writeImageDataToFile, &outputFile, resolution, resolution, 4, data, resolution * 4);
+    GameEngine::clearImageDataBuffer();
 
-    uint32_t imageNumBytes = s_stbImageWriteBuffer.size();
+    stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, resolution, resolution, 4, data, resolution * 4);
+
+    uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
     outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
 
-    outputFile.write(reinterpret_cast<const char *>(s_stbImageWriteBuffer.data()), s_stbImageWriteBuffer.size());
+    outputFile.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
 
     readBackBuffer.Unmap();
 }
