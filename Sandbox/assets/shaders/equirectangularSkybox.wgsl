@@ -58,11 +58,14 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 //    const gamma: f32 = 2.2;
 //    const exposure: f32 = 1;
 
-    let t = viewDirectionProjectionInverses[i.instanceIndex] * i.pos;
+    let mipLevel: u32 = i.instanceIndex / 6;
+    let cubeSide: u32 = i.instanceIndex % 6;
+
+    let t = viewDirectionProjectionInverses[cubeSide] * i.pos;
     var direction = normalize(t.xyz / t.w) * vec3f(1, -1, 1);
     direction = vec3(-direction.z, direction.y, direction.x);
     let uv = directionToEquirectangularCoordinates(direction);
-    var colorLinear = textureSample(texture, textureSampler, uv).rgb;
+    var colorLinear = textureSampleLevel(texture, textureSampler, uv, f32(mipLevel)).rgb;
 
 //    colorLinear = vec3(1.0) - exp(-colorLinear * exposure);
 //    let color = pow(colorLinear, vec3(1.0 / gamma));

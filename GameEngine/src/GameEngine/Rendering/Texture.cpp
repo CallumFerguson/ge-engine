@@ -125,6 +125,7 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     m_size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
     textureDescriptor.size = m_size;
     textureDescriptor.mipLevelCount = forceMipLevels ? numMipLevels(textureDescriptor.size) : mipLevelsInFile;
+    m_mipLevelCount = textureDescriptor.mipLevelCount;
     textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
 #ifndef __EMSCRIPTEN__
     if (requestedFormat != wgpu::TextureFormat::Undefined) {
@@ -292,6 +293,10 @@ void Texture::setTextureReady(int readyStateIndex) {
 
 const wgpu::Extent3D &Texture::size() const {
     return m_size;
+}
+
+const uint32_t Texture::mipLevelCount() {
+    return m_mipLevelCount;
 }
 
 

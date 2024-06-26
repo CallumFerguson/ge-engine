@@ -29,6 +29,8 @@ public:
 
     [[nodiscard]] const wgpu::Extent3D &size() const;
 
+    [[nodiscard]] const uint32_t mipLevelCount();
+
 private:
     wgpu::Texture m_texture;
 
@@ -37,6 +39,8 @@ private:
     size_t m_readyStateIndex = -1;
 
     wgpu::Extent3D m_size;
+
+    uint32_t m_mipLevelCount;
 };
 
 }

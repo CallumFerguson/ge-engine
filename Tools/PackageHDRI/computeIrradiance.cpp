@@ -215,6 +215,14 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, std::ofstrea
             imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
+        outputFile << GameEngine::Random::uuid();
+
+        std::string imageType = "hdr";
+        outputFile.write(imageType.c_str(), imageType.size() + 1);
+
+        uint32_t mipLevelsInFile = 1;
+        outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+
         stbi_write_hdr_to_func(writeImageDataToFile, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
 
         uint32_t imageNumBytes = s_stbImageWriteBuffer.size();

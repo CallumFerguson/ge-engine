@@ -33,11 +33,14 @@ void runSandboxApp() {
 //    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/rosendal_plains_1_2k.hdr");
 //    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
 
-    int textureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k.getexture");
-    int cubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(textureHandle);
+    int prefilterTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_prefilter.getexture");
+    int prefilterCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(prefilterTextureHandle);
+
+    int irradianceTextureHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::Texture>("assets/packaged/rosendal_plains_1_2k_irradiance.getexture");
+    int irradianceCubeMapHandle = GameEngine::AssetManager::createAsset<GameEngine::CubeMap>(irradianceTextureHandle);
 
     GameEngine::Entity skybox = scene.createEntity("Skybox");
-    skybox.addComponent<GameEngine::Skybox>(cubeMapHandle);
+    skybox.addComponent<GameEngine::Skybox>(prefilterCubeMapHandle);
 
 //    auto fullscreen = scene.createEntity("Fullscreen");
 //    fullscreen.addScript<FullscreenTexture>();

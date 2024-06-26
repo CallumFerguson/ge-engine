@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "../Assets/AssetManager.hpp"
+#include "../Utility/TimingHelper.hpp"
 
 namespace GameEngine {
 
@@ -20,7 +21,10 @@ CubeMap::CubeMap(int equirectangularTextureHandle) {
 
     auto &device = WebGPURenderer::device();
 
+    auto &equirectangularTexture = AssetManager::getAsset<Texture>(equirectangularTextureHandle);
+
     wgpu::TextureDescriptor textureDescriptor;
+    textureDescriptor.mipLevelCount = equirectangularTexture.mipLevelCount();
     textureDescriptor.size = {cubeMapFacePixelLength, cubeMapFacePixelLength, 6};
     textureDescriptor.format = wgpu::TextureFormat::RGBA16Float;
     textureDescriptor.usage = wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::TextureBinding;
@@ -58,16 +62,9 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
     entries[1].binding = 1;
     entries[1].sampler = WebGPURenderer::basicSampler();
 
-    wgpu::TextureViewDescriptor textureViewDescriptor;
-    textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
-    textureViewDescriptor.baseArrayLayer = 0;
-    textureViewDescriptor.arrayLayerCount = 1;
-    textureViewDescriptor.baseMipLevel = 0;
-    textureViewDescriptor.mipLevelCount = 1;
-
     auto &equirectangularTexture = AssetManager::getAsset<Texture>(equirectangularTextureHandle);
     entries[2].binding = 2;
-    entries[2].textureView = equirectangularTexture.texture().CreateView(&textureViewDescriptor);
+    entries[2].textureView = equirectangularTexture.cachedTextureView();
 
     wgpu::BindGroupDescriptor bindGroupDescriptor;
     bindGroupDescriptor.layout = shader.renderPipeline(false).GetBindGroupLayout(0);
@@ -77,30 +74,32 @@ void CubeMap::writeCubeMapFromEquirectangularTexture(int equirectangularTextureH
 
     auto encoder = device.CreateCommandEncoder();
 
-    for (size_t i = 0; i < 6; i++) {
-        wgpu::TextureViewDescriptor textureViewDescriptor;
-        textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
-        textureViewDescriptor.baseArrayLayer = i;
-        textureViewDescriptor.arrayLayerCount = 1;
-        textureViewDescriptor.baseMipLevel = 0;
-        textureViewDescriptor.mipLevelCount = 1;
+    for (size_t mipLevel = 0; mipLevel < equirectangularTexture.mipLevelCount(); mipLevel++) {
+        for (size_t cubeSide = 0; cubeSide < 6; cubeSide++) {
+            wgpu::TextureViewDescriptor textureViewDescriptor;
+            textureViewDescriptor.dimension = wgpu::TextureViewDimension::e2D;
+            textureViewDescriptor.baseArrayLayer = cubeSide;
+            textureViewDescriptor.arrayLayerCount = 1;
+            textureViewDescriptor.baseMipLevel = mipLevel;
+            textureViewDescriptor.mipLevelCount = 1;
 
-        wgpu::RenderPassColorAttachment colorAttachment;
-        colorAttachment.view = cubeMapTexture.CreateView(&textureViewDescriptor);
-        colorAttachment.loadOp = wgpu::LoadOp::Clear;
-        colorAttachment.storeOp = wgpu::StoreOp::Store;
-        colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
+            wgpu::RenderPassColorAttachment colorAttachment;
+            colorAttachment.view = cubeMapTexture.CreateView(&textureViewDescriptor);
+            colorAttachment.loadOp = wgpu::LoadOp::Clear;
+            colorAttachment.storeOp = wgpu::StoreOp::Store;
+            colorAttachment.clearValue = wgpu::Color{0, 0, 0, 1};
 
-        wgpu::RenderPassDescriptor renderPassDescriptor;
-        renderPassDescriptor.colorAttachmentCount = 1;
-        renderPassDescriptor.colorAttachments = &colorAttachment;
+            wgpu::RenderPassDescriptor renderPassDescriptor;
+            renderPassDescriptor.colorAttachmentCount = 1;
+            renderPassDescriptor.colorAttachments = &colorAttachment;
 
-        auto renderPassEncoder = encoder.BeginRenderPass(&renderPassDescriptor);
+            auto renderPassEncoder = encoder.BeginRenderPass(&renderPassDescriptor);
 
-        renderPassEncoder.SetPipeline(shader.renderPipeline(false));
-        renderPassEncoder.SetBindGroup(0, bindGroup);
-        renderPassEncoder.Draw(3, 1, 0, i);
-        renderPassEncoder.End();
+            renderPassEncoder.SetPipeline(shader.renderPipeline(false));
+            renderPassEncoder.SetBindGroup(0, bindGroup);
+            renderPassEncoder.Draw(3, 1, 0, mipLevel * 6 + cubeSide);
+            renderPassEncoder.End();
+        }
     }
 
     auto commandBuffer = encoder.Finish();

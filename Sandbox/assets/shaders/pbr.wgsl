@@ -26,8 +26,8 @@ struct ObjectData {
 @group(1) @binding(3) var normalTexture: texture_2d<f32>;
 @group(1) @binding(4) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
 @group(1) @binding(5) var emissiveTexture: texture_2d<f32>;
-//@group(1) @binding(6) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
-//@group(1) @binding(7) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
+@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
+@group(1) @binding(7) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
 
 //@group(2) @binding(0) var<storage, read> objectData: array<ObjectData>;
 @group(2) @binding(0) var<uniform> objectData: ObjectData;
@@ -79,9 +79,11 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 //    let albedo: vec3f = vec3(1, 1, 1);
 
     let emission = pow(textureSample(emissiveTexture, textureSampler, i.uv).rgb, vec3(gamma));
+//    let emission = vec3f(0, 0, 0);
 
     let occlusionRoughnessMetalic = textureSample(occlusionRoughnessMetalicTexture, textureSampler, i.uv).rgb;
 //    let occlusionRoughnessMetalic: vec3f = vec3(1, i.roughness, i.metallic);
+//    let occlusionRoughnessMetalic: vec3f = vec3(1, 1, 1);
 
     let TBN = mat3x3(i.tangent, i.bitangent, i.normal);
     let tangentSpaceNormal = textureSample(normalTexture, textureSampler, i.uv).rgb * 2 - 1;
@@ -114,7 +116,7 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
 
     // reflectance equation
     var Lo = vec3(0.0);
-    for (var n = 0; n < 4; n++)
+    for (var n = 0; n < 0; n++)
     {
         // calculate per-light radiance
         let L = normalize(lightPositions[n] - i.worldPosition);
@@ -147,15 +149,15 @@ fn frag(i: VertexOutput) -> @location(0) vec4f {
     var kD = 1.0 - kS;
     kD *= 1.0 - metallic;
 
-//    let irradiance = textureSample(environmentIrradianceCubeMapTexture, textureSampler, worldNormal * vec3f(-1, 1, 1)).rgb;
-    let irradiance = vec3f(0, 0, 0);
+    let irradiance = textureSample(environmentIrradianceCubeMapTexture, textureSampler, worldNormal * vec3f(-1, 1, 1)).rgb;
+//    let irradiance = vec3f(0, 0, 0);
     let diffuse = irradiance * albedo;
 
     let R = reflect(-V, N);
 
     const MAX_REFLECTION_LOD = 4.0;
-//    let prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
-    let prefilteredColor = vec3f(0, 0, 0);
+    let prefilteredColor = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, R * vec3f(-1, 1, 1), roughness * MAX_REFLECTION_LOD).rgb;
+//    let prefilteredColor = vec3f(0, 0, 0);
     let envBRDF = textureSample(brdfLUTTexture, textureSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 

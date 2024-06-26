@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
 //    outputFile << GameEngine::Random::uuid();
 
-    computePreFilter(equirectangularTexture, inputFilePath, outputFile);
+//    computePreFilter(equirectangularTexture, inputFilePath, outputFile);
 
 //    computeIrradiance(equirectangularTexture, outputFile);
 
