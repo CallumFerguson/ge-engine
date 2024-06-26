@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <functional>
 #include <memory>
 #include <string>
@@ -14,6 +15,9 @@ public:
 
     // requested format may not always be honored
     explicit Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined, bool forceMipLevels = false, wgpu::TextureUsage extraFlags = wgpu::TextureUsage::None);
+
+    explicit Texture(std::vector<char> fileData, const std::string &extension, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined, bool forceMipLevels = false,
+                     wgpu::TextureUsage extraFlags = wgpu::TextureUsage::None);
 
     wgpu::Texture &texture();
 
@@ -40,7 +44,7 @@ private:
 
     wgpu::Extent3D m_size;
 
-    uint32_t m_mipLevelCount;
+    uint32_t m_mipLevelCount = 0;
 };
 
 }
