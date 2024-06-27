@@ -26,18 +26,12 @@ public:
 
     void initBindGroup(bool depthWrite);
 
-    wgpu::BindGroup &cameraBindGroup();
-
-    wgpu::BindGroup &materialBindGroup();
+    wgpu::BindGroup &bindGroup();
 
     wgpu::RenderPipeline &renderPipeline();
 
 private:
-    wgpu::BindGroup m_cameraBindGroupDepthWrite;
-    wgpu::BindGroup m_cameraBindGroupNoDepthWrite;
-
-    wgpu::BindGroup m_materialBindGroupDepthWrite;
-    wgpu::BindGroup m_materialBindGroupNoDepthWrite;
+    wgpu::BindGroup m_bindGroup;
 
     std::vector<int> m_textureHandles;
 };

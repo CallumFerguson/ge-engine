@@ -18,19 +18,23 @@ struct ObjectData {
 //    roughness: f32,
 }
 
-@group(0) @binding(0) var<uniform> cameraData: CameraData;
+// pbr environment map
+@group(0) @binding(0) var textureSampler: sampler;
+@group(0) @binding(1) var brdfLUTTexture: texture_2d<f32>;
+@group(0) @binding(2) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
+@group(0) @binding(3) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
 
-@group(1) @binding(0) var textureSampler: sampler;
-@group(1) @binding(1) var brdfLUTTexture: texture_2d<f32>;
-@group(1) @binding(2) var albedoTexture: texture_2d<f32>;
-@group(1) @binding(3) var normalTexture: texture_2d<f32>;
-@group(1) @binding(4) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
-@group(1) @binding(5) var emissiveTexture: texture_2d<f32>;
-@group(1) @binding(6) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
-@group(1) @binding(7) var environmentIrradianceCubeMapTexture: texture_cube<f32>;
+// camera data
+@group(1) @binding(0) var<uniform> cameraData: CameraData;
 
-//@group(2) @binding(0) var<storage, read> objectData: array<ObjectData>;
-@group(2) @binding(0) var<uniform> objectData: ObjectData;
+// pbr material
+@group(2) @binding(0) var albedoTexture: texture_2d<f32>;
+@group(2) @binding(1) var normalTexture: texture_2d<f32>;
+@group(2) @binding(2) var occlusionRoughnessMetalicTexture: texture_2d<f32>;
+@group(2) @binding(3) var emissiveTexture: texture_2d<f32>;
+
+// pbr object data
+@group(3) @binding(0) var<uniform> objectData: ObjectData;
 
 struct VertexInput {
     @builtin(instance_index) instanceIndex: u32,

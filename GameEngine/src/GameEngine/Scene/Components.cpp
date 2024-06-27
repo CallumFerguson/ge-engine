@@ -158,6 +158,7 @@ Skybox::Skybox(int cubeMapHandle) : cubeMapHandle(cubeMapHandle) {
     entries[2].textureView = cubeMap.cachedTextureView();
 
     wgpu::BindGroupDescriptor bindGroupDescriptor;
+    std::cout << "TODO: this needs to use shared environment map bind group" << std::endl;
     bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(0);
     bindGroupDescriptor.entryCount = entries.size();
     bindGroupDescriptor.entries = entries.data();

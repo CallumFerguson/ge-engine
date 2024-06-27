@@ -3,6 +3,7 @@
 #include <vector>
 #include "../Assets/AssetManager.hpp"
 #include "CubeMap.hpp"
+#include "Backends/WebGPU/WebGPURenderer.hpp"
 
 namespace GameEngine {
 
@@ -33,6 +34,31 @@ EnvironmentMap::EnvironmentMap(const std::string &assetPath) {
 
     int irradianceTextureHandle = AssetManager::createAsset<Texture>(std::move(irradianceFileData), ".getexture");
     m_irradianceCubeMapHandle = AssetManager::createAsset<CubeMap>(irradianceTextureHandle);
+
+    std::array<wgpu::BindGroupEntry, 4> bindGroupEntries;
+
+    bindGroupEntries[0].binding = 0;
+    bindGroupEntries[0].sampler = WebGPURenderer::basicSampler();
+
+    int brdfHandle = AssetManager::getOrLoadAssetFromUUID<Texture>(BRDF_UUID);
+    auto &brdf = AssetManager::getAsset<Texture>(brdfHandle);
+    bindGroupEntries[1].binding = 1;
+    bindGroupEntries[1].textureView = brdf.cachedTextureView();
+
+    auto &preFilterCubeMap = AssetManager::getAsset<CubeMap>(m_preFilterCubeMapHandle);
+    bindGroupEntries[2].binding = 2;
+    bindGroupEntries[2].textureView = preFilterCubeMap.cachedTextureView();
+
+    auto &irradianceCubeMap = AssetManager::getAsset<CubeMap>(m_irradianceCubeMapHandle);
+    bindGroupEntries[3].binding = 3;
+    bindGroupEntries[3].textureView = irradianceCubeMap.cachedTextureView();
+
+    wgpu::BindGroupDescriptor bindGroupDescriptor;
+    bindGroupDescriptor.layout = WebGPURenderer::pbrEnvironmentMapBindGroupLayout();
+    bindGroupDescriptor.entryCount = bindGroupEntries.size();
+    bindGroupDescriptor.entries = bindGroupEntries.data();
+
+    m_bindGroup = WebGPURenderer::device().CreateBindGroup(&bindGroupDescriptor);
 }
 
 int EnvironmentMap::skyboxCubeMapHandle() {
@@ -45,6 +71,10 @@ int EnvironmentMap::preFilterCubeMapHandle() {
 
 int EnvironmentMap::irradianceCubeMapHandle() {
     return m_irradianceCubeMapHandle;
+}
+
+wgpu::BindGroup &EnvironmentMap::bindGroup() {
+    return m_bindGroup;
 }
 
 }

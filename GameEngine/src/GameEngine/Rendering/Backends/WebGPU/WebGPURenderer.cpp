@@ -16,6 +16,7 @@
 #include "../../../Assets/AssetManager.hpp"
 #include "../../CubeMap.hpp"
 #include "../../../Utility/TimingHelper.hpp"
+#include "../../EnvironmentMap.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -49,6 +50,9 @@ static wgpu::RenderPassEncoder s_renderPassEncoder;
 static wgpu::CommandEncoder s_commandEncoder;
 
 static wgpu::Buffer s_cameraDataBuffer;
+static wgpu::BindGroup s_cameraDataBindGroup;
+
+static int s_environmentMapHandle = -1;
 
 struct MeshRenderInfo {
     Mesh &mesh;
@@ -327,32 +331,19 @@ void WebGPURenderer::setUpCameraBuffer() {
     bufferDescriptor.mappedAtCreation = false;
     s_cameraDataBuffer = s_device.CreateBuffer(&bufferDescriptor);
 
-//    // layout
+    // bind group
 
-//    wgpu::BufferBindingLayout cameraDataBindGroupLayoutEntry0BufferBindingLayout = {};
-//    cameraDataBindGroupLayoutEntry0BufferBindingLayout.type = wgpu::BufferBindingType::Uniform;
-//
-//    wgpu::BindGroupLayoutEntry cameraDataBindGroupLayoutEntry0 = {};
-//    cameraDataBindGroupLayoutEntry0.binding = 0;
-//    cameraDataBindGroupLayoutEntry0.visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
-//    cameraDataBindGroupLayoutEntry0.buffer = cameraDataBindGroupLayoutEntry0BufferBindingLayout;
-//
-//    wgpu::BindGroupLayoutDescriptor cameraDataBindGroupLayoutDescriptor = {};
-//    cameraDataBindGroupLayoutDescriptor.entryCount = 1;
-//    cameraDataBindGroupLayoutDescriptor.entries = &cameraDataBindGroupLayoutEntry0;
-//    s_cameraDataBindGroupLayout = s_device.CreateBindGroupLayout(&cameraDataBindGroupLayoutDescriptor);
+    std::array<wgpu::BindGroupEntry, 1> bindGroupEntries;
 
-//    // bind group
-//    wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
-//    bindGroupDescriptorEntry0.binding = 0;
-//    bindGroupDescriptorEntry0.buffer = GameEngine::WebGPURenderer::cameraDataBuffer();
-//
-//    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-//    bindGroupDescriptor.layout = ;
-//    bindGroupDescriptor.entryCount = 1;
-//    bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
-//
-//    s_cameraDataBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
+    bindGroupEntries[0].binding = 0;
+    bindGroupEntries[0].buffer = s_cameraDataBuffer;
+
+    wgpu::BindGroupDescriptor bindGroupDescriptor = {};
+    bindGroupDescriptor.layout = cameraDataBindGroupLayout();
+    bindGroupDescriptor.entryCount = bindGroupEntries.size();
+    bindGroupDescriptor.entries = bindGroupEntries.data();
+
+    s_cameraDataBindGroup = s_device.CreateBindGroup(&bindGroupDescriptor);
 }
 
 wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderModule& shaderModule, bool depthWrite) {
@@ -360,7 +351,18 @@ wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderM
 
     wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
 
-    pipelineDescriptor.layout = nullptr; // auto layout
+    std::array<wgpu::BindGroupLayout, 4> bindGroupLayouts = {
+            pbrEnvironmentMapBindGroupLayout(),
+            cameraDataBindGroupLayout(),
+            pbrMaterialBindGroupLayout(),
+            pbrObjectDataBindGroupLayout(),
+    };
+
+    wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor;
+    pipelineLayoutDescriptor.bindGroupLayoutCount = bindGroupLayouts.size();
+    pipelineLayoutDescriptor.bindGroupLayouts = bindGroupLayouts.data();
+
+    pipelineDescriptor.layout = device.CreatePipelineLayout(&pipelineLayoutDescriptor);
 
     wgpu::BlendState blendState;
     blendState.color.operation = wgpu::BlendOperation::Add;
@@ -495,16 +497,21 @@ void WebGPURenderer::submitMeshToRenderer(Entity &entity, const PBRRendererCompo
 }
 
 void renderMesh(MeshRenderInfo &meshRenderInfo) {
-    auto& mesh = meshRenderInfo.mesh;
-    auto& material= meshRenderInfo.material;
-    auto& objectDataBindGroup = meshRenderInfo.objectDataBindGroup;
+    auto &mesh = meshRenderInfo.mesh;
+    auto &material= meshRenderInfo.material;
+    auto &objectDataBindGroup = meshRenderInfo.objectDataBindGroup;
+    if(s_environmentMapHandle == -1) {
+        std::cout << "environment map not set" << std::endl;
+    }
+    auto &environmentMap = AssetManager::getAsset<EnvironmentMap>(s_environmentMapHandle);
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(material.renderPipeline());
 
-    renderPassEncoder.SetBindGroup(0, material.cameraBindGroup());
-    renderPassEncoder.SetBindGroup(1, material.materialBindGroup());
-    renderPassEncoder.SetBindGroup(2, objectDataBindGroup);
+    renderPassEncoder.SetBindGroup(0, environmentMap.bindGroup());
+    renderPassEncoder.SetBindGroup(1, s_cameraDataBindGroup);
+    renderPassEncoder.SetBindGroup(2, material.bindGroup());
+    renderPassEncoder.SetBindGroup(3, objectDataBindGroup);
 
     renderPassEncoder.SetVertexBuffer(0, mesh.positionBuffer());
     renderPassEncoder.SetVertexBuffer(1, mesh.normalBuffer());
@@ -564,18 +571,7 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
         bindGroupDescriptorEntry0.buffer = objectDataBuffer;
 
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-        switch (material.renderQueue) {
-            case RenderQueue::Opaque:
-                bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(2);
-                break;
-            case RenderQueue::Transparent:
-                bindGroupDescriptor.layout = shader.renderPipeline(false).GetBindGroupLayout(2);
-                break;
-            default:
-                std::cout << "WebGPUPBRRendererDataComponent unknown render queue: " << static_cast<uint8_t>(material.renderQueue) << std::endl;
-                bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(2);
-                break;
-        }
+        bindGroupDescriptor.layout = WebGPURenderer::pbrObjectDataBindGroupLayout();
         bindGroupDescriptor.entryCount = 1;
         bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
 
@@ -670,6 +666,114 @@ wgpu::QueueWorkDoneStatus WebGPURenderer::waitForDeviceIdle() {
     }
 
     return status;
+}
+
+wgpu::BindGroupLayout &WebGPURenderer::pbrEnvironmentMapBindGroupLayout() {
+    static wgpu::BindGroupLayout s_bindGroup;
+    if(s_bindGroup) {
+        return s_bindGroup;
+    }
+
+    std::array<wgpu::BindGroupLayoutEntry, 4> bindGroupLayoutEntries;
+
+    bindGroupLayoutEntries[0].binding = 0;
+    bindGroupLayoutEntries[0].visibility = wgpu::ShaderStage::Fragment;
+    bindGroupLayoutEntries[0].sampler.type = wgpu::SamplerBindingType::Filtering;
+
+    bindGroupLayoutEntries[1].binding = 1;
+    bindGroupLayoutEntries[1].visibility = wgpu::ShaderStage::Fragment;
+    bindGroupLayoutEntries[1].texture.sampleType = wgpu::TextureSampleType::Float;
+
+    bindGroupLayoutEntries[2].binding = 2;
+    bindGroupLayoutEntries[2].visibility = wgpu::ShaderStage::Fragment;
+    bindGroupLayoutEntries[2].texture.sampleType = wgpu::TextureSampleType::Float;
+    bindGroupLayoutEntries[2].texture.viewDimension = wgpu::TextureViewDimension::Cube;
+
+    bindGroupLayoutEntries[3].binding = 3;
+    bindGroupLayoutEntries[3].visibility = wgpu::ShaderStage::Fragment;
+    bindGroupLayoutEntries[3].texture.sampleType = wgpu::TextureSampleType::Float;
+    bindGroupLayoutEntries[3].texture.viewDimension = wgpu::TextureViewDimension::Cube;
+
+    wgpu::BindGroupLayoutDescriptor bindGroupLayoutDescriptor;
+    bindGroupLayoutDescriptor.entryCount = bindGroupLayoutEntries.size();
+    bindGroupLayoutDescriptor.entries = bindGroupLayoutEntries.data();
+
+    s_bindGroup = s_device.CreateBindGroupLayout(&bindGroupLayoutDescriptor);
+
+    return s_bindGroup;
+}
+
+wgpu::BindGroupLayout &WebGPURenderer::cameraDataBindGroupLayout() {
+    static wgpu::BindGroupLayout s_bindGroup;
+    if(s_bindGroup) {
+        return s_bindGroup;
+    }
+
+    std::array<wgpu::BindGroupLayoutEntry, 1> bindGroupLayoutEntries;
+
+    bindGroupLayoutEntries[0].binding = 0;
+    bindGroupLayoutEntries[0].visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
+    bindGroupLayoutEntries[0].buffer.type = wgpu::BufferBindingType::Uniform;
+
+    wgpu::BindGroupLayoutDescriptor bindGroupLayoutDescriptor;
+    bindGroupLayoutDescriptor.entryCount = bindGroupLayoutEntries.size();
+    bindGroupLayoutDescriptor.entries = bindGroupLayoutEntries.data();
+
+    s_bindGroup = s_device.CreateBindGroupLayout(&bindGroupLayoutDescriptor);
+
+    return s_bindGroup;
+}
+
+wgpu::BindGroupLayout &WebGPURenderer::pbrMaterialBindGroupLayout() {
+    static wgpu::BindGroupLayout s_bindGroup;
+    if(s_bindGroup) {
+        return s_bindGroup;
+    }
+
+    std::array<wgpu::BindGroupLayoutEntry, 4> bindGroupLayoutEntries;
+
+    for(size_t i = 0; i < bindGroupLayoutEntries.size(); i++) {
+        bindGroupLayoutEntries[i].binding = i;
+        bindGroupLayoutEntries[i].visibility = wgpu::ShaderStage::Fragment;
+        bindGroupLayoutEntries[i].texture.sampleType = wgpu::TextureSampleType::Float;
+    }
+
+    wgpu::BindGroupLayoutDescriptor bindGroupLayoutDescriptor;
+    bindGroupLayoutDescriptor.entryCount = bindGroupLayoutEntries.size();
+    bindGroupLayoutDescriptor.entries = bindGroupLayoutEntries.data();
+
+    s_bindGroup = s_device.CreateBindGroupLayout(&bindGroupLayoutDescriptor);
+
+    return s_bindGroup;
+}
+
+wgpu::BindGroupLayout &WebGPURenderer::pbrObjectDataBindGroupLayout() {
+    static wgpu::BindGroupLayout s_bindGroup;
+    if(s_bindGroup) {
+        return s_bindGroup;
+    }
+
+    std::array<wgpu::BindGroupLayoutEntry, 1> bindGroupLayoutEntries;
+
+    bindGroupLayoutEntries[0].binding = 0;
+    bindGroupLayoutEntries[0].visibility = wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment;
+    bindGroupLayoutEntries[0].buffer.type = wgpu::BufferBindingType::Uniform;
+
+    wgpu::BindGroupLayoutDescriptor bindGroupLayoutDescriptor;
+    bindGroupLayoutDescriptor.entryCount = bindGroupLayoutEntries.size();
+    bindGroupLayoutDescriptor.entries = bindGroupLayoutEntries.data();
+
+    s_bindGroup = s_device.CreateBindGroupLayout(&bindGroupLayoutDescriptor);
+
+    return s_bindGroup;
+}
+
+wgpu::BindGroup &WebGPURenderer::cameraDataBindGroup() {
+    return s_cameraDataBindGroup;
+}
+
+void WebGPURenderer::setEnvironmentMap(int environmentMapHandle) {
+    s_environmentMapHandle = environmentMapHandle;
 }
 
 }

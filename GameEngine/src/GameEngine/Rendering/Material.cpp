@@ -49,35 +49,9 @@ void Material::initBindGroup(bool depthWrite) {
     auto &device = WebGPURenderer::device();
 
     {
-        wgpu::BindGroupEntry bindGroupDescriptorEntry0 = {};
-        bindGroupDescriptorEntry0.binding = 0;
-        bindGroupDescriptorEntry0.buffer = WebGPURenderer::cameraDataBuffer();
+        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size());
 
-        wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-        bindGroupDescriptor.layout = shader.renderPipeline(depthWrite).GetBindGroupLayout(0);
-        bindGroupDescriptor.entryCount = 1;
-        bindGroupDescriptor.entries = &bindGroupDescriptorEntry0;
-
-        if (depthWrite) {
-            m_cameraBindGroupDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
-        } else {
-            m_cameraBindGroupNoDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
-        }
-    }
-
-    {
-        std::vector<wgpu::BindGroupEntry> bindGroupEntries(m_textureHandles.size() + 4);
-
-        bindGroupEntries[0].binding = 0;
-        bindGroupEntries[0].sampler = WebGPURenderer::basicSampler();
-
-        int brdfTextureHandle = AssetManager::getOrLoadAssetFromUUID<Texture>(BRDF_UUID);
-        auto &brdfTexture = AssetManager::getAsset<Texture>(brdfTextureHandle);
-
-        bindGroupEntries[1].binding = 1;
-        bindGroupEntries[1].textureView = brdfTexture.cachedTextureView();
-
-        int i = 2;
+        int i = 0;
         for (auto &assetHandle: m_textureHandles) {
             auto &texture = AssetManager::getAsset<Texture>(assetHandle);
 
@@ -87,53 +61,17 @@ void Material::initBindGroup(bool depthWrite) {
             i++;
         }
 
-        auto environmentMap = AssetManager::getAsset<EnvironmentMap>(0);
-        auto preFilterCubeMap = AssetManager::getAsset<CubeMap>(environmentMap.preFilterCubeMapHandle());
-        auto irradianceCubeMap = AssetManager::getAsset<CubeMap>(environmentMap.irradianceCubeMapHandle());
-
-        bindGroupEntries[i].binding = i;
-        bindGroupEntries[i].textureView = preFilterCubeMap.cachedTextureView();
-        i++;
-
-        bindGroupEntries[i].binding = i;
-        bindGroupEntries[i].textureView = irradianceCubeMap.cachedTextureView();
-        i++;
-
         wgpu::BindGroupDescriptor bindGroupDescriptor = {};
-        bindGroupDescriptor.layout = shader.renderPipeline(depthWrite).GetBindGroupLayout(1);
+        bindGroupDescriptor.layout = WebGPURenderer::pbrMaterialBindGroupLayout();
         bindGroupDescriptor.entryCount = bindGroupEntries.size();
         bindGroupDescriptor.entries = bindGroupEntries.data();
 
-        if (depthWrite) {
-            m_materialBindGroupDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
-        } else {
-            m_materialBindGroupNoDepthWrite = device.CreateBindGroup(&bindGroupDescriptor);
-        }
+        m_bindGroup = device.CreateBindGroup(&bindGroupDescriptor);
     }
 }
 
-wgpu::BindGroup &Material::cameraBindGroup() {
-    switch (renderQueue) {
-        case RenderQueue::Opaque:
-            return m_cameraBindGroupDepthWrite;
-        case RenderQueue::Transparent:
-            return m_cameraBindGroupNoDepthWrite;
-        default:
-            std::cout << "material cameraBindGroup unknown render queue: " << static_cast<uint8_t>(renderQueue) << std::endl;
-            return m_cameraBindGroupDepthWrite;
-    }
-}
-
-wgpu::BindGroup &Material::materialBindGroup() {
-    switch (renderQueue) {
-        case RenderQueue::Opaque:
-            return m_materialBindGroupDepthWrite;
-        case RenderQueue::Transparent:
-            return m_materialBindGroupNoDepthWrite;
-        default:
-            std::cout << "material materialBindGroup unknown render queue: " << static_cast<uint8_t>(renderQueue) << std::endl;
-            return m_materialBindGroupDepthWrite;
-    }
+wgpu::BindGroup &Material::bindGroup() {
+    return m_bindGroup;
 }
 
 void Material::addTexture(int assetHandle) {

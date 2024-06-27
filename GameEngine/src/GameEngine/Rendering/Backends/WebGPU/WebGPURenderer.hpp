@@ -75,6 +75,18 @@ public:
 
     static wgpu::QueueWorkDoneStatus waitForDeviceIdle();
 
+    static wgpu::BindGroupLayout &pbrEnvironmentMapBindGroupLayout();
+
+    static wgpu::BindGroupLayout &cameraDataBindGroupLayout();
+
+    static wgpu::BindGroupLayout &pbrMaterialBindGroupLayout();
+
+    static wgpu::BindGroupLayout &pbrObjectDataBindGroupLayout();
+
+    static wgpu::BindGroup &cameraDataBindGroup();
+
+    static void setEnvironmentMap(int environmentMapHandle);
+
 private:
     static void getAdapter();
 
