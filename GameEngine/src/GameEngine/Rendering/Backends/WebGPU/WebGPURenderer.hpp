@@ -3,6 +3,8 @@
 #include <functional>
 #include <webgpu/webgpu_cpp.h>
 #include "../../../Scene/Entity.hpp"
+#include "../../Mesh.hpp"
+#include "../../Material.hpp"
 
 #define PBR_SHADER_UUID "7aa2b713-86dd-4c48-a9ea-9af110d116ee"
 #define BASIC_COLOR_SHADER_UUID "3284227e-817a-4bf6-b184-8cbb3b15d503"
@@ -25,6 +27,12 @@ struct WebGPUPBRRendererDataComponent {
     [[nodiscard]] const char *objectName() const {
         return "WebGPUPBRRendererDataComponent";
     }
+};
+
+struct MeshRenderInfo {
+    Mesh &mesh;
+    Material &material;
+    const wgpu::BindGroup &objectDataBindGroup;
 };
 
 class Window;
@@ -63,13 +71,9 @@ public:
 
     static void submitMeshToRenderer(Entity &entity, const PBRRendererComponent &renderer, const WebGPUPBRRendererDataComponent &rendererData);
 
-    static void renderOpaqueMeshes();
-
-    static void renderTransparentMeshes();
+    static void drawMainRenderPass();
 
     static wgpu::Sampler &basicSampler();
-
-    static void renderSkybox();
 
     static wgpu::RenderPipeline createBasicPipeline(const wgpu::ShaderModule &shaderModule, bool renderToScreen, bool depthWrite, wgpu::TextureFormat textureFormat = wgpu::TextureFormat::Undefined);
 
@@ -114,6 +118,14 @@ private:
     static wgpu::RenderPipeline createPBRRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
 
     static wgpu::RenderPipeline createSkyboxRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
+
+    static void drawMesh(MeshRenderInfo &meshRenderInfo);
+
+    static void drawOpaqueMeshes();
+
+    static void drawSkybox();
+
+    static void drawTransparentMeshes();
 };
 
 }

@@ -54,12 +54,6 @@ static wgpu::BindGroup s_cameraDataBindGroup;
 
 static int s_environmentMapHandle = -1;
 
-struct MeshRenderInfo {
-    Mesh &mesh;
-    Material &material;
-    const wgpu::BindGroup& objectDataBindGroup;
-};
-
 static std::vector<MeshRenderInfo> s_opaqueMeshesToRender;
 static std::vector<MeshRenderInfo> s_transparentMeshesToRender;
 
@@ -539,21 +533,14 @@ void WebGPURenderer::submitMeshToRenderer(Entity &entity, const PBRRendererCompo
     }
 }
 
-void renderMesh(MeshRenderInfo &meshRenderInfo) {
+void WebGPURenderer::drawMesh(MeshRenderInfo &meshRenderInfo) {
     auto &mesh = meshRenderInfo.mesh;
     auto &material= meshRenderInfo.material;
     auto &objectDataBindGroup = meshRenderInfo.objectDataBindGroup;
-    if(s_environmentMapHandle == -1) {
-        std::cout << "environment map not set. set with WebGPURenderer::setEnvironmentMap" << std::endl;
-        return;
-    }
-    auto &environmentMap = AssetManager::getAsset<EnvironmentMap>(s_environmentMapHandle);
 
     auto renderPassEncoder = GameEngine::WebGPURenderer::renderPassEncoder();
     renderPassEncoder.SetPipeline(material.renderPipeline());
 
-    renderPassEncoder.SetBindGroup(0, environmentMap.bindGroup());
-    renderPassEncoder.SetBindGroup(1, s_cameraDataBindGroup);
     renderPassEncoder.SetBindGroup(2, material.bindGroup());
     renderPassEncoder.SetBindGroup(3, objectDataBindGroup);
 
@@ -567,18 +554,41 @@ void renderMesh(MeshRenderInfo &meshRenderInfo) {
     renderPassEncoder.DrawIndexed(mesh.indexCount());
 }
 
-void WebGPURenderer::renderOpaqueMeshes() {
+void WebGPURenderer::drawOpaqueMeshes() {
     for(auto& meshRenderInfo : s_opaqueMeshesToRender) {
-        renderMesh(meshRenderInfo);
+        drawMesh(meshRenderInfo);
     }
     s_opaqueMeshesToRender.clear();
 }
 
-void WebGPURenderer::renderTransparentMeshes() {
+void WebGPURenderer::drawSkybox() {
+    int shaderHandle = AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
+    auto &shader = AssetManager::getAsset<WebGPUShader>(shaderHandle);
+
+    s_renderPassEncoder.SetPipeline(shader.renderPipeline(true));
+    s_renderPassEncoder.Draw(3);
+}
+
+void WebGPURenderer::drawTransparentMeshes() {
     for(auto& meshRenderInfo : s_transparentMeshesToRender) {
-        renderMesh(meshRenderInfo);
+        drawMesh(meshRenderInfo);
     }
     s_transparentMeshesToRender.clear();
+}
+
+void WebGPURenderer::drawMainRenderPass() {
+    if(s_environmentMapHandle == -1) {
+        std::cout << "environment map not set. set with WebGPURenderer::setEnvironmentMap" << std::endl;
+        return;
+    }
+    auto &environmentMap = AssetManager::getAsset<EnvironmentMap>(s_environmentMapHandle);
+
+    s_renderPassEncoder.SetBindGroup(0, environmentMap.bindGroup());
+    s_renderPassEncoder.SetBindGroup(1, s_cameraDataBindGroup);
+
+    drawOpaqueMeshes();
+    drawSkybox();
+    drawTransparentMeshes();
 }
 
 wgpu::Sampler &WebGPURenderer::basicSampler() {
@@ -621,25 +631,6 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
 
         objectDataBindGroup = device.CreateBindGroup(&bindGroupDescriptor);
     }
-}
-
-void WebGPURenderer::renderSkybox() {
-    auto& device = s_device;
-
-    int shaderHandle = AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
-    auto &shader = AssetManager::getAsset<WebGPUShader>(shaderHandle);
-
-    if(s_environmentMapHandle == -1) {
-        std::cout << "environment map not set. set with WebGPURenderer::setEnvironmentMap" << std::endl;
-        return;
-    }
-
-    auto &environmentMap = AssetManager::getAsset<EnvironmentMap>(s_environmentMapHandle);
-
-    s_renderPassEncoder.SetPipeline(shader.renderPipeline(true));
-    s_renderPassEncoder.SetBindGroup(0, environmentMap.bindGroup());
-    s_renderPassEncoder.SetBindGroup(1, s_cameraDataBindGroup);
-    s_renderPassEncoder.Draw(3);
 }
 
 wgpu::RenderPipeline WebGPURenderer::createBasicPipeline(const wgpu::ShaderModule &shaderModule, bool renderToScreen, bool depthWrite, wgpu::TextureFormat textureFormat) {
