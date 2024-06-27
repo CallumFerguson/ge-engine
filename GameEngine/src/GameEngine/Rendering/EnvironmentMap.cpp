@@ -61,10 +61,6 @@ EnvironmentMap::EnvironmentMap(const std::string &assetPath) {
     m_bindGroup = WebGPURenderer::device().CreateBindGroup(&bindGroupDescriptor);
 }
 
-int EnvironmentMap::skyboxCubeMapHandle() {
-    return m_preFilterCubeMapHandle;
-}
-
 int EnvironmentMap::preFilterCubeMapHandle() {
     return m_preFilterCubeMapHandle;
 }

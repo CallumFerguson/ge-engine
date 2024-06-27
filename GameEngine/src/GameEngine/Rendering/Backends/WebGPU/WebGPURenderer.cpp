@@ -172,9 +172,7 @@ void WebGPURenderer::finishInit() {
 
     WebGPUShader::registerShaderCreatePipelineFunction(BASIC_COLOR_SHADER_UUID, createPBRRenderPipeline);
     WebGPUShader::registerShaderCreatePipelineFunction(PBR_SHADER_UUID, createPBRRenderPipeline);
-    WebGPUShader::registerShaderCreatePipelineFunction(SKYBOX_SHADER_UUID, [](const wgpu::ShaderModule &shaderModule, bool depthWrite) {
-        return WebGPURenderer::createBasicPipeline(shaderModule, true, depthWrite);
-    });
+    WebGPUShader::registerShaderCreatePipelineFunction(SKYBOX_SHADER_UUID, createSkyboxRenderPipeline);
 }
 
 void WebGPURenderer::createSurface() {
@@ -451,6 +449,51 @@ wgpu::RenderPipeline WebGPURenderer::createPBRRenderPipeline(const wgpu::ShaderM
     return device.CreateRenderPipeline(&pipelineDescriptor);
 }
 
+wgpu::RenderPipeline WebGPURenderer::createSkyboxRenderPipeline(const wgpu::ShaderModule& shaderModule, bool depthWrite) {
+    wgpu::RenderPipelineDescriptor pipelineDescriptor = {};
+
+    std::array<wgpu::BindGroupLayout, 2> bindGroupLayouts = {
+            pbrEnvironmentMapBindGroupLayout(),
+            cameraDataBindGroupLayout(),
+    };
+
+    wgpu::PipelineLayoutDescriptor pipelineLayoutDescriptor;
+    pipelineLayoutDescriptor.bindGroupLayoutCount = bindGroupLayouts.size();
+    pipelineLayoutDescriptor.bindGroupLayouts = bindGroupLayouts.data();
+
+    pipelineDescriptor.layout = s_device.CreatePipelineLayout(&pipelineLayoutDescriptor);
+
+    wgpu::ColorTargetState colorTargetState = {};
+    colorTargetState.format = GameEngine::WebGPURenderer::mainSurfacePreferredFormat();
+
+    wgpu::FragmentState fragment = {};
+    fragment.module = shaderModule;
+    fragment.entryPoint = "frag";
+    fragment.targetCount = 1;
+    fragment.targets = &colorTargetState;
+
+    wgpu::VertexState vertex = {};
+    vertex.module = shaderModule;
+    vertex.entryPoint = "vert";
+    vertex.bufferCount = 0;
+
+    pipelineDescriptor.vertex = vertex;
+    pipelineDescriptor.fragment = &fragment;
+
+    pipelineDescriptor.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
+    pipelineDescriptor.primitive.cullMode = wgpu::CullMode::Back;
+
+    pipelineDescriptor.multisample.count = multisampleCount;
+
+    wgpu::DepthStencilState depthStencilState = {};
+    depthStencilState.depthWriteEnabled = depthWrite;
+    depthStencilState.depthCompare = wgpu::CompareFunction::LessEqual;
+    depthStencilState.format = wgpu::TextureFormat::Depth24Plus;
+    pipelineDescriptor.depthStencil = &depthStencilState;
+
+    return s_device.CreateRenderPipeline(&pipelineDescriptor);
+}
+
 void WebGPURenderer::updateCameraDataBuffer(Entity &entity, TransformComponent &transform, CameraComponent &camera) {
     auto view = CameraComponent::modelToView(entity.globalModelMatrix(true));
 
@@ -501,7 +544,8 @@ void renderMesh(MeshRenderInfo &meshRenderInfo) {
     auto &material= meshRenderInfo.material;
     auto &objectDataBindGroup = meshRenderInfo.objectDataBindGroup;
     if(s_environmentMapHandle == -1) {
-        std::cout << "environment map not set" << std::endl;
+        std::cout << "environment map not set. set with WebGPURenderer::setEnvironmentMap" << std::endl;
+        return;
     }
     auto &environmentMap = AssetManager::getAsset<EnvironmentMap>(s_environmentMapHandle);
 
@@ -579,14 +623,22 @@ WebGPUPBRRendererDataComponent::WebGPUPBRRendererDataComponent(int materialHandl
     }
 }
 
-void WebGPURenderer::renderSkybox(const Skybox &skybox) {
+void WebGPURenderer::renderSkybox() {
     auto& device = s_device;
 
     int shaderHandle = AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
     auto &shader = AssetManager::getAsset<WebGPUShader>(shaderHandle);
 
+    if(s_environmentMapHandle == -1) {
+        std::cout << "environment map not set. set with WebGPURenderer::setEnvironmentMap" << std::endl;
+        return;
+    }
+
+    auto &environmentMap = AssetManager::getAsset<EnvironmentMap>(s_environmentMapHandle);
+
     s_renderPassEncoder.SetPipeline(shader.renderPipeline(true));
-    s_renderPassEncoder.SetBindGroup(0, skybox.bindGroup());
+    s_renderPassEncoder.SetBindGroup(0, environmentMap.bindGroup());
+    s_renderPassEncoder.SetBindGroup(1, s_cameraDataBindGroup);
     s_renderPassEncoder.Draw(3);
 }
 

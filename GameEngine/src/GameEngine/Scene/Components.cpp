@@ -139,35 +139,4 @@ PBRRendererComponent::PBRRendererComponent(const nlohmann::json &componentJSON) 
     materialHandle = AssetManager::getOrLoadAssetFromUUID<Material>(componentJSON["material"]["uuid"]);
 }
 
-Skybox::Skybox(int cubeMapHandle) : cubeMapHandle(cubeMapHandle) {
-    auto &device = WebGPURenderer::device();
-
-    int shaderHandle = GameEngine::AssetManager::getOrLoadAssetFromUUID<WebGPUShader>(SKYBOX_SHADER_UUID);
-    auto &shader = GameEngine::AssetManager::getAsset<WebGPUShader>(shaderHandle);
-
-    auto &cubeMap = GameEngine::AssetManager::getAsset<CubeMap>(cubeMapHandle);
-
-    std::array<wgpu::BindGroupEntry, 3> entries;
-    entries[0].binding = 0;
-    entries[0].buffer = WebGPURenderer::cameraDataBuffer();
-
-    entries[1].binding = 1;
-    entries[1].sampler = WebGPURenderer::basicSampler();
-
-    entries[2].binding = 2;
-    entries[2].textureView = cubeMap.cachedTextureView();
-
-    wgpu::BindGroupDescriptor bindGroupDescriptor;
-    std::cout << "TODO: this needs to use shared environment map bind group" << std::endl;
-    bindGroupDescriptor.layout = shader.renderPipeline(true).GetBindGroupLayout(0);
-    bindGroupDescriptor.entryCount = entries.size();
-    bindGroupDescriptor.entries = entries.data();
-
-    m_bindGroup = device.CreateBindGroup(&bindGroupDescriptor);
-}
-
-const wgpu::BindGroup &Skybox::bindGroup() const {
-    return m_bindGroup;
-}
-
 }

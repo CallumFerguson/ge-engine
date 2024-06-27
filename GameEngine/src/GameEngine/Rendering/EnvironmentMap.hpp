@@ -9,8 +9,6 @@ class EnvironmentMap : public Asset {
 public:
     explicit EnvironmentMap(const std::string &assetPath);
 
-    int skyboxCubeMapHandle();
-
     int preFilterCubeMapHandle();
 
     int irradianceCubeMapHandle();

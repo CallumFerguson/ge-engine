@@ -82,9 +82,7 @@ void Scene::onUpdate() {
 
     WebGPURenderer::renderOpaqueMeshes();
 
-    m_registry.view<Skybox>().each([&](auto &skybox) {
-        WebGPURenderer::renderSkybox(skybox);
-    });
+    WebGPURenderer::renderSkybox();
 
     WebGPURenderer::renderTransparentMeshes();
 

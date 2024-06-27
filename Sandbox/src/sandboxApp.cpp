@@ -27,11 +27,7 @@ void runSandboxApp() {
 //    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/buikslotermeerplein_1k.geenvironmentmap");
 //    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/rosendal_plains_1_2k.geenvironmentmap");
     int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/overcast_soil_puresky_2k.geenvironmentmap");
-    auto environmentMap = GameEngine::AssetManager::getAsset<GameEngine::EnvironmentMap>(environmentMapHandle);
     GameEngine::WebGPURenderer::setEnvironmentMap(environmentMapHandle);
-
-    GameEngine::Entity skybox = scene.createEntity("Skybox");
-    skybox.addComponent<GameEngine::Skybox>(environmentMap.skyboxCubeMapHandle());
 
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();

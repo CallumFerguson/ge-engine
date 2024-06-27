@@ -8,9 +8,11 @@ struct CameraData {
     viewDirectionProjectionInverse: mat4x4f,
 }
 
-@group(0) @binding(0) var<uniform> cameraData: CameraData;
-@group(0) @binding(1) var textureSampler: sampler;
-@group(0) @binding(2) var texture: texture_cube<f32>;
+// these bind groups are set up to be compatible with the pbr bind groups
+@group(0) @binding(0) var textureSampler: sampler;
+@group(0) @binding(2) var environmentPrefilterCubeMapTexture: texture_cube<f32>;
+
+@group(1) @binding(0) var<uniform> cameraData: CameraData;
 
 struct VertexInput {
     @builtin(vertex_index) vertexIndex: u32,
@@ -40,7 +42,7 @@ fn vert(i: VertexInput) -> VertexOutput {
 @fragment
 fn frag(i: VertexOutput) -> @location(0) vec4f {
     let t = cameraData.viewDirectionProjectionInverse * i.pos;
-    var color = textureSampleLevel(texture, textureSampler, normalize(t.xyz / t.w) * vec3f(-1, 1, 1), 0).rgb;
+    var color = textureSampleLevel(environmentPrefilterCubeMapTexture, textureSampler, normalize(t.xyz / t.w) * vec3f(-1, 1, 1), 0).rgb;
 
     const gamma: f32 = 2.2;
     color = vec3(1.0) - exp(-color * cameraData.exposure);

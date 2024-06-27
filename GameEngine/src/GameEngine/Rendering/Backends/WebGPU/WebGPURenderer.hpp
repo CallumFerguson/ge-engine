@@ -69,7 +69,7 @@ public:
 
     static wgpu::Sampler &basicSampler();
 
-    static void renderSkybox(const Skybox &skybox);
+    static void renderSkybox();
 
     static wgpu::RenderPipeline createBasicPipeline(const wgpu::ShaderModule &shaderModule, bool renderToScreen, bool depthWrite, wgpu::TextureFormat textureFormat = wgpu::TextureFormat::Undefined);
 
@@ -112,6 +112,8 @@ private:
     static void setUpCameraBuffer();
 
     static wgpu::RenderPipeline createPBRRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
+
+    static wgpu::RenderPipeline createSkyboxRenderPipeline(const wgpu::ShaderModule &shaderModule, bool depthWrite);
 };
 
 }
