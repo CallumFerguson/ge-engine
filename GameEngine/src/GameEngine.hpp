@@ -30,3 +30,8 @@
 #include "GameEngine/Utility/utility.hpp"
 #include "GameEngine/Utility/Random.hpp"
 #include "GameEngine/Utility/TimingHelper.hpp"
+
+#include "GameEngine/Utility/Stream/StreamWriter.hpp"
+#include "GameEngine/Utility/Stream/StreamReader.hpp"
+#include "GameEngine/Utility/Stream/FileStreamWriter.hpp"
+#include "GameEngine/Utility/Stream/FileStreamReader.hpp"

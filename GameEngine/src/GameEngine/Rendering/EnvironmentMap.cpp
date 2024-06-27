@@ -4,6 +4,7 @@
 #include "../Assets/AssetManager.hpp"
 #include "CubeMap.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
+#include "../Utility/Stream/FileStreamWriter.hpp"
 
 namespace GameEngine {
 

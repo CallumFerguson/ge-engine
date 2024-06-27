@@ -22,6 +22,11 @@ add_library(
         src/GameEngine/Utility/stbImpl.cpp
         src/GameEngine/Utility/TimingHelper.cpp
 
+        src/GameEngine/Utility/Stream/StreamWriter.cpp
+        src/GameEngine/Utility/Stream/StreamReader.cpp
+        src/GameEngine/Utility/Stream/FileStreamWriter.cpp
+        src/GameEngine/Utility/Stream/FileStreamReader.cpp
+
         src/GameEngine/Core/App.cpp
         src/GameEngine/Core/Window.cpp
         src/GameEngine/Core/Time.cpp

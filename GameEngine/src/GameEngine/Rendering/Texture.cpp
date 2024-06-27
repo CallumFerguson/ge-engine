@@ -6,6 +6,7 @@
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "Backends/WebGPU/generateMipmapWebGPU.hpp"
 #include "../Utility/TimingHelper.hpp"
+#include "../Utility/Stream/StreamReader.hpp"
 
 #ifdef __EMSCRIPTEN__
 
