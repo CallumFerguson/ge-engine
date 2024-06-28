@@ -9,7 +9,7 @@
 #include <numbers>
 #include "GameEngine.hpp"
 
-std::ostringstream computeIrradiance(GameEngine::Texture& equirectangularTexture) {
+void computeIrradiance(GameEngine::Texture& equirectangularTexture, GameEngine::StreamWriter &streamWriter, const std::string &uuid) {
     GameEngine::TimingHelper time("Compute Irradiance");
 
     auto &device = GameEngine::WebGPURenderer::device();
@@ -165,8 +165,6 @@ std::ostringstream computeIrradiance(GameEngine::Texture& equirectangularTexture
         device.Tick();
     }
 
-    std::ostringstream outputStream;
-
     {
         auto encoder = device.CreateCommandEncoder();
 
@@ -210,25 +208,26 @@ std::ostringstream computeIrradiance(GameEngine::Texture& equirectangularTexture
             imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
-        outputStream << GameEngine::Random::uuid();
+        streamWriter.writeUUID(uuid);
+
+        uint32_t assetVersion = 0;
+        streamWriter.writeRaw(assetVersion);
 
         std::string imageType = "hdr";
-        outputStream.write(imageType.c_str(), imageType.size() + 1);
+        streamWriter.writeString(imageType);
 
         uint32_t mipLevelsInFile = 1;
-        outputStream.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+        streamWriter.writeRaw(mipLevelsInFile);
 
         GameEngine::clearImageDataBuffer();
 
         stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
 
         uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
-        outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        streamWriter.writeRaw(imageNumBytes);
 
-        outputStream.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
+        streamWriter.writeData(GameEngine::imageDataBuffer().data(), GameEngine::imageDataBuffer().size());
 
         readBackBuffer.Unmap();
     }
-
-    return outputStream;
 }

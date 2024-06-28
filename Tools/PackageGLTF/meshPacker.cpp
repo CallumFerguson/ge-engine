@@ -94,6 +94,9 @@ writeGLTFMeshPrimitiveToFile(const tinygltf::Model &model, const tinygltf::Primi
 
     outputFile << meshUUID;
 
+    uint32_t assetVersion = 0;
+    outputFile.write(reinterpret_cast<const char *>(&assetVersion), sizeof(assetVersion));
+
     outputFile.write(reinterpret_cast<const char *>(&numIndices), sizeof(numIndices));
     outputFile.write(reinterpret_cast<const char *>(indices), numIndices * sizeof(uint32_t));
 

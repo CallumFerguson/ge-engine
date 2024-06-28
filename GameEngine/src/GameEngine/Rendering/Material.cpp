@@ -23,6 +23,12 @@ Material::Material(const std::string &assetPath) {
     assetFile.read(uuid, 36);
     m_assetUUID = uuid;
 
+    uint32_t assetVersion = 0;
+    assetFile.read(reinterpret_cast<char *>(&assetVersion), sizeof(assetVersion));
+    if (assetVersion != 0) {
+        std::cout << "unknown material asset version" << std::endl;
+    }
+
     nlohmann::json materialJSON;
     assetFile >> materialJSON;
 

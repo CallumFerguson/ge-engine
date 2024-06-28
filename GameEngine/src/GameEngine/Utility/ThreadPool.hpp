@@ -10,7 +10,7 @@ class ThreadPool {
 public:
     static ThreadPool &instance();
 
-    void queueJob(const std::function<void()> &job);
+    void queueJob(std::function<void()> &&job);
 
     bool busy();
 

@@ -6,7 +6,7 @@
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "Backends/WebGPU/generateMipmapWebGPU.hpp"
 #include "../Utility/TimingHelper.hpp"
-#include "../Utility/Stream/StreamReader.hpp"
+#include "../Utility/Stream/FileStreamReader.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -58,63 +58,39 @@ static std::vector<TextureReadyState> s_textureReadyStates;
 
 Texture::Texture() : Asset(Random::uuid()) {}
 
-static std::vector<char> assetPathToFileData(const std::string &assetPath) {
-    std::vector<char> fileData;
+Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat, bool forceMipLevels, wgpu::TextureUsage extraFlags) {
+    // shared ptr so it can be passed to lambda which does move it, but also type erases it so it must be copyable
+    auto streamReader = std::make_shared<FileStreamReader>(assetPath);
 
-    std::ifstream assetFile(assetPath, std::ios::binary | std::ios::ate);
-    if (!assetFile) {
-        std::cerr << "Error: [Texture] Could not open file " << assetPath << " for reading!" << std::endl;
-        return fileData;
-    }
+    std::string imageType;
+    uint32_t mipLevelsInFile;
+    uint32_t imageNumBytes;
 
-    uint32_t fileNumBytes = assetFile.tellg();
-    assetFile.seekg(0, std::ios::beg);
-
-    fileData.resize(fileNumBytes);
-    assetFile.read(fileData.data(), fileNumBytes);
-
-    return fileData;
-}
-
-static std::string getAssetPathExtension(const std::string &assetPath) {
     std::filesystem::path path = assetPath;
     std::string extension = path.extension().string();
     if (extension == ".jpeg") {
         extension = ".jpg";
     }
-    return extension;
-}
-
-Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat, bool forceMipLevels, wgpu::TextureUsage extraFlags) :
-        Texture(std::move(assetPathToFileData(assetPath)), getAssetPathExtension(assetPath), requestedFormat, forceMipLevels, extraFlags) {}
-
-Texture::Texture(std::vector<char> fileData, const std::string &extension, wgpu::TextureFormat requestedFormat, bool forceMipLevels, wgpu::TextureUsage extraFlags) {
-    std::string imageType;
-    uint32_t mipLevelsInFile;
-    uint32_t imageNumBytes;
-
-    size_t dataPtrOffset = 0;
 
     if (extension == ".getexture") {
-        char uuid[37];
-        uuid[36] = '\0';
-        std::memcpy(uuid, fileData.data() + dataPtrOffset, 36);
-        dataPtrOffset += 36;
-        m_assetUUID = uuid;
+        streamReader->readUUID(m_assetUUID);
 
-        imageType = std::string(fileData.data() + dataPtrOffset, strchr(fileData.data() + dataPtrOffset, '\0') - (fileData.data() + dataPtrOffset));
-        dataPtrOffset += imageType.length() + 1;
+        uint32_t assetVersion;
+        streamReader->readRaw(assetVersion);
+        if (assetVersion != 0) {
+            std::cout << "unknown texture asset version" << std::endl;
+        }
 
-        std::memcpy(&mipLevelsInFile, fileData.data() + dataPtrOffset, sizeof(uint32_t));
-        dataPtrOffset += sizeof(uint32_t);
+        streamReader->readString(imageType);
 
-        std::memcpy(&imageNumBytes, fileData.data() + dataPtrOffset, sizeof(uint32_t));
-        dataPtrOffset += sizeof(uint32_t);
+        streamReader->readRaw(mipLevelsInFile);
+
+        streamReader->readRaw(imageNumBytes);
     } else {
         m_assetUUID = Random::uuid();
         imageType = extension.substr(1);
         mipLevelsInFile = 1;
-        imageNumBytes = fileData.size();
+        imageNumBytes = streamReader->getStreamLength();
     }
 
     static const std::unordered_set<std::string> supportedFileTypes = {"png", "jpg", "hdr"};
@@ -124,8 +100,7 @@ Texture::Texture(std::vector<char> fileData, const std::string &extension, wgpu:
     }
 
     std::vector<uint8_t> imageData(imageNumBytes);
-    std::memcpy(imageData.data(), fileData.data() + dataPtrOffset, imageNumBytes);
-    dataPtrOffset += imageNumBytes;
+    streamReader->readData(imageData.data(), imageNumBytes);
 
     int width, height;
     if (!stbi_info_from_memory(imageData.data(), static_cast<int>(imageData.size()), &width, &height, nullptr)) {
@@ -166,8 +141,7 @@ Texture::Texture(std::vector<char> fileData, const std::string &extension, wgpu:
     }
 #else
     ThreadPool::instance().queueJob([
-                                            fileData = std::move(fileData),
-                                            dataPtrOffset,
+                                            streamReader = std::move(streamReader),
                                             imageData = std::move(imageData),
                                             texture = m_texture,
                                             mipLevelsInFile,
@@ -182,11 +156,9 @@ Texture::Texture(std::vector<char> fileData, const std::string &extension, wgpu:
         for (uint32_t mipLevel = 0; mipLevel < mipLevelsInFile; mipLevel++) {
             if (mipLevel > 0) {
                 uint32_t imageNumBytes;
-                std::memcpy(&imageNumBytes, fileData.data() + dataPtrOffset, sizeof(uint32_t));
-                dataPtrOffset += sizeof(uint32_t);
+                streamReader->readRaw(imageNumBytes);
 
-                std::memcpy(imageData.data(), fileData.data() + dataPtrOffset, imageNumBytes);
-                dataPtrOffset += imageNumBytes;
+                streamReader->readData(imageData.data(), imageNumBytes);
             }
 
             if (imageType == "hdr") {

@@ -5,4 +5,4 @@
 #include <filesystem>
 #include "GameEngine.hpp"
 
-std::ostringstream computeIrradiance(GameEngine::Texture &equirectangularTexture);
+void computeIrradiance(GameEngine::Texture &equirectangularTexture, GameEngine::StreamWriter &streamWriter, const std::string &uuid);

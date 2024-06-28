@@ -257,6 +257,9 @@ int main(int argc, char *argv[]) {
 
             outputFile << GameEngine::AssetManager::getAsset<GameEngine::Material>(primitive.material).assetUUID();
 
+            uint32_t assetVersion = 0;
+            outputFile.write(reinterpret_cast<char *>(&assetVersion), sizeof(assetVersion));
+
             nlohmann::json materialJSON;
             materialJSON["shader"]["uuid"] = PBR_SHADER_UUID; // hard coded shader for now
             materialJSON["textureUUIDs"] = texturesUUIDs;

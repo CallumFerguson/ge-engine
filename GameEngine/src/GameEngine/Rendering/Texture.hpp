@@ -6,6 +6,7 @@
 #include <string>
 #include <webgpu/webgpu_cpp.h>
 #include "../Assets/Asset.hpp"
+#include "../Utility/Stream/StreamReader.hpp"
 
 namespace GameEngine {
 
@@ -13,11 +14,7 @@ class Texture : public Asset {
 public:
     Texture();
 
-    // requested format may not always be honored
     explicit Texture(const std::string &assetPath, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined, bool forceMipLevels = false, wgpu::TextureUsage extraFlags = wgpu::TextureUsage::None);
-
-    explicit Texture(std::vector<char> fileData, const std::string &extension, wgpu::TextureFormat requestedFormat = wgpu::TextureFormat::Undefined, bool forceMipLevels = false,
-                     wgpu::TextureUsage extraFlags = wgpu::TextureUsage::None);
 
     wgpu::Texture &texture();
 

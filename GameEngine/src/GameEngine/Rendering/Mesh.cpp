@@ -20,6 +20,12 @@ Mesh::Mesh(const std::string &inputFilePath) {
     inputFile.read(uuid, 36);
     m_assetUUID = uuid;
 
+    uint32_t assetVersion;
+    inputFile.read(reinterpret_cast<char *>(&assetVersion), sizeof(assetVersion));
+    if (assetVersion != 0) {
+        std::cout << "unknown mesh asset version" << std::endl;
+    }
+
     // indices
     inputFile.read(reinterpret_cast<char *>(&m_indexCount), sizeof(m_indexCount));
     int32_t indicesByteLength = m_indexCount * sizeof(uint32_t);

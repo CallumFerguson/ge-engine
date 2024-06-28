@@ -252,29 +252,28 @@ int main(int argc, char *argv[]) {
 //    std::string outputFilePathString = outputFilePath.string();
 //    stbi_write_png(outputFilePathString.c_str(), resolution, resolution, 4, data, resolution * 4);
 
-    std::ofstream outputFile(outputFilePath, std::ios::out | std::ios::binary);
-    if (!outputFile) {
-        std::cerr << "Error: Could not open file for writing!" << std::endl;
-        return 1;
-    }
+    GameEngine::FileStreamWriter streamWriter(outputFilePath);
 
     std::string uuid = BRDF_UUID;
-    outputFile << uuid;
+    streamWriter.writeUUID(uuid);
+
+    uint32_t assetVersion = 0;
+    streamWriter.writeRaw(assetVersion);
 
     std::string imageType = "png";
-    outputFile.write(imageType.c_str(), imageType.size() + 1);
+    streamWriter.writeString(imageType);
 
     uint32_t mipLevelsInFile = 1;
-    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+    streamWriter.writeRaw(mipLevelsInFile);
 
     GameEngine::clearImageDataBuffer();
 
     stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, resolution, resolution, 4, data, resolution * 4);
 
     uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
-    outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+    streamWriter.writeRaw(imageNumBytes);
 
-    outputFile.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
+    streamWriter.writeData(GameEngine::imageDataBuffer().data(), GameEngine::imageDataBuffer().size());
 
     readBackBuffer.Unmap();
 }

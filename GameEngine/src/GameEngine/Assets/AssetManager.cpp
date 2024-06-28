@@ -13,7 +13,7 @@ std::unordered_map<std::string, int> g_AssetManagerAssetUUIDToHandle;
 std::unordered_map<std::string, std::string> g_AssetManagerAssetUUIDToPath;
 
 void AssetManager::registerAssetUUIDs(const std::string &assetsPath) {
-    std::vector<std::string> extensions = {".gemesh", ".getexture", ".wgsl", ".gematerial"};
+    std::vector<std::string> extensions = {".gemesh", ".getexture", ".wgsl", ".gematerial", ".geenvironmentmap"};
 
     for (const auto &entry: std::filesystem::recursive_directory_iterator(assetsPath)) {
         for (const auto &extension: extensions) {

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <filesystem>
+#include <nlohmann/json.hpp>
 #include "GameEngine.hpp"
 #include "computePreFilter.hpp"
 #include "computeIrradiance.hpp"
@@ -21,6 +22,7 @@ int main(int argc, char *argv[]) {
 
     std::filesystem::path inputFilePath(argv[1]);
     std::filesystem::path outputFilePath(argv[2]);
+    outputFilePath /= inputFilePath.stem();
     std::filesystem::create_directories(outputFilePath);
 
     int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float, true);
@@ -31,8 +33,15 @@ int main(int argc, char *argv[]) {
         GameEngine::Texture::writeTextures();
     }
 
-    std::filesystem::path outputPath = outputFilePath / (inputFilePath.stem().string() + ".geenvironmentmap");
-    std::ofstream outputFile(outputPath, std::ios::out | std::ios::binary);
+    GameEngine::FileStreamWriter preFilterStreamWriter(outputFilePath / (inputFilePath.stem().string() + "_preFilter.getexture"));
+    auto preFilterUUID = GameEngine::Random::uuid();
+    computePreFilter(equirectangularTexture, inputFilePath, preFilterStreamWriter, preFilterUUID);
+
+    GameEngine::FileStreamWriter irradianceStreamWriter(outputFilePath / (inputFilePath.stem().string() + "_irradiance.getexture"));
+    auto irradianceUUID = GameEngine::Random::uuid();
+    computeIrradiance(equirectangularTexture, irradianceStreamWriter, irradianceUUID);
+
+    std::ofstream outputFile(outputFilePath / (inputFilePath.stem().string() + ".geenvironmentmap"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return 1;
@@ -40,15 +49,13 @@ int main(int argc, char *argv[]) {
 
     outputFile << GameEngine::Random::uuid();
 
-    auto preFilterDataString = computePreFilter(equirectangularTexture, inputFilePath).str();
-    uint32_t preFilterByteSize = preFilterDataString.size();
-    outputFile.write(reinterpret_cast<char *>(&preFilterByteSize), sizeof(uint32_t));
-    outputFile << preFilterDataString;
+    uint32_t assetVersion = 0;
+    outputFile.write(reinterpret_cast<const char *>(&assetVersion), sizeof(assetVersion));
 
-    auto irradianceDataString = computeIrradiance(equirectangularTexture).str();
-    uint32_t irradianceByteSize = irradianceDataString.size();
-    outputFile.write(reinterpret_cast<char *>(&irradianceByteSize), sizeof(uint32_t));
-    outputFile << irradianceDataString;
+    nlohmann::json environmentMapJSON;
+    environmentMapJSON["preFilterTextureUUID"] = preFilterUUID;
+    environmentMapJSON["irradianceTextureUUID"] = irradianceUUID;
+    outputFile << environmentMapJSON;
 
     std::cout << "done" << std::endl;
 }

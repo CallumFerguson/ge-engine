@@ -1,6 +1,6 @@
 #include "EnvironmentMap.hpp"
 
-#include <vector>
+#include <nlohmann/json.hpp>
 #include "../Assets/AssetManager.hpp"
 #include "CubeMap.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
@@ -20,20 +20,21 @@ EnvironmentMap::EnvironmentMap(const std::string &assetPath) {
     assetFile.read(uuid, 36);
     m_assetUUID = uuid;
 
-    uint32_t preFilterByteSize;
-    assetFile.read(reinterpret_cast<char *>(&preFilterByteSize), sizeof(uint32_t));
-    std::vector<char> preFilterFileData(preFilterByteSize);
-    assetFile.read(preFilterFileData.data(), preFilterByteSize);
+    uint32_t assetVersion = 0;
+    assetFile.read(reinterpret_cast<char *>(&assetVersion), sizeof(assetVersion));
+    if (assetVersion != 0) {
+        std::cout << "unknown environment map asset version" << std::endl;
+    }
 
-    int prefilterTextureHandle = AssetManager::createAsset<Texture>(std::move(preFilterFileData), ".getexture");
+    nlohmann::json environmentMapJSON;
+    assetFile >> environmentMapJSON;
+
+    std::string preFilterTextureUUID = environmentMapJSON["preFilterTextureUUID"];
+    int prefilterTextureHandle = AssetManager::getOrLoadAssetFromUUID<Texture>(preFilterTextureUUID);
     m_preFilterCubeMapHandle = AssetManager::createAsset<CubeMap>(prefilterTextureHandle);
 
-    uint32_t irradianceByteSize;
-    assetFile.read(reinterpret_cast<char *>(&irradianceByteSize), sizeof(uint32_t));
-    std::vector<char> irradianceFileData(irradianceByteSize);
-    assetFile.read(irradianceFileData.data(), irradianceByteSize);
-
-    int irradianceTextureHandle = AssetManager::createAsset<Texture>(std::move(irradianceFileData), ".getexture");
+    std::string irradianceTextureUUID = environmentMapJSON["irradianceTextureUUID"];
+    int irradianceTextureHandle = AssetManager::getOrLoadAssetFromUUID<Texture>(environmentMapJSON["irradianceTextureUUID"]);
     m_irradianceCubeMapHandle = AssetManager::createAsset<CubeMap>(irradianceTextureHandle);
 
     std::array<wgpu::BindGroupEntry, 4> bindGroupEntries;

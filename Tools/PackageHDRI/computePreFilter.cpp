@@ -5,7 +5,7 @@
 
 static const uint32_t roughnessMipLevels = 5;
 
-std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &inputFilePath) {
+void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::filesystem::path &inputFilePath, GameEngine::StreamWriter &streamWriter, const std::string &uuid) {
     GameEngine::TimingHelper time("Compute Pre Filter");
 
     auto &device = GameEngine::WebGPURenderer::device();
@@ -172,15 +172,16 @@ std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture,
     descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
-    std::ostringstream outputStream;
+    streamWriter.writeUUID(uuid);
 
-    outputStream << GameEngine::Random::uuid();
+    uint32_t assetVersion = 0;
+    streamWriter.writeRaw(assetVersion);
 
     std::string imageType = "hdr";
-    outputStream.write(imageType.c_str(), imageType.size() + 1);
+    streamWriter.writeString(imageType);
 
     uint32_t mipLevelsInFile = roughnessMipLevels;
-    outputStream.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+    streamWriter.writeRaw(mipLevelsInFile);
 
     {
         int x, y;
@@ -191,9 +192,9 @@ std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture,
         stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(x), static_cast<int>(y), 3, imageFloats);
 
         uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
-        outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        streamWriter.writeRaw(imageNumBytes);
 
-        outputStream.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
+        streamWriter.writeData(GameEngine::imageDataBuffer().data(), GameEngine::imageDataBuffer().size());
     }
 
     for (uint32_t level = 1; level < roughnessMipLevels; level++) {
@@ -264,12 +265,10 @@ std::ostringstream computePreFilter(GameEngine::Texture &equirectangularTexture,
         stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
 
         uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
-        outputStream.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        streamWriter.writeRaw(imageNumBytes);
 
-        outputStream.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
+        streamWriter.writeData(GameEngine::imageDataBuffer().data(), GameEngine::imageDataBuffer().size());
 
         readBackBuffer.Unmap();
     }
-
-    return outputStream;
 }

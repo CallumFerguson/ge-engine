@@ -43,10 +43,10 @@ void ThreadPool::threadLoop() {
     }
 }
 
-void ThreadPool::queueJob(const std::function<void()> &job) {
+void ThreadPool::queueJob(std::function<void()> &&job) {
     {
         std::unique_lock<std::mutex> lock(m_queueMutex);
-        m_jobs.push(job);
+        m_jobs.emplace(std::forward<std::function<void()>>(job));
     }
     m_mutexCondition.notify_one();
 }

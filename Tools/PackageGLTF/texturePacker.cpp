@@ -11,13 +11,12 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
 
     GameEngine::TimingHelper time("packed texture " + name);
 
-    std::ofstream outputFile(path, std::ios::out | std::ios::binary);
-    if (!outputFile) {
-        std::cerr << "Error: Could not open file for writing!" << std::endl;
-        return false;
-    }
+    GameEngine::FileStreamWriter streamWriter(path);
 
-    outputFile << textureUUID;
+    streamWriter.writeUUID(textureUUID);
+
+    uint32_t assetVersion = 0;
+    streamWriter.writeRaw(assetVersion);
 
     // PNG ends up with files that are larger than the gltf source pngs and paint.net pngs, so maybe these should be copied over directly if possible
 //    stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, image.width, image.height, image.component, image.image.data(), image.width * image.component);
@@ -36,7 +35,7 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     }
 
     std::string imageType = hasTransparency ? "png" : "jpg";
-    outputFile.write(imageType.c_str(), imageType.size() + 1);
+    streamWriter.writeString(imageType);
 
     auto &device = GameEngine::WebGPURenderer::device();
 
@@ -66,7 +65,7 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
     auto readBackBuffer = device.CreateBuffer(&descriptor);
 
     uint32_t mipLevelsInFile = textureDescriptor.mipLevelCount;
-    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+    streamWriter.writeRaw(mipLevelsInFile);
 
     for (uint32_t level = 0; level < textureDescriptor.mipLevelCount; level++) {
         uint32_t mipWidth = std::max(1u, size.width >> level);
@@ -131,9 +130,9 @@ bool writeGLTFTextureImageFile(const tinygltf::Image &image, const std::string &
         }
 
         uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
-        outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+        streamWriter.writeRaw(imageNumBytes);
 
-        outputFile.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
+        streamWriter.writeData(GameEngine::imageDataBuffer().data(), GameEngine::imageDataBuffer().size());
 
         readBackBuffer.Unmap();
     }
@@ -146,28 +145,27 @@ void writeFakeTexture(const uint8_t *data, const std::string &name, const std::f
 
     GameEngine::TimingHelper time("packed texture " + name);
 
-    std::ofstream outputFile(path, std::ios::out | std::ios::binary);
-    if (!outputFile) {
-        std::cerr << "Error: Could not open file for writing!" << std::endl;
-        return;
-    }
+    GameEngine::FileStreamWriter streamWriter(path);
 
-    outputFile << textureUUID;
+    streamWriter.writeUUID(textureUUID);
+
+    uint32_t assetVersion = 0;
+    streamWriter.writeRaw(assetVersion);
 
     std::string imageType = "png";
-    outputFile.write(imageType.c_str(), imageType.size() + 1);
+    streamWriter.writeString(imageType);
 
     uint32_t mipLevelsInFile = 1;
-    outputFile.write(reinterpret_cast<char *>(&mipLevelsInFile), sizeof(uint32_t));
+    streamWriter.writeRaw(mipLevelsInFile);
 
     GameEngine::clearImageDataBuffer();
 
     stbi_write_png_to_func(GameEngine::writeImageDataToBuffer, nullptr, 1, 1, 4, data, 4);
 
     uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
-    outputFile.write(reinterpret_cast<const char *>(&imageNumBytes), sizeof(uint32_t));
+    streamWriter.writeRaw(imageNumBytes);
 
-    outputFile.write(reinterpret_cast<const char *>(GameEngine::imageDataBuffer().data()), GameEngine::imageDataBuffer().size());
+    streamWriter.writeData(GameEngine::imageDataBuffer().data(), GameEngine::imageDataBuffer().size());
 }
 
 }

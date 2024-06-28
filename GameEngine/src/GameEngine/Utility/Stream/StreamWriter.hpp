@@ -20,6 +20,8 @@ public:
     }
 
     void writeString(const std::string &s);
+
+    void writeUUID(const std::string &uuid);
 };
 
 }

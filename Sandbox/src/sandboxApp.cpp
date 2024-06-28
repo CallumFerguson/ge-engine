@@ -24,9 +24,9 @@ void runSandboxApp() {
     camera.addComponent<GameEngine::CameraComponent>(65.0f);
     camera.addScript<CameraController>();
 
-//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/buikslotermeerplein_1k.geenvironmentmap");
-//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/rosendal_plains_1_2k.geenvironmentmap");
-    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/overcast_soil_puresky_2k.geenvironmentmap");
+//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/buikslotermeerplein_1k/buikslotermeerplein_1k.geenvironmentmap");
+    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/rosendal_plains_1_2k/rosendal_plains_1_2k.geenvironmentmap");
+//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/overcast_soil_puresky_2k.geenvironmentmap");
     GameEngine::WebGPURenderer::setEnvironmentMap(environmentMapHandle);
 
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
