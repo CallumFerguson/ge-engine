@@ -9,9 +9,9 @@
 namespace GameEngine {
 
 EnvironmentMap::EnvironmentMap(const std::string &assetPath) {
-    std::ifstream assetFile(assetPath, std::ios::binary);
+    std::ifstream assetFile(appendAssetFileIfNeeded(assetPath, ".geenvironmentmap"), std::ios::binary);
     if (!assetFile) {
-        std::cerr << "Error: [EnvironmentMap] Could not open file " << assetPath << " for reading!" << std::endl;
+        std::cerr << "Error: [EnvironmentMap] Could not open asset " << assetPath << " for reading!" << std::endl;
         return;
     }
 

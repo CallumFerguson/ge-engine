@@ -5,6 +5,7 @@
 #include <string>
 #include "Components.hpp"
 #include "Scene.hpp"
+#include "../Assets/Asset.hpp"
 
 namespace GameEngine {
 
@@ -94,6 +95,14 @@ bool validateEntityJSON(const nlohmann::json &entityJSON) {
     }
 
     return true;
+}
+
+Entity jsonToEntity(const std::string &assetPath, Scene &scene) {
+    nlohmann::json entityJSON;
+    std::ifstream jsonFile(Asset::appendAssetFileIfNeeded(assetPath, ".geprefab"));
+    jsonFile >> entityJSON;
+    jsonFile.close();
+    return jsonToEntity(entityJSON, scene);
 }
 
 Entity jsonToEntity(const nlohmann::json &entityJSON, Scene &scene) {
