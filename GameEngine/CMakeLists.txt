@@ -43,6 +43,7 @@ add_library(
         src/GameEngine/Rendering/Backends/WebGPU/WebGPURenderer.cpp
         src/GameEngine/Rendering/Backends/WebGPU/WebGPUShader.cpp
         src/GameEngine/Rendering/Backends/WebGPU/generateMipmapWebGPU.cpp
+        src/GameEngine/Rendering/Backends/WebGPU/textureUtils.cpp
         src/GameEngine/Rendering/Mesh.cpp
         src/GameEngine/Rendering/Material.cpp
         src/GameEngine/Rendering/Texture.cpp
