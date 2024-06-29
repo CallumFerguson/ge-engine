@@ -140,7 +140,13 @@ void WebGPURenderer::getDeviceCallback(
 
 void WebGPURenderer::finishInit() {
     createSurface();
-    s_mainSurfacePreferredFormat = s_surface.GetPreferredFormat(s_adapter);
+
+    wgpu::SurfaceCapabilities surfaceCapabilities;
+    s_surface.GetCapabilities(s_adapter, &surfaceCapabilities);
+    if (surfaceCapabilities.formatCount == 0) {
+        exitApp("surface does not have any preferred formats");
+    }
+    s_mainSurfacePreferredFormat = surfaceCapabilities.formats[0];
 
     ImGui_ImplWGPU_InitInfo init_info;
     init_info.Device = s_device.Get();
