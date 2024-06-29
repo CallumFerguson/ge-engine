@@ -12,8 +12,8 @@ uint32_t getTexelBlockSizeInBytes(wgpu::TextureFormat textureFormat) {
         case wgpu::TextureFormat::Stencil8:
             return 1u;
 
-        case wgpu::TextureFormat::R16Unorm:
-        case wgpu::TextureFormat::R16Snorm:
+//        case wgpu::TextureFormat::R16Unorm:
+//        case wgpu::TextureFormat::R16Snorm:
         case wgpu::TextureFormat::R16Uint:
         case wgpu::TextureFormat::R16Sint:
         case wgpu::TextureFormat::R16Float:
@@ -26,8 +26,8 @@ uint32_t getTexelBlockSizeInBytes(wgpu::TextureFormat textureFormat) {
         case wgpu::TextureFormat::R32Float:
         case wgpu::TextureFormat::R32Uint:
         case wgpu::TextureFormat::R32Sint:
-        case wgpu::TextureFormat::RG16Unorm:
-        case wgpu::TextureFormat::RG16Snorm:
+//        case wgpu::TextureFormat::RG16Unorm:
+//        case wgpu::TextureFormat::RG16Snorm:
         case wgpu::TextureFormat::RG16Uint:
         case wgpu::TextureFormat::RG16Sint:
         case wgpu::TextureFormat::RG16Float:
@@ -47,8 +47,8 @@ uint32_t getTexelBlockSizeInBytes(wgpu::TextureFormat textureFormat) {
         case wgpu::TextureFormat::RG32Float:
         case wgpu::TextureFormat::RG32Uint:
         case wgpu::TextureFormat::RG32Sint:
-        case wgpu::TextureFormat::RGBA16Unorm:
-        case wgpu::TextureFormat::RGBA16Snorm:
+//        case wgpu::TextureFormat::RGBA16Unorm:
+//        case wgpu::TextureFormat::RGBA16Snorm:
         case wgpu::TextureFormat::RGBA16Uint:
         case wgpu::TextureFormat::RGBA16Sint:
         case wgpu::TextureFormat::RGBA16Float:
@@ -132,13 +132,13 @@ uint32_t getTexelBlockSizeInBytes(wgpu::TextureFormat textureFormat) {
         case wgpu::TextureFormat::Depth32FloatStencil8:
 
             // Block size of a multi-planar format depends on aspect.
-        case wgpu::TextureFormat::R8BG8Biplanar420Unorm:
-        case wgpu::TextureFormat::R8BG8Biplanar422Unorm:
-        case wgpu::TextureFormat::R8BG8Biplanar444Unorm:
-        case wgpu::TextureFormat::R10X6BG10X6Biplanar420Unorm:
-        case wgpu::TextureFormat::R10X6BG10X6Biplanar422Unorm:
-        case wgpu::TextureFormat::R10X6BG10X6Biplanar444Unorm:
-        case wgpu::TextureFormat::R8BG8A8Triplanar420Unorm:
+//        case wgpu::TextureFormat::R8BG8Biplanar420Unorm:
+//        case wgpu::TextureFormat::R8BG8Biplanar422Unorm:
+//        case wgpu::TextureFormat::R8BG8Biplanar444Unorm:
+//        case wgpu::TextureFormat::R10X6BG10X6Biplanar420Unorm:
+//        case wgpu::TextureFormat::R10X6BG10X6Biplanar422Unorm:
+//        case wgpu::TextureFormat::R10X6BG10X6Biplanar444Unorm:
+//        case wgpu::TextureFormat::R8BG8A8Triplanar420Unorm:
 
         case wgpu::TextureFormat::Undefined:
             break;

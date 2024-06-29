@@ -136,11 +136,9 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
 #ifdef __EMSCRIPTEN__
     for (int mipLevel = 0; mipLevel < mipLevelsInFile; mipLevel++) {
         if (mipLevel > 0) {
-            std::memcpy(&imageNumBytes, fileData.data() + dataPtrOffset, sizeof(uint32_t));
-            dataPtrOffset += sizeof(uint32_t);
+            streamReader->readRaw(imageNumBytes);
 
-            std::memcpy(imageData.data(), fileData.data() + dataPtrOffset, imageNumBytes);
-            dataPtrOffset += imageNumBytes;
+            streamReader->readData(imageData.data(), imageNumBytes);
         }
 
         writeTextureJSAsync(device, m_texture, imageData.data(), imageNumBytes, false, mipLevel, imageType, static_cast<int>(m_readyStateIndex));
