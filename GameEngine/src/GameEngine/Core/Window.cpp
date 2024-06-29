@@ -36,6 +36,27 @@ void Window::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) 
     Input::scrollCallback(static_cast<float>(xoffset * -100.0), static_cast<float>(yoffset * -100.0));
 }
 
+void Window::dropCallback(GLFWwindow *window, int count, const char **paths) {
+    for (size_t i = 0; i < count; i++) {
+        std::filesystem::path currentPath(paths[i]);
+
+        if (std::filesystem::is_regular_file(currentPath)) {
+            std::ifstream file(currentPath);
+            if (file.is_open()) {
+                std::cout << "Contents of file " << currentPath << ":\n";
+                std::cout << std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>()) << "\n";
+                file.close();
+            } else {
+                std::cerr << "Unable to open file " << currentPath << "\n";
+            }
+        } else if (std::filesystem::is_directory(currentPath)) {
+            std::cout << "Directory path: " << currentPath << "\n";
+        } else {
+            std::cerr << "Not a regular file or directory: " << currentPath << "\n";
+        }
+    }
+}
+
 void Window::init(const std::function<void()> &rerenderRequiredCallback) {
     s_rerenderRequiredCallback = rerenderRequiredCallback;
 
@@ -84,6 +105,7 @@ void Window::init(const std::function<void()> &rerenderRequiredCallback) {
 
     Input::s_window = this;
     glfwSetScrollCallback(m_glfwWindow, scrollCallback);
+    glfwSetDropCallback(m_glfwWindow, dropCallback);
 }
 
 bool Window::shouldClose() {

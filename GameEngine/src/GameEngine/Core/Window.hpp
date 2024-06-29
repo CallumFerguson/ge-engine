@@ -34,6 +34,8 @@ private:
 
     static void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
+    static void dropCallback(GLFWwindow *window, int count, const char **paths);
+
     friend class Time;
 
     friend class WebGPURenderer;
