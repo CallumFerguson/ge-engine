@@ -112,6 +112,8 @@ void WebGPURenderer::getAdapterCallback(
     deviceDescriptor.requiredLimits = &limits;
 
 #ifndef __EMSCRIPTEN__
+    deviceDescriptor.uncapturedErrorCallbackInfo.callback = errorCallback;
+
     wgpu::DeviceLostCallbackInfo deviceLostCallbackInfo = {};
     deviceLostCallbackInfo.callback = deviceLostCallback;
     deviceDescriptor.deviceLostCallbackInfo = deviceLostCallbackInfo;
@@ -123,7 +125,10 @@ void WebGPURenderer::getAdapterCallback(
 void WebGPURenderer::getDeviceCallback(
         WGPURequestDeviceStatus status, WGPUDevice cDevice, const char *message, void *userdata) {
     s_device = wgpu::Device::Acquire(cDevice);
+
+#ifdef __EMSCRIPTEN__
     s_device.SetUncapturedErrorCallback(errorCallback, nullptr);
+#endif
 
     if(s_window) {
         finishInit();
