@@ -2,11 +2,15 @@
 
 #include <unordered_set>
 #include <stb_image.h>
+#include <stb_image_write.h>
 #include "../Utility/Random.hpp"
 #include "Backends/WebGPU/WebGPURenderer.hpp"
 #include "Backends/WebGPU/generateMipmapWebGPU.hpp"
 #include "../Utility/TimingHelper.hpp"
 #include "../Utility/Stream/FileStreamReader.hpp"
+#include "Backends/WebGPU/textureUtils.hpp"
+#include "../Core/Exit.hpp"
+#include "../Utility/utility.hpp"
 
 #ifdef __EMSCRIPTEN__
 
@@ -111,10 +115,8 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
     auto &device = WebGPURenderer::device();
 
     wgpu::TextureDescriptor textureDescriptor;
-    m_size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
-    textureDescriptor.size = m_size;
+    textureDescriptor.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
     textureDescriptor.mipLevelCount = forceMipLevels ? numMipLevels(textureDescriptor.size) : mipLevelsInFile;
-    m_mipLevelCount = textureDescriptor.mipLevelCount;
     textureDescriptor.format = imageType == "hdr" ? wgpu::TextureFormat::RGBA16Float : wgpu::TextureFormat::RGBA8Unorm;
 #ifndef __EMSCRIPTEN__
     if (requestedFormat != wgpu::TextureFormat::Undefined) {
@@ -123,6 +125,10 @@ Texture::Texture(const std::string &assetPath, wgpu::TextureFormat requestedForm
 #endif
     textureDescriptor.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment | extraFlags;
     m_texture = device.CreateTexture(&textureDescriptor);
+
+    m_size = textureDescriptor.size;
+    m_mipLevelCount = textureDescriptor.mipLevelCount;
+    m_textureFormat = textureDescriptor.format;
 
     m_readyStateIndex = s_textureReadyStates.size();
     s_textureReadyStates.push_back({0, static_cast<int>(mipLevelsInFile), false, nullptr});
@@ -289,5 +295,95 @@ const wgpu::Extent3D &Texture::size() const {
 const uint32_t Texture::mipLevelCount() {
     return m_mipLevelCount;
 }
+
+//void Texture::getTextureData(const wgpu::Texture &texture, wgpu::TextureFormat textureFormat, const wgpu::Extent3D &size, uint32_t mipLevel, std::function<void(const float *imageData)> &&dataReadyCallback) {
+//    auto &device = WebGPURenderer::device();
+//
+//    auto texelByteSize = getTexelBlockSizeInBytes(textureFormat);
+//    if (texelByteSize <= 0) {
+//        std::cout << "Texture::writeTextureToStream texelByteSize is invalid" << std::endl;
+//        return;
+//    }
+//
+//    uint32_t mipWidth = std::max(1u, size.width >> mipLevel);
+//    uint32_t mipHeight = std::max(1u, size.height >> mipLevel);
+//
+//    uint32_t bytesPerRow = mipWidth * texelByteSize;
+//    uint32_t paddedBytesPerRow = std::max(256u, bytesPerRow);
+//
+//    wgpu::BufferDescriptor descriptor;
+//    descriptor.size = paddedBytesPerRow * mipHeight;
+//    descriptor.usage = wgpu::BufferUsage::CopyDst | wgpu::BufferUsage::MapRead;
+//    auto readBackBuffer = device.CreateBuffer(&descriptor);
+//
+//    auto encoder = device.CreateCommandEncoder();
+//
+//    wgpu::ImageCopyTexture src = {};
+//    src.texture = texture;
+//    src.mipLevel = mipLevel;
+//
+//    wgpu::ImageCopyBuffer dst = {};
+//    dst.buffer = readBackBuffer;
+//    dst.layout.offset = 0;
+//    dst.layout.bytesPerRow = paddedBytesPerRow;
+//    dst.layout.rowsPerImage = mipHeight;
+//
+//    wgpu::Extent3D extent = {mipWidth, mipHeight, 1};
+//    encoder.CopyTextureToBuffer(&src, &dst, &extent);
+//
+//    wgpu::CommandBuffer commands = encoder.Finish();
+//    device.GetQueue().Submit(1, &commands);
+//
+//    struct MapAsyncUserData {
+//        std::function<void(const float *imageData)> dataReadyCallback;
+//        wgpu::Texture texture;
+//        wgpu::Buffer readBackBuffer;
+//        uint32_t bytesPerRow = 0;
+//        uint32_t paddedBytesPerRow = 0;
+//        uint32_t mipHeight = 0;
+//    };
+//
+//    auto userData = new MapAsyncUserData;
+//    userData->dataReadyCallback = std::move(dataReadyCallback);
+//    userData->texture = texture;
+//    userData->readBackBuffer = std::move(readBackBuffer);
+//    userData->bytesPerRow = bytesPerRow;
+//    userData->paddedBytesPerRow = paddedBytesPerRow;
+//    userData->mipHeight = mipHeight;
+//
+//    userData->readBackBuffer.MapAsync(wgpu::MapMode::Read, 0, paddedBytesPerRow * mipHeight, [](WGPUBufferMapAsyncStatus status, void *userDataIn) {
+//        std::unique_ptr<MapAsyncUserData> userData(reinterpret_cast<MapAsyncUserData *>(userDataIn));
+//
+//        if (status != WGPUBufferMapAsyncStatus_Success) {
+//            std::cout << "Failed to map buffer for reading." << std::endl;
+//            return;
+//        }
+//
+//        auto *data = reinterpret_cast<const uint8_t *>(userData->readBackBuffer.GetConstMappedRange(0, userData->paddedBytesPerRow * userData->mipHeight));
+//        if (!data) {
+//            std::cout << "no mapped range data!" << std::endl;
+//            return;
+//        }
+//
+//        const uint8_t *dataWithoutPadding = data;
+//        std::vector<uint8_t> dataWithoutPaddingVector;
+//
+//        if (userData->bytesPerRow < userData->paddedBytesPerRow) {
+//            dataWithoutPaddingVector.resize(userData->bytesPerRow * userData->mipHeight);
+//            for (uint32_t row = 0; row < userData->mipHeight; row++) {
+//                for (uint32_t column = 0; column < userData->bytesPerRow; column++) {
+//                    dataWithoutPaddingVector[row * userData->bytesPerRow + column] = data[row * userData->paddedBytesPerRow + column];
+//                }
+//            }
+//            dataWithoutPadding = dataWithoutPaddingVector.data();
+//        }
+//
+//        auto floatData = reinterpret_cast<const float *>(dataWithoutPadding);
+//
+//        userData->dataReadyCallback(floatData);
+//
+//        userData->readBackBuffer.Unmap();
+//    }, userData);
+//}
 
 }

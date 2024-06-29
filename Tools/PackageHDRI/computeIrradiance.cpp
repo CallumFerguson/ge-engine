@@ -195,17 +195,10 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, GameEngine::
             device.Tick();
         }
 
-        auto *imageFloatsWithAlpha = reinterpret_cast<const float *>(readBackBuffer.GetConstMappedRange());
-        if (!imageFloatsWithAlpha) {
+        auto *imageFloats = reinterpret_cast<const float *>(readBackBuffer.GetConstMappedRange());
+        if (!imageFloats) {
             std::cout << "no mapped range data!" << std::endl;
             exit(0);
-        }
-
-        std::vector<float> imageFloats(textureDescriptor.size.width * textureDescriptor.size.height * 3);
-        for (size_t i = 0; i < textureDescriptor.size.width * textureDescriptor.size.height; i++) {
-            imageFloats[i * 3 + 0] = imageFloatsWithAlpha[i * 4 + 0];
-            imageFloats[i * 3 + 1] = imageFloatsWithAlpha[i * 4 + 1];
-            imageFloats[i * 3 + 2] = imageFloatsWithAlpha[i * 4 + 2];
         }
 
         streamWriter.writeUUID(uuid);
@@ -221,7 +214,7 @@ void computeIrradiance(GameEngine::Texture& equirectangularTexture, GameEngine::
 
         GameEngine::clearImageDataBuffer();
 
-        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 3, imageFloats.data());
+        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(textureDescriptor.size.width), static_cast<int>(textureDescriptor.size.height), 4, imageFloats);
 
         uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
         streamWriter.writeRaw(imageNumBytes);

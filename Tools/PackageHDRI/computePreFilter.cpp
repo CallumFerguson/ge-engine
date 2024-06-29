@@ -200,9 +200,9 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
     for (uint32_t level = 1; level < roughnessMipLevels; level++) {
         uint32_t mipWidth = std::max(1u, equirectangularTexture.size().width >> level);
         uint32_t mipHeight = std::max(1u, equirectangularTexture.size().height >> level);
-        uint32_t mipSize = mipWidth * mipHeight * 16;
 
         wgpu::CommandEncoder encoder = device.CreateCommandEncoder();
+
         wgpu::ImageCopyTexture src = {};
         src.texture = equirectangularTextureOutput;
         src.mipLevel = level;
@@ -222,7 +222,7 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
         wgpu::CommandBuffer commands = encoder.Finish();
         device.GetQueue().Submit(1, &commands);
 
-        readBackBuffer.MapAsync(wgpu::MapMode::Read, 0, mipSize, [](WGPUBufferMapAsyncStatus status, void *userData) {
+        readBackBuffer.MapAsync(wgpu::MapMode::Read, 0, paddedBytesPerRow * mipHeight, [](WGPUBufferMapAsyncStatus status, void *userData) {
             if (status != WGPUBufferMapAsyncStatus_Success) {
                 std::cout << "Failed to map buffer for reading." << std::endl;
             }
@@ -232,7 +232,7 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
             device.Tick();
         }
 
-        auto *data = reinterpret_cast<const uint8_t *>(readBackBuffer.GetConstMappedRange(0, mipSize));
+        auto *data = reinterpret_cast<const uint8_t *>(readBackBuffer.GetConstMappedRange(0, paddedBytesPerRow * mipHeight));
         if (!data) {
             std::cout << "no mapped range data!" << std::endl;
             exit(1);
@@ -253,16 +253,9 @@ void computePreFilter(GameEngine::Texture &equirectangularTexture, const std::fi
 
         auto floatData = reinterpret_cast<const float *>(dataWithoutPadding);
 
-        std::vector<float> imageFloats(mipWidth * mipHeight * 3);
-        for (size_t i = 0; i < mipWidth * mipHeight; i++) {
-            imageFloats[i * 3 + 0] = floatData[i * 4 + 0];
-            imageFloats[i * 3 + 1] = floatData[i * 4 + 1];
-            imageFloats[i * 3 + 2] = floatData[i * 4 + 2];
-        }
-
         GameEngine::clearImageDataBuffer();
 
-        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 3, imageFloats.data());
+        stbi_write_hdr_to_func(GameEngine::writeImageDataToBuffer, nullptr, static_cast<int>(mipWidth), static_cast<int>(mipHeight), 4, floatData);
 
         uint32_t imageNumBytes = GameEngine::imageDataBuffer().size();
         streamWriter.writeRaw(imageNumBytes);
