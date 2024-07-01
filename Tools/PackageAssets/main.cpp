@@ -3,11 +3,31 @@
 #include <fstream>
 #include <unordered_set>
 #include <nlohmann/json.hpp>
+#include "GameEngine.hpp"
 
 static const std::unordered_set<std::string> s_packableAssetExtensions = {".png", ".jpg", ".jpeg", ".hdr", ".gltf", ".glb"};
 
 static std::unordered_set<std::string> s_assetsToPackage;
 static std::unordered_set<std::string> s_assetsToCopy;
+
+uint64_t hashFile(const std::filesystem::path &path) {
+    static std::hash<std::string> s_stringHasher;
+
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    if (!file) {
+        std::cout << "hashFile: Could not open file." << std::endl;
+        exit(1);
+    }
+
+    int64_t fileByteLength = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::string data(fileByteLength, '\0');
+
+    file.read(data.data(), fileByteLength);
+
+    return (static_cast<uint64_t>(s_stringHasher(data)) << 32) | static_cast<uint64_t>(s_stringHasher(path.string()));
+}
 
 std::filesystem::path getDirGLTFPath(const std::filesystem::path &dirPath) {
     try {
@@ -68,6 +88,8 @@ void findAssetsInDir(const std::filesystem::path &dirPath) {
 }
 
 int main(int argc, char *argv[]) {
+    GameEngine::TimingHelper time("total");
+
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <input_file_path> <output_file_path>" << std::endl;
         return 1;
@@ -88,6 +110,7 @@ int main(int argc, char *argv[]) {
     std::cout << "assets to package:" << std::endl;
     for (auto &item: s_assetsToPackage) {
         std::cout << item << std::endl;
+        std::cout << hashFile(item) << std::endl;
     }
 
     std::cout << "\nassets to copy:" << std::endl;
