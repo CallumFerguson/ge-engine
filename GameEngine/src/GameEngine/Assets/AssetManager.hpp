@@ -24,6 +24,9 @@ public:
     template<typename T, typename... Args>
     static int createAsset(Args &&... args);
 
+    template<typename T>
+    static size_t numAssets();
+
 private:
     template<typename T>
     struct AssetData {

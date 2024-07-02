@@ -65,3 +65,8 @@ int AssetManager::createAsset(Args &&... args) {
 
     return assetHandle;
 }
+
+template<typename T>
+size_t AssetManager::numAssets() {
+    return AssetData<T>::assets.size();
+}

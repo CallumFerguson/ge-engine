@@ -69,6 +69,10 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
     std::set<int> savedMaterials;
     std::set<int> savedTextures;
 
+    size_t startMeshCount = GameEngine::AssetManager::numAssets<GameEngine::Mesh>();
+    size_t startTextureCount = GameEngine::AssetManager::numAssets<GameEngine::Texture>();
+    size_t startMaterialCount = GameEngine::AssetManager::numAssets<GameEngine::Material>();
+
     for (const auto &meshId: model.meshes) {
         GameEngine::AssetManager::createAsset<GameEngine::Mesh>();
     }
@@ -137,12 +141,13 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 meshName = "mesh_" + std::to_string(node.mesh);
             }
             usedMeshNames.insert(meshName);
-            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, meshName, outputDir.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
+
+            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, meshName, outputDir.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh + startMeshCount).assetUUID());
         }
 
         auto &renderer = entity.addComponent<GameEngine::PBRRendererComponent>(false);
-        renderer.meshHandle = node.mesh;
-        renderer.materialHandle = primitive.material;
+        renderer.meshHandle = node.mesh + startMeshCount;
+        renderer.materialHandle = primitive.material + startMaterialCount;
 
         auto &material = model.materials[primitive.material];
 
@@ -187,7 +192,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 GameEngine::AssetManager::createAsset<GameEngine::Texture>();
 
                 std::string textureName = "texture_" + std::to_string(fakeEmissiveTextureIndex);
-                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(fakeEmissiveTextureIndex).assetUUID();
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(fakeEmissiveTextureIndex + startTextureCount).assetUUID();
                 const uint8_t data[4] = {0, 0, 0, 255};
                 GameEngineTools::writeFakeTexture(data, textureName, outputDir, uuid);
             }
@@ -209,7 +214,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 }
                 usedTextureNames.insert(textureName);
 
-                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
+                auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source + startTextureCount).assetUUID();
                 bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputDir, uuid);
                 textureHasTransparency[textureIndex] = hasTransparency;
             }
@@ -219,13 +224,13 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
             savedMaterials.insert(node.mesh);
 
             std::vector<std::string> texturesUUIDs;
-            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[albedoTextureIndex].source).assetUUID());
-            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[normalTextureIndex].source).assetUUID());
-            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[occlusionRoughnessMetallicTextureIndex].source).assetUUID());
+            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[albedoTextureIndex].source + startTextureCount).assetUUID());
+            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[normalTextureIndex].source + startTextureCount).assetUUID());
+            texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[occlusionRoughnessMetallicTextureIndex].source + startTextureCount).assetUUID());
             if (emissiveTextureIndex < model.textures.size()) {
-                texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[emissiveTextureIndex].source).assetUUID());
+                texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(model.textures[emissiveTextureIndex].source + startTextureCount).assetUUID());
             } else {
-                texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(emissiveTextureIndex).assetUUID());
+                texturesUUIDs.push_back(GameEngine::AssetManager::getAsset<GameEngine::Texture>(emissiveTextureIndex + startTextureCount).assetUUID());
             }
 
             writeTextureIfNeeded(albedoTextureIndex);
@@ -244,7 +249,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 return;
             }
 
-            outputFile << GameEngine::AssetManager::getAsset<GameEngine::Material>(primitive.material).assetUUID();
+            outputFile << GameEngine::AssetManager::getAsset<GameEngine::Material>(primitive.material + startMaterialCount).assetUUID();
 
             uint32_t assetVersion = 0;
             outputFile.write(reinterpret_cast<char *>(&assetVersion), sizeof(assetVersion));

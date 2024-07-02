@@ -32,13 +32,13 @@ void runSandboxApp() {
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
 
-//    {
-//        std::string assetPath = "assets/models/FlightHelmet";
-//        GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(assetPath, scene);
-//        auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
-//        transform.localPosition.x = 0.3f;
-//        transform.localPosition.y = -0.35f;
-//    }
+    {
+        std::string assetPath = "assets/models/FlightHelmet";
+        GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(assetPath, scene);
+        auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
+        transform.localPosition.x = 0.3f;
+        transform.localPosition.y = -0.35f;
+    }
 
     {
         std::string assetPath = "assets/models/BoomBox";
