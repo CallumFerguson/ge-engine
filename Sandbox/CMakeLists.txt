@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist)
 
 add_executable(
         Sandbox
+        resources.rc
 
         src/main.cpp
 
