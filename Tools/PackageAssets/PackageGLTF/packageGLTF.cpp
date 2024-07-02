@@ -24,9 +24,6 @@ static std::string getFirstWordBeforeDot(const std::string &input) {
 }
 
 void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesystem::path &outputDir) {
-    auto outputFilePath = outputDir / inputFilePath.stem();
-    std::filesystem::create_directories(outputFilePath);
-
     std::string inputFileName = inputFilePath.stem().string();
 
     tinygltf::Model model;
@@ -140,7 +137,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 meshName = "mesh_" + std::to_string(node.mesh);
             }
             usedMeshNames.insert(meshName);
-            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, meshName, outputFilePath.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
+            GameEngineTools::writeGLTFMeshPrimitiveToFile(model, primitive, meshName, outputDir.string(), GameEngine::AssetManager::getAsset<GameEngine::Mesh>(node.mesh).assetUUID());
         }
 
         auto &renderer = entity.addComponent<GameEngine::PBRRendererComponent>(false);
@@ -192,7 +189,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 std::string textureName = "texture_" + std::to_string(fakeEmissiveTextureIndex);
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(fakeEmissiveTextureIndex).assetUUID();
                 const uint8_t data[4] = {0, 0, 0, 255};
-                GameEngineTools::writeFakeTexture(data, textureName, outputFilePath, uuid);
+                GameEngineTools::writeFakeTexture(data, textureName, outputDir, uuid);
             }
             emissiveTextureIndex = fakeEmissiveTextureIndex;
         }
@@ -213,7 +210,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 usedTextureNames.insert(textureName);
 
                 auto &uuid = GameEngine::AssetManager::getAsset<GameEngine::Texture>(texture.source).assetUUID();
-                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputFilePath, uuid);
+                bool hasTransparency = GameEngineTools::writeGLTFTextureImageFile(image, getFirstWordBeforeDot(textureName), outputDir, uuid);
                 textureHasTransparency[textureIndex] = hasTransparency;
             }
         };
@@ -241,7 +238,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
                 materialName = "material_" + std::to_string(primitive.material);
             }
             usedMaterialNames.insert(materialName);
-            std::ofstream outputFile(outputFilePath / (materialName + ".gematerial"), std::ios::out | std::ios::binary);
+            std::ofstream outputFile(outputDir / (materialName + ".gematerial"), std::ios::out | std::ios::binary);
             if (!outputFile) {
                 std::cerr << "Error: Could not open file for writing!" << std::endl;
                 return;
@@ -285,7 +282,7 @@ void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesyst
 
     nlohmann::json entityJSON = GameEngine::entityToJSON(prefabRootEntity);
 
-    std::ofstream outputFile(outputFilePath / (inputFilePath.stem().string() + ".geprefab"), std::ios::out);
+    std::ofstream outputFile(outputDir / (inputFilePath.stem().string() + ".geprefab"), std::ios::out);
     outputFile << entityJSON.dump();
 }
 

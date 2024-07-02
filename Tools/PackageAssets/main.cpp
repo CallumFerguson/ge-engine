@@ -19,7 +19,7 @@ void packageAsset(const std::filesystem::path &assetPath, const std::filesystem:
     } else if (extension == ".hdr") {
 
     } else if (extension == ".gltf" || extension == ".glb") {
-
+        GameEngineTools::packageGLTF(assetPath, newAssetDir);
     } else {
         std::cout << "packageAsset: unknown extension " << extension << std::endl;
     }
@@ -186,6 +186,9 @@ int main(int argc, char *argv[]) {
 
     for (auto &assetPath: s_assetsToPackage) {
         auto relativeAssetPath = std::filesystem::relative(assetPath, assetDirPath);
+        if (std::filesystem::path(relativeAssetPath).extension() == ".gltf") {
+            relativeAssetPath = relativeAssetPath.parent_path();
+        }
         auto newAssetDir = (cachedAssetDirPath / relativeAssetPath).replace_extension("");
         std::filesystem::create_directories(newAssetDir);
 
@@ -197,8 +200,6 @@ int main(int argc, char *argv[]) {
         assetJSON["cachedHash"] = newFileHash;
         assetJSON["assetPath"] = std::filesystem::absolute(assetPath);
         assetJSON["cachedAssetDir"] = std::filesystem::absolute(newAssetDir);
-
-        outputCacheIndexJSON["packedAssets"].push_back(assetJSON);
 
         bool assetIsPackagedAndUpToDate = false;
         for (auto &packedAssetJSON: inputCacheIndexJSON["packedAssets"]) {
@@ -213,10 +214,15 @@ int main(int argc, char *argv[]) {
         }
 
         if (assetIsPackagedAndUpToDate) {
+            outputCacheIndexJSON["packedAssets"].push_back(assetJSON);
             continue;
         }
 
         packageAsset(assetPath, newAssetDir);
+
+        newFileHash = hashDirectoryContents(newAssetDir);
+        assetJSON["cachedHash"] = newFileHash;
+        outputCacheIndexJSON["packedAssets"].push_back(assetJSON);
     }
 
     for (std::filesystem::path dirPath: s_dirsToCopy) {
