@@ -6,23 +6,16 @@
 #include "computePreFilter.hpp"
 #include "computeIrradiance.hpp"
 
-int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <input_file_path> <output_file_path>" << std::endl;
-        return 1;
-    }
+namespace GameEngineTools {
 
+void packageHDRI(const std::filesystem::path &inputFilePath, const std::filesystem::path &outputDir) {
     GameEngine::TimingHelper time("Total");
-
-    GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
 
     std::cout << "loading resources..." << std::endl;
 
     GameEngine::AssetManager::registerAssetUUIDs("../../Sandbox/assets");
 
-    std::filesystem::path inputFilePath(argv[1]);
-    std::filesystem::path outputFilePath(argv[2]);
-    outputFilePath /= inputFilePath.stem();
+    auto outputFilePath = outputDir / inputFilePath.stem();
     std::filesystem::create_directories(outputFilePath);
 
     int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float, true);
@@ -44,7 +37,7 @@ int main(int argc, char *argv[]) {
     std::ofstream outputFile(outputFilePath / (inputFilePath.stem().string() + ".geenvironmentmap"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
-        return 1;
+        return;
     }
 
     outputFile << GameEngine::Random::uuid();
@@ -58,4 +51,6 @@ int main(int argc, char *argv[]) {
     outputFile << environmentMapJSON;
 
     std::cout << "done" << std::endl;
+}
+
 }

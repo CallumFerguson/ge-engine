@@ -1,7 +1,6 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
-#include <fstream>
 #include <string>
 #include <vector>
 #include <set>
@@ -12,9 +11,11 @@
 #include "meshPacker.hpp"
 #include "texturePacker.hpp"
 
-tinygltf::TinyGLTF loader;
+namespace GameEngineTools {
 
-std::string getFirstWordBeforeDot(const std::string &input) {
+static tinygltf::TinyGLTF loader;
+
+static std::string getFirstWordBeforeDot(const std::string &input) {
     size_t pos = input.find('.');
     if (pos != std::string::npos) {
         return input.substr(0, pos);
@@ -22,17 +23,8 @@ std::string getFirstWordBeforeDot(const std::string &input) {
     return input;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <input_file_path> <output_file_path>" << std::endl;
-        return 1;
-    }
-
-    GameEngine::WebGPURenderer::init(nullptr);
-
-    std::filesystem::path inputFilePath(argv[1]);
-    std::filesystem::path outputFilePath(argv[2]);
-    outputFilePath /= inputFilePath.stem().string();
+void packageGLTF(const std::filesystem::path &inputFilePath, const std::filesystem::path &outputDir) {
+    auto outputFilePath = outputDir / inputFilePath.stem();
     std::filesystem::create_directories(outputFilePath);
 
     std::string inputFileName = inputFilePath.stem().string();
@@ -53,7 +45,7 @@ int main(int argc, char *argv[]) {
         result = loader.LoadBinaryFromFile(&model, &err, &warn, inputFilePath.string());
     } else {
         std::cout << "unknown file extension: " << inputFilePathExtension << " extension must be either .gltf or .glb" << std::endl;
-        return 1;
+        return;
     }
 
     time.stop();
@@ -66,12 +58,12 @@ int main(int argc, char *argv[]) {
     }
     if (!result) {
         std::cerr << "loadModel ailed to load GLTF model." << std::endl;
-        return 1;
+        return;
     }
     if (model.scenes.size() != 1) {
         // TODO: probably just make an empty root element
         std::cout << "only gltf files with a single scene are supported. this gltf has " << model.scenes.size() << " scenes." << std::endl;
-        return 1;
+        return;
     }
 
     // TODO: handle name conflicts in mesh/texture/material/etc. save file names
@@ -123,20 +115,20 @@ int main(int argc, char *argv[]) {
         if (!node.matrix.empty()) {
             // TODO: handle node matrix
             std::cout << "node has transform matrix is not supported yet." << std::endl;
-            return 1;
+            return;
         }
 
         auto &mesh = model.meshes[node.mesh];
 
         if (mesh.primitives.empty()) {
             std::cout << "mesh does not have any primitives" << std::endl;
-            return 1;
+            return;
         }
 
         if (mesh.primitives.size() > 1) {
             std::cout << "mesh has multiple primitives which is not supported yet" << std::endl;
             // TODO: just make one child for each primitive
-            return 1;
+            return;
         }
 
         auto &primitive = mesh.primitives[0];
@@ -164,26 +156,26 @@ int main(int argc, char *argv[]) {
 
         if (occlusionTextureIndex == -1) {
             std::cout << "missing occlusion texture which is not supported yet" << std::endl;
-            return 1;
+            return;
         }
         if (metallicRoughnessTextureIndex == -1) {
             std::cout << "missing metallic toughness texture which is not supported yet" << std::endl;
-            return 1;
+            return;
         }
         if (albedoTextureIndex == -1) {
             std::cout << "missing albedo texture which is not supported yet" << std::endl;
-            return 1;
+            return;
         }
         if (normalTextureIndex == -1) {
             std::cout << "missing normal texture which is not supported yet" << std::endl;
-            return 1;
+            return;
         }
 
         bool metallicRoughnessOcclusionAllInOne = occlusionTextureIndex == metallicRoughnessTextureIndex;
         if (!metallicRoughnessOcclusionAllInOne) {
             std::cout << "metallicRoughness and occlusion must be the same texture (for now)" << std::endl;
             //TODO: combine these textures if they are different (with cpu or gpu, idk)
-            return 1;
+            return;
         }
 
         int occlusionRoughnessMetallicTextureIndex = occlusionTextureIndex;
@@ -252,7 +244,7 @@ int main(int argc, char *argv[]) {
             std::ofstream outputFile(outputFilePath / (materialName + ".gematerial"), std::ios::out | std::ios::binary);
             if (!outputFile) {
                 std::cerr << "Error: Could not open file for writing!" << std::endl;
-                return 1;
+                return;
             }
 
             outputFile << GameEngine::AssetManager::getAsset<GameEngine::Material>(primitive.material).assetUUID();
@@ -295,4 +287,6 @@ int main(int argc, char *argv[]) {
 
     std::ofstream outputFile(outputFilePath / (inputFilePath.stem().string() + ".geprefab"), std::ios::out);
     outputFile << entityJSON.dump();
+}
+
 }

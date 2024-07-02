@@ -3,6 +3,8 @@
 #include <unordered_set>
 #include <nlohmann/json.hpp>
 #include "GameEngine.hpp"
+#include "PackageGLTF/packageGLTF.hpp"
+#include "PackageHDRI/packageHDRI.hpp"
 
 static const std::unordered_set<std::string> s_packableAssetExtensions = {".png", ".jpg", ".jpeg", ".hdr", ".gltf", ".glb"};
 
@@ -11,8 +13,16 @@ static std::unordered_set<std::string> s_dirsToCopy;
 static std::unordered_set<std::string> s_assetsToCopy;
 
 void packageAsset(const std::filesystem::path &assetPath, const std::filesystem::path &newAssetDir) {
-    std::cout << "packageAsset:" << std::endl;
-    std::cout << assetPath << std::endl;
+    auto extension = assetPath.extension();
+    if (extension == ".png" || extension == ".jpg" || extension == ".jpeg") {
+
+    } else if (extension == ".hdr") {
+
+    } else if (extension == ".gltf" || extension == ".glb") {
+
+    } else {
+        std::cout << "packageAsset: unknown extension " << extension << std::endl;
+    }
 }
 
 uint64_t hashFileContents(const std::filesystem::path &path) {
@@ -108,16 +118,19 @@ void findAssetsInDir(const std::filesystem::path &dirPath) {
 }
 
 int main(int argc, char *argv[]) {
-    GameEngine::TimingHelper time("total");
-
     if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <input_file_path> <output_file_path>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <assets_dir> <cache_dir>" << std::endl;
         return 1;
     }
 
+    GameEngine::TimingHelper time("Package Assets");
+
+    // TODO: make Float32Filterable optional
+    GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
+
     std::filesystem::path assetDirPath(argv[1]);
 
-    std::filesystem::path cachePath("../../cache");
+    std::filesystem::path cachePath(argv[2]);
     std::filesystem::create_directories(cachePath);
 
     std::filesystem::path cachedAssetDirPath = cachePath / "assets";
@@ -145,8 +158,6 @@ int main(int argc, char *argv[]) {
         std::string assetPath = assetJSON["assetPath"];
         std::string cachedAssetDir = assetJSON["cachedAssetDir"];
         if (!s_assetsToPackage.contains(assetPath)) {
-            std::cout << "remove asset" << std::endl;
-            
             std::filesystem::remove_all(cachedAssetDir);
         }
     }
