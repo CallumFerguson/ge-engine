@@ -13,11 +13,6 @@ void packageHDRI(const std::filesystem::path &inputFilePath, const std::filesyst
 
     std::cout << "loading resources..." << std::endl;
 
-    GameEngine::AssetManager::registerAssetUUIDs("../../Sandbox/assets");
-
-    auto outputFilePath = outputDir / inputFilePath.stem();
-    std::filesystem::create_directories(outputFilePath);
-
     int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float, true);
     auto &equirectangularTexture = GameEngine::AssetManager::getAsset<GameEngine::Texture>(equirectangularTextureHandle);
 
@@ -26,15 +21,15 @@ void packageHDRI(const std::filesystem::path &inputFilePath, const std::filesyst
         GameEngine::Texture::writeTextures();
     }
 
-    GameEngine::FileStreamWriter preFilterStreamWriter(outputFilePath / (inputFilePath.stem().string() + "_preFilter.getexture"));
+    GameEngine::FileStreamWriter preFilterStreamWriter(outputDir / (inputFilePath.stem().string() + "_preFilter.getexture"));
     auto preFilterUUID = GameEngine::Random::uuid();
     computePreFilter(equirectangularTexture, inputFilePath, preFilterStreamWriter, preFilterUUID);
 
-    GameEngine::FileStreamWriter irradianceStreamWriter(outputFilePath / (inputFilePath.stem().string() + "_irradiance.getexture"));
+    GameEngine::FileStreamWriter irradianceStreamWriter(outputDir / (inputFilePath.stem().string() + "_irradiance.getexture"));
     auto irradianceUUID = GameEngine::Random::uuid();
     computeIrradiance(equirectangularTexture, irradianceStreamWriter, irradianceUUID);
 
-    std::ofstream outputFile(outputFilePath / (inputFilePath.stem().string() + ".geenvironmentmap"), std::ios::out | std::ios::binary);
+    std::ofstream outputFile(outputDir / (inputFilePath.stem().string() + ".geenvironmentmap"), std::ios::out | std::ios::binary);
     if (!outputFile) {
         std::cerr << "Error: Could not open file for writing!" << std::endl;
         return;

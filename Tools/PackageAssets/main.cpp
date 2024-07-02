@@ -6,7 +6,9 @@
 #include "PackageGLTF/packageGLTF.hpp"
 #include "PackageHDRI/packageHDRI.hpp"
 
-static const std::unordered_set<std::string> s_packableAssetExtensions = {".png", ".jpg", ".jpeg", ".hdr", ".gltf", ".glb"};
+// TODO: package images
+//static const std::unordered_set<std::string> s_packableAssetExtensions = {".png", ".jpg", ".jpeg", ".hdr", ".gltf", ".glb"};
+static const std::unordered_set<std::string> s_packableAssetExtensions = {".hdr", ".gltf", ".glb"};
 
 static std::unordered_set<std::string> s_assetsToPackage;
 static std::unordered_set<std::string> s_dirsToCopy;
@@ -15,9 +17,9 @@ static std::unordered_set<std::string> s_assetsToCopy;
 void packageAsset(const std::filesystem::path &assetPath, const std::filesystem::path &newAssetDir) {
     auto extension = assetPath.extension();
     if (extension == ".png" || extension == ".jpg" || extension == ".jpeg") {
-
+        // TODO: package images
     } else if (extension == ".hdr") {
-
+        GameEngineTools::packageHDRI(assetPath, newAssetDir);
     } else if (extension == ".gltf" || extension == ".glb") {
         GameEngineTools::packageGLTF(assetPath, newAssetDir);
     } else {
@@ -123,14 +125,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    std::filesystem::path assetDirPath(argv[1]);
+    std::filesystem::path cachePath(argv[2]);
+
     GameEngine::TimingHelper time("Package Assets");
 
     // TODO: make Float32Filterable optional
     GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
+    GameEngine::AssetManager::registerAssetUUIDs(assetDirPath.string()); // TODO: this should reference engine assets folder (which doesn't exist yet)
 
-    std::filesystem::path assetDirPath(argv[1]);
-
-    std::filesystem::path cachePath(argv[2]);
     std::filesystem::create_directories(cachePath);
 
     std::filesystem::path cachedAssetDirPath = cachePath / "assets";
