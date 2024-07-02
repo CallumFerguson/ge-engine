@@ -24,24 +24,24 @@ void runSandboxApp() {
     camera.addComponent<GameEngine::CameraComponent>(65.0f);
     camera.addScript<CameraController>();
 
-//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/buikslotermeerplein_1k");
-//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/rosendal_plains_1_2k");
-    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/packaged/overcast_soil_puresky_2k");
+//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/buikslotermeerplein_1k");
+//    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/rosendal_plains_1_2k");
+    int environmentMapHandle = GameEngine::AssetManager::getOrLoadAssetFromPath<GameEngine::EnvironmentMap>("assets/overcast_soil_puresky_2k");
     GameEngine::WebGPURenderer::setEnvironmentMap(environmentMapHandle);
 
     GameEngine::Entity trackFPS = scene.createEntity("Track FPS");
     trackFPS.addScript<TrackFramerate>();
 
-    {
-        std::string assetPath = "assets/packaged/FlightHelmet";
-        GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(assetPath, scene);
-        auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
-        transform.localPosition.x = 0.3f;
-        transform.localPosition.y = -0.35f;
-    }
+//    {
+//        std::string assetPath = "assets/models/FlightHelmet";
+//        GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(assetPath, scene);
+//        auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
+//        transform.localPosition.x = 0.3f;
+//        transform.localPosition.y = -0.35f;
+//    }
 
     {
-        std::string assetPath = "assets/packaged/BoomBox";
+        std::string assetPath = "assets/models/BoomBox";
         GameEngine::Entity prefabEntity = GameEngine::jsonToEntity(assetPath, scene);
         auto &transform = prefabEntity.getComponent<GameEngine::TransformComponent>();
         transform.localPosition.x = -0.3f;

@@ -73,7 +73,7 @@ void Window::init(const std::function<void()> &rerenderRequiredCallback) {
     }
 
 #ifndef __EMSCRIPTEN__
-    setWindowIcon(m_glfwWindow, "assets/app-icon.png");
+    setWindowIcon(m_glfwWindow, "assets/unpacked/app-icon.png");
 #endif
 
     // in a browser, glfwCreateWindow will ignore the passed width and height,

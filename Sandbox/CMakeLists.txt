@@ -66,28 +66,4 @@ if (EMSCRIPTEN)
     copy_file_relative(index_html SandBox/webBuildStuff index.html Sandbox)
     copy_file_relative(favicon_ico SandBox/webBuildStuff favicon.ico Sandbox)
     copy_file_relative(parse_hdr_worker_js GameEngine/src/GameEngine/Utility parseHDRWorker.js GameEngine)
-
-    if (NOT EMSDK_PATH)
-        message(FATAL_ERROR "Please specify the path to emsdk using the EMSDK_PATH variable.")
-    endif ()
-
-    # preload assets
-    add_custom_command(
-            OUTPUT package_assets_always_run_hack
-            COMMAND python ${EMSDK_PATH}/upstream/emscripten/tools/file_packager.py ${CMAKE_CURRENT_BINARY_DIR}/dist/assets.data --preload assets --js-output=${CMAKE_CURRENT_BINARY_DIR}/dist/assets.js --quiet
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT "Packaging assets..."
-    )
-    add_custom_target(package_assets ALL DEPENDS package_assets_always_run_hack)
-    add_dependencies(Sandbox package_assets)
-else ()
-    # copy assets
-    add_custom_command(
-            OUTPUT package_assets_always_run_hack
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/dist/assets
-            COMMENT "Packaging assets..."
-    )
-    add_custom_target(package_assets ALL DEPENDS package_assets_always_run_hack)
-    add_dependencies(Sandbox package_assets)
 endif ()
