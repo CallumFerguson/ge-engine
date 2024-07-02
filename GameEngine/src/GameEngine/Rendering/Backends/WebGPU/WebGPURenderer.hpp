@@ -7,7 +7,6 @@
 #include "../../Material.hpp"
 
 #define PBR_SHADER_UUID "7aa2b713-86dd-4c48-a9ea-9af110d116ee"
-#define BASIC_COLOR_SHADER_UUID "3284227e-817a-4bf6-b184-8cbb3b15d503"
 #define BRDF_UUID "7062cece-527b-4945-b26f-a6302c632c9c"
 #define EQUIRECTANGULAR_SKYBOX_SHADER_UUID "20b9adeb-c3d4-4bd4-8e0c-18e0b3238af9"
 #define SKYBOX_SHADER_UUID "8c9465d7-3898-4516-b48e-24ef8a1b3296"

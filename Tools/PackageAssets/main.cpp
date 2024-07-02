@@ -119,20 +119,41 @@ void findAssetsInDir(const std::filesystem::path &dirPath) {
     }
 }
 
+void copyEngineAssets(const std::filesystem::path &path, const std::filesystem::path &cachePath) {
+    try {
+        std::filesystem::create_directories(cachePath / "assets" / "engineAssets");
+        for (const auto &entry: std::filesystem::directory_iterator(path)) {
+            if (entry.is_regular_file()) {
+                auto dstPath = cachePath / "assets" / "engineAssets" / entry.path().filename();
+                if (!std::filesystem::exists(dstPath)) {
+                    std::filesystem::copy(entry.path(), dstPath, std::filesystem::copy_options::overwrite_existing);
+                }
+            }
+        }
+    } catch (const std::filesystem::filesystem_error &e) {
+        std::cerr << "copyEngineAssets Error: " << e.what() << std::endl;
+        exit(1);
+    } catch (const std::exception &e) {
+        std::cerr << "copyEngineAssets General exception: " << e.what() << std::endl;
+        exit(1);
+    }
+}
+
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <assets_dir> <cache_dir>" << std::endl;
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <assets_dir> <cache_dir> <engine_assets_dir>" << std::endl;
         return 1;
     }
 
     std::filesystem::path assetDirPath(argv[1]);
     std::filesystem::path cachePath(argv[2]);
+    std::filesystem::path engineAssetsDirPath(argv[3]);
 
     GameEngine::TimingHelper time("Package Assets");
 
     // TODO: make Float32Filterable optional
     GameEngine::WebGPURenderer::init(nullptr, {wgpu::FeatureName::Float32Filterable});
-    GameEngine::AssetManager::registerAssetUUIDs(assetDirPath.string()); // TODO: this should reference engine assets folder (which doesn't exist yet)
+    GameEngine::AssetManager::registerAssetUUIDs(engineAssetsDirPath.string());
 
     std::filesystem::create_directories(cachePath);
 
@@ -150,6 +171,8 @@ int main(int argc, char *argv[]) {
         std::ofstream cacheIndexFile(cacheIndexPath);
         cacheIndexFile << cacheIndexJSON;
     }
+
+    copyEngineAssets(engineAssetsDirPath, cachePath);
 
     findAssetsInDir(assetDirPath);
 

@@ -175,7 +175,6 @@ void WebGPURenderer::finishInit() {
 
     setUpCameraBuffer();
 
-    WebGPUShader::registerShaderCreatePipelineFunction(BASIC_COLOR_SHADER_UUID, createPBRRenderPipeline);
     WebGPUShader::registerShaderCreatePipelineFunction(PBR_SHADER_UUID, createPBRRenderPipeline);
     WebGPUShader::registerShaderCreatePipelineFunction(SKYBOX_SHADER_UUID, createSkyboxRenderPipeline);
 }
