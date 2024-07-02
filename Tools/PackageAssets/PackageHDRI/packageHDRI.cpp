@@ -9,8 +9,6 @@
 namespace GameEngineTools {
 
 void packageHDRI(const std::filesystem::path &inputFilePath, const std::filesystem::path &outputDir) {
-    GameEngine::TimingHelper time("Total");
-
     std::cout << "loading resources..." << std::endl;
 
     int equirectangularTextureHandle = GameEngine::AssetManager::createAsset<GameEngine::Texture>(inputFilePath.string(), wgpu::TextureFormat::RGBA32Float, true);

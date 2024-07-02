@@ -140,14 +140,15 @@ void copyEngineAssets(const std::filesystem::path &path, const std::filesystem::
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <assets_dir> <cache_dir> <engine_assets_dir>" << std::endl;
+    if (argc != 5) {
+        std::cerr << "Usage: " << argv[0] << " <assets_dir> <cache_dir> <engine_assets_dir> <build_output_dir>" << std::endl;
         return 1;
     }
 
     std::filesystem::path assetDirPath(argv[1]);
     std::filesystem::path cachePath(argv[2]);
     std::filesystem::path engineAssetsDirPath(argv[3]);
+    std::filesystem::path buildOutputDirPath(argv[4]);
 
     GameEngine::TimingHelper time("Package Assets");
 
@@ -294,4 +295,19 @@ int main(int argc, char *argv[]) {
 
     std::ofstream outputCacheIndexFile(cacheIndexPath, std::ios::binary);
     outputCacheIndexFile << outputCacheIndexJSON.dump(2);
+
+    auto outputAssetsPath = buildOutputDirPath / "assets";
+    std::filesystem::remove_all(outputAssetsPath);
+    std::filesystem::create_directories(outputAssetsPath);
+    for (auto &entry: std::filesystem::recursive_directory_iterator(cachedAssetDirPath)) {
+        auto relativeAssetPath = std::filesystem::relative(entry.path(), cachedAssetDirPath);
+        auto newAssetPath = outputAssetsPath / relativeAssetPath;
+
+        if (std::filesystem::is_directory(entry.path())) {
+            std::filesystem::create_directory(newAssetPath);
+        } else if (std::filesystem::is_regular_file(entry.path())) {
+            std::filesystem::copy_file(entry.path(), newAssetPath, std::filesystem::copy_options::overwrite_existing);
+        }
+    }
+
 }
