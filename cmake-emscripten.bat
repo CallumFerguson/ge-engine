@@ -9,6 +9,11 @@ for /f "tokens=1,* delims==" %%a in ('type "%batch_dir%.env"') do (
     set "%%a=%%b"
 )
 
+if "!emscripten_cmake_path!"=="" (
+    echo emscripten_cmake_path is not set in the .env file
+    exit /b 1
+)
+
 REM Check if the input contains "--build"
 echo %* | find "--build" > nul
 if errorlevel 1 (

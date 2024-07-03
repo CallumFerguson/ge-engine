@@ -5,6 +5,8 @@
 #include "scripts/scripts.hpp"
 #include "utility/utility.hpp"
 
+namespace fs = std::filesystem;
+
 void runSandboxApp() {
     registerScripts();
     registerComponents();
