@@ -29,32 +29,15 @@ endif ()
 add_executable(Sandbox ${SANDBOX_SOURCES})
 
 if (EMSCRIPTEN)
-    target_link_options(
-            Sandbox PRIVATE
-            --use-preload-cache
-            -sFORCE_FILESYSTEM
-            -sASYNCIFY
-            -sUSE_WEBGPU=1
-            -sUSE_GLFW=3
-            -sALLOW_MEMORY_GROWTH
-            -sNO_DISABLE_EXCEPTION_CATCHING # probably turn off for release build?
-            -sASSERTIONS
-            -O2
-    )
-    set_target_properties(Sandbox PROPERTIES LINK_DEPENDS ${CMAKE_SOURCE_DIR}/GameEngine/src/GameEngine/Utility/emscriptenUtility.js)
-    target_compile_options(
-            Sandbox PRIVATE
-            -O2
-    )
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_options(
+                Sandbox PRIVATE
+                -sNO_DISABLE_EXCEPTION_CATCHING
+        )
+    endif ()
 
-    target_link_options(
-            GameEngine PRIVATE
-            -O2
-    )
-    target_compile_options(
-            GameEngine PRIVATE
-            -O2
-    )
+    # this is only needed if you want it to relink if emscriptenUtility.js changes, but no other cpp files change
+    set_target_properties(Sandbox PROPERTIES LINK_DEPENDS ${CMAKE_SOURCE_DIR}/GameEngine/src/GameEngine/Utility/emscriptenUtility.js)
 endif ()
 
 target_precompile_headers(Sandbox REUSE_FROM GameEngine)

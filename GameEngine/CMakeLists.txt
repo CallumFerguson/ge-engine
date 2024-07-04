@@ -80,6 +80,13 @@ if (EMSCRIPTEN)
             -sEXPORTED_FUNCTIONS=_main,_copyExternalImageToTextureFinishCallback
             -sEXPORTED_RUNTIME_METHODS=ccall
             --js-library ${CMAKE_CURRENT_SOURCE_DIR}/src/GameEngine/Utility/emscriptenUtility.js
+            --use-preload-cache
+            -sFORCE_FILESYSTEM
+            -sASYNCIFY
+            -sUSE_WEBGPU=1
+            -sUSE_GLFW=3
+            -sALLOW_MEMORY_GROWTH
+            -sASSERTIONS
     )
     set_target_properties(GameEngine PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/GameEngine/Utility/emscriptenUtility.js)
 endif ()
