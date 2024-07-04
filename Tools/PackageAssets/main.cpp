@@ -28,8 +28,6 @@ void packageAsset(const std::filesystem::path &assetPath, const std::filesystem:
 }
 
 uint64_t hashFileContents(const std::filesystem::path &path) {
-    static std::hash<std::string> s_stringHasher;
-
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
         std::cout << "hashFile: Could not open file." << std::endl;
@@ -43,14 +41,17 @@ uint64_t hashFileContents(const std::filesystem::path &path) {
 
     file.read(data.data(), fileByteLength);
 
+    unsigned long hash = 5381;
+    for (size_t i = 0; i < data.size(); i++) {
+        hash = ((hash << 5) + hash) + data[i];
+    }
+
 //    return (static_cast<uint64_t>(s_stringHasher(data)) << 32) | static_cast<uint64_t>(s_stringHasher(path.string()));
-    return static_cast<uint64_t>(s_stringHasher(data));
+    return static_cast<uint64_t>(hash);
 }
 
 uint64_t hashDirectoryContents(const std::filesystem::path &path) {
-    static std::hash<std::string> s_stringHasher;
-
-    uint64_t hash;
+    uint64_t hash = 5381;
     for (const auto &entry: std::filesystem::directory_iterator(path)) {
         if (std::filesystem::is_regular_file(entry.status())) {
             hash ^= hashFileContents(entry.path()) + 0x9e3779b97f4a7c15 + (hash << 6) + (hash >> 2);
