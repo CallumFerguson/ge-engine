@@ -23,7 +23,7 @@ set(
 )
 
 if (WIN32 AND NOT EMSCRIPTEN)
-    list(APPEND SANDBOX_SOURCES resources.rc)
+    list(APPEND SANDBOX_SOURCES platform/windows/resources.rc)
 endif ()
 
 add_executable(Sandbox ${SANDBOX_SOURCES})
@@ -52,7 +52,7 @@ target_include_directories(
 include(${CMAKE_SOURCE_DIR}/cmake/copyFileRelative.cmake)
 
 if (EMSCRIPTEN)
-    copy_file_relative(index_html SandBox/webBuildStuff index.html Sandbox)
-    copy_file_relative(favicon_ico SandBox/webBuildStuff favicon.ico Sandbox)
+    copy_file_relative(index_html Sandbox/platform/emscripten index.html Sandbox)
+    copy_file_relative(favicon_ico Sandbox/platform/emscripten favicon.ico Sandbox)
     copy_file_relative(parse_hdr_worker_js GameEngine/src/GameEngine/Utility parseHDRWorker.js GameEngine)
 endif ()
