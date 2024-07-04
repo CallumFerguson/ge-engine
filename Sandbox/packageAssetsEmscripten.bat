@@ -23,4 +23,4 @@ if "!emsdk_path!"=="" (
 
 cd %batch_dir%../cache
 
-python !emsdk_path!/upstream/emscripten/tools/file_packager.py %batch_dir%../cmake-build-debug-emscripten/Sandbox/dist/assets.data --preload assets --js-output=%batch_dir%../cmake-build-debug-emscripten/Sandbox/dist/assets.js --quiet
+python !emsdk_path!/upstream/emscripten/tools/file_packager.py %1/dist/assets.data --preload assets --js-output=%1/dist/assets.js --quiet

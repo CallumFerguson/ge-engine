@@ -28,9 +28,21 @@ async function main() {
     });
   });
 
+  let CMakeCurrentBuildDir = "";
+  process.argv.forEach(function (val, index, array) {
+    if (index === 2) {
+      CMakeCurrentBuildDir = val;
+    }
+  });
+
+  if (CMakeCurrentBuildDir === "") {
+    console.log("no CMakeCurrentBuildDir specified");
+    return;
+  }
+
   const httpServer = spawn(
     "http-server",
-    ["../cmake-build-debug-emscripten/sandbox/dist", "-p 3002", "-c-1"],
+    [CMakeCurrentBuildDir + "/dist", "-p 3002", "-c-1"],
     { shell: true }
   );
 

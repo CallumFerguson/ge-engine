@@ -1,3 +1,4 @@
 @echo off
+
 cd browser-reloader
-npm run start
+npm run start -- %1
