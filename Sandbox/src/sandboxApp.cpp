@@ -1,11 +1,8 @@
 #include "sandboxApp.hpp"
 
-#include <memory>
 #include "GameEngine.hpp"
 #include "scripts/scripts.hpp"
 #include "utility/utility.hpp"
-
-namespace fs = std::filesystem;
 
 void runSandboxApp() {
     registerScripts();
