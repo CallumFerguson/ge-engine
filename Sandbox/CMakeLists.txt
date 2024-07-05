@@ -38,6 +38,26 @@ if (EMSCRIPTEN)
 
     # this is only needed if you want it to relink if emscriptenUtility.js changes, but no other cpp files change
     set_target_properties(Sandbox PROPERTIES LINK_DEPENDS ${CMAKE_SOURCE_DIR}/GameEngine/src/GameEngine/Utility/emscriptenUtility.js)
+
+    if (DEBUG_FASTER)
+        target_compile_options(
+                Sandbox PRIVATE
+                -O2
+        )
+        target_link_options(
+                Sandbox PRIVATE
+                -O2
+        )
+        target_compile_options(
+                GameEngine PRIVATE
+                -O2
+        )
+        target_link_options(
+                GameEngine PRIVATE
+                -O2
+        )
+    endif ()
+
 endif ()
 
 target_precompile_headers(Sandbox REUSE_FROM GameEngine)
