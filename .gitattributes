@@ -2,4 +2,5 @@
 *.cpp text eol=lf
 *.h text eol=lf
 *.hpp text eol=lf
+*.tpp text eol=lf
 *.a binary
