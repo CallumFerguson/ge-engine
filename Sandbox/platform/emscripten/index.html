@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Game Engine</title>
     <style>
-        /* Simple CSS to make the canvas fit the entire window */
         body, html {
             height: 100%;
             margin: 0;
@@ -16,28 +15,9 @@
             height: 100%;
             background: black;
         }
-
-        /*.spinner {*/
-        /*    width: 50px;*/
-        /*    height: 50px;*/
-        /*    background-color: #333;*/
-        /*    animation: spin 2s linear infinite;*/
-        /*    margin: 100px auto;*/
-        /*    border-radius: 50%;*/
-        /*}*/
-
-        /*@keyframes spin {*/
-        /*    from {*/
-        /*        transform: rotate(0deg);*/
-        /*    }*/
-        /*    to {*/
-        /*        transform: rotate(360deg);*/
-        /*    }*/
-        /*}*/
     </style>
 </head>
 <body>
-<!--<div class="spinner">spinner</div>-->
 <canvas id="canvas"></canvas>
 <script>
     // Specify the canvas element for Emscripten
@@ -48,56 +28,41 @@
 <script src="Sandbox.js"></script>
 <script src="assets.js"></script>
 <script>
-    function connect() {
-        return new Promise((resolve) => {
-            let socket = new WebSocket("ws://127.0.0.1:3001");
-
-            let connected = false;
-
-            socket.onopen = function (e) {
-                // console.log("Connected to hot reloader.");
-                connected = true;
-            };
-
-            socket.onmessage = function (event) {
-                const message = JSON.parse(event.data);
-
-                if (message.name === "buildId") {
-                    const buildId = "#" + message.content;
-                    if (window.location.hash !== buildId) {
-                        // console.log("Refreshing page...");
-                        window.location.hash = buildId;
-                        window.location.reload(true);
-                    } else {
-                        // console.log("Page matches build hash and does not need to be refreshed.");
-                    }
-                }
-            };
-
-            socket.onclose = function (event) {
-                if (connected) {
-                    // console.log("Lost connection to hot reloader. Attempting to reconnect...")
-                    // console.log(event);
-                }
-                resolve();
-            };
-
-            socket.onerror = function (error) {
-                // console.log(`[error] socket error`);
-                // console.log(error);
-                resolve();
-            };
-        });
+    async function getRunHash() {
+        try {
+            const response = await fetch('/runhash');
+            if (response.ok) {
+                return await response.text();
+            }
+        } catch (error) {
+            //
+        }
+        return "";
     }
 
-    async function keepConnecting() {
-        // console.log("Attempting to connect to hot reloader...");
+    async function keepCheckingRunHash() {
+        const isLocalhost = window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            window.location.hostname.startsWith('192.168.');
+
+        if (!isLocalhost) {
+            return;
+        }
+
+        let lastRunHash = localStorage.getItem('runHash');
+
         while (true) {
-            await connect();
+            const runHash = await getRunHash();
+            if (runHash !== lastRunHash) {
+                localStorage.setItem("runHash", runHash);
+                window.location.reload();
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 250));
         }
     }
 
-    keepConnecting();
+    keepCheckingRunHash();
 </script>
 </body>
 </html>
