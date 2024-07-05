@@ -8,7 +8,7 @@ void runSandboxApp() {
     registerScripts();
     registerComponents();
 
-    GameEngine::App app;
+    GameEngine::App app("Sandbox");
 
     GameEngine::Scene &scene = app.getActiveScene();
 

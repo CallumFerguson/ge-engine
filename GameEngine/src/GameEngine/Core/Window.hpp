@@ -13,7 +13,7 @@ public:
 
     static const Window &mainWindow();
 
-    void init(const std::function<void()> &rerenderRequiredCallback);
+    void init(const std::function<void()> &rerenderRequiredCallback, const std::string &windowTitle);
 
     bool shouldClose();
 

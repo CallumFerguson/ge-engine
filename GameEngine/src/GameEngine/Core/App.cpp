@@ -55,12 +55,12 @@ void App::registerComponents() {
     Entity::registerAddComponentFromStringFunction<PBRRendererComponent>("PBRRendererComponent");
 }
 
-App::App() {
+App::App(const std::string &windowTitle) {
     registerComponents();
 
     AssetManager::registerAssetUUIDs();
 
-    m_window.init(mainLoopStatic);
+    m_window.init(mainLoopStatic, windowTitle);
     WebGPURenderer::init(&m_window);
 }
 

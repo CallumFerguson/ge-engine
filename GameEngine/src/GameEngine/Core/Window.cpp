@@ -57,7 +57,7 @@ void Window::dropCallback(GLFWwindow *window, int count, const char **paths) {
     }
 }
 
-void Window::init(const std::function<void()> &rerenderRequiredCallback) {
+void Window::init(const std::function<void()> &rerenderRequiredCallback, const std::string &windowTitle) {
     s_rerenderRequiredCallback = rerenderRequiredCallback;
 
     if (!glfwInit()) {
@@ -66,7 +66,7 @@ void Window::init(const std::function<void()> &rerenderRequiredCallback) {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    m_glfwWindow = glfwCreateWindow(m_renderSurfaceWidth, m_renderSurfaceHeight, "Game Engine", nullptr, nullptr);
+    m_glfwWindow = glfwCreateWindow(m_renderSurfaceWidth, m_renderSurfaceHeight, windowTitle.c_str(), nullptr, nullptr);
     if (!m_glfwWindow) {
         std::cout << "failed to create window" << std::endl;
         return;

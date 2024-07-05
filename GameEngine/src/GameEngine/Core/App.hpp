@@ -7,7 +7,7 @@ namespace GameEngine {
 
 class App {
 public:
-    App();
+    App(const std::string &windowTitle);
 
     void run();
 
