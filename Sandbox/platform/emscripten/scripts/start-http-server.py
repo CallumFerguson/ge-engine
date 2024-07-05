@@ -41,5 +41,5 @@ if __name__ == "__main__":
     PORT = 3002
     handler = NoCacheHTTPRequestHandler
     with socketserver.TCPServer(("", PORT), handler) as httpd:
-        print("server started at http://127.0.0.1:3002")
+        print("\nserver started at http://127.0.0.1:3002")
         httpd.serve_forever()
