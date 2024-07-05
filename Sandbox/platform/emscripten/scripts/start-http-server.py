@@ -27,6 +27,9 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Expires', '0')
         super().end_headers()
 
+    def log_message(self, log_format, *args):
+        pass
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
