@@ -28,9 +28,9 @@
 <script src="Sandbox.js"></script>
 <script src="assets.js"></script>
 <script>
-    async function getRunHash() {
+    async function getRunUUID() {
         try {
-            const response = await fetch('/runhash');
+            const response = await fetch('/run_uuid');
             if (response.ok) {
                 return await response.text();
             }
@@ -40,7 +40,7 @@
         return "";
     }
 
-    async function keepCheckingRunHash() {
+    async function keepCheckingRunUUID() {
         const isLocalhost = window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1' ||
             window.location.hostname.startsWith('192.168.');
@@ -49,12 +49,10 @@
             return;
         }
 
-        let lastRunHash = localStorage.getItem('runHash');
-
         while (true) {
-            const runHash = await getRunHash();
-            if (runHash !== "" && runHash !== lastRunHash) {
-                localStorage.setItem("runHash", runHash);
+            const runUUID = await getRunUUID();
+            if (runUUID !== "" && ("#" + runUUID) !== window.location.hash) {
+                window.location.hash = "#" + runUUID;
                 window.location.reload();
             }
 
@@ -62,7 +60,7 @@
         }
     }
 
-    keepCheckingRunHash();
+    keepCheckingRunUUID();
 </script>
 </body>
 </html>

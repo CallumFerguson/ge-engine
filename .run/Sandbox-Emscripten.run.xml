@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Sandbox-Emscripten" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="$CMakeCurrentBuildDir$" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameEngineProject" TARGET_NAME="Sandbox" CONFIG_NAME="Debug-Visual Studio" RUN_PATH="$PROJECT_DIR$/Sandbox/platform/emscripten/scripts/start-http-server.bat">
+  <configuration default="false" name="Sandbox-Emscripten" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="$CMakeCurrentBuildDir$/dist" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameEngineProject" TARGET_NAME="Sandbox" CONFIG_NAME="Debug-Visual Studio" RUN_PATH="$PROJECT_DIR$/Sandbox/platform/emscripten/scripts/start-http-server.bat">
     <method v="2">
       <option name="RunConfigurationTask" enabled="false" run_configuration_name="PackageAssets-NoCopy" run_configuration_type="CMakeRunConfiguration" run_configuration_target="CMakeBuildProfile:Release-Visual Studio" />
       <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_PreloadAssetsEmscripten" />
