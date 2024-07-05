@@ -53,12 +53,12 @@
 
         while (true) {
             const runHash = await getRunHash();
-            if (runHash !== lastRunHash) {
+            if (runHash !== "" && runHash !== lastRunHash) {
                 localStorage.setItem("runHash", runHash);
                 window.location.reload();
             }
 
-            await new Promise(resolve => setTimeout(resolve, 250));
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
     }
 
