@@ -1,11 +1,31 @@
-# Game Engine
+# GE Engine
+
+![Example Screenshot](images/example-screenshot.png)
+
+## Live Demo
+
+[//]: # (Here is a [GitHub Page]&#40;https://todo&#41; with a live demo)
+
+TODO: put link here
 
 ## Overview
 
-This project is designed to be compatible with various operating systems, compilers, and build systems, but only the
-following options listed under [Build Instructions](#build-instructions) are officially supported.
+GE Engine (GE stands for Game Engine) is a simple game engine primarily designed to make it easy to experiment with
+WebGPU, and eventually Vulkan.
+
+It can build for the web using emscripten, and natively using [Dawn](https://dawn.googlesource.com/dawn)
+
+GE Engine does not have an editor. Instead, there is a separate engine library, and engine tools executables. For
+example, the PackageAssets tool should be run before every build, and it will package any assets that have not already
+been packaged.
+
+This repository includes a .run folder with CLion run configurations that will handle all of this automatically. If you
+do not use CLion, you will have to set up a build script that uses the PackageAssets tools, or manually use
+PackageAssets whenever you change or add any assets.
 
 ## Build Instructions
+
+TODO: update build instructions
 
 - **Windows**
     - Terminal
