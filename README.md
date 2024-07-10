@@ -4,9 +4,7 @@
 
 ## Live Demo
 
-[//]: # (Here is a [GitHub Page]&#40;https://todo&#41; with a live demo)
-
-TODO: put link here
+Here is a [GitHub Page](https://callumferguson.github.io/ge-engine/github-pages/example/) with a live demo
 
 ## Overview
 
