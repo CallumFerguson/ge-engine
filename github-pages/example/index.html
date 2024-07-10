@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Engine</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    // Specify the canvas element for Emscripten
+    var Module = {
+        canvas: document.getElementById('canvas'),
+        // setStatus: (text) => {
+        //     console.log(text);
+        // },
+    };
+</script>
+<script src="Sandbox.js"></script>
+<script src="assets.js"></script>
+<script>
+    async function getRunUUID() {
+        try {
+            const response = await fetch('/run_uuid');
+            if (response.ok) {
+                return await response.text();
+            }
+        } catch (error) {
+            //
+        }
+        return "";
+    }
+
+    async function keepCheckingRunUUID() {
+        const isLocalhost = window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            window.location.hostname.startsWith('192.168.');
+
+        if (!isLocalhost) {
+            return;
+        }
+
+        while (true) {
+            const runUUID = await getRunUUID();
+            if (runUUID !== "" && ("#" + runUUID) !== window.location.hash) {
+                window.location.hash = "#" + runUUID;
+                window.location.reload();
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+
+    keepCheckingRunUUID();
+</script>
+</body>
+</html>
