@@ -23,83 +23,49 @@ PackageAssets whenever you change or add any assets.
 
 ## Build Instructions
 
-TODO: update build instructions
+### CLion
 
-- **Windows**
-    - Terminal
-        - [Native](#building-windows-native-in-terminal)
-        - [WASM](#building-wasm-on-windows-in-terminal)
-    - CLion
-        - [Native](#building-windows-native-in-clion)
-        - [WASM](#building-wasm-on-windows-in-clion)
-
-### Building windows native in terminal
+- Download GE Engine
 
 ```
-git clone https://github.com/CallumFerguson/GameEngine
-cd GameEngine
-git submodule update --init
+git clone https://github.com/CallumFerguson/ge-engine
 ```
 
-- Open Visual Studio
-- On the menu bar, select Tools > Command Line > Developer Command Prompt or Developer PowerShell.
-- cd into GameEngine
+- Open ge-engine in CLion
 
-```
-cmake -B build -G Ninja
-cmake --build build --target Sandbox
-cd build/dist
-.\GameEngine.exe
-```
+#### Native Build
 
-### Building WASM on windows in terminal
-
-```
-git clone https://github.com/CallumFerguson/GameEngine
-cd GameEngine
-emcmake cmake -B build-wasm -G Ninja -DEMSDK_PATH=C:\path\to\emsdk
-cmake --build build-wasm --target Sandbox
-cd build-wasm/dist
-```
-
-Then host local server to view the build. For example:
-
-```
-http-server -p 8080
-```
-
-### Building Windows native in CLion
-
-```
-git clone https://github.com/CallumFerguson/GameEngine
-cd GameEngine
-git submodule update --init
-```
-
-- Open project in CLion
 - Select Visual Studio for the CMake Toolchain
 - Select the Sandbox run configuration
 - Press build or run
 
-### Building WASM on windows in CLion
+The Dawn repository will automatically be downloaded and built by CMake. This may take a while. If you use the run
+configurations that come in this repo, assets will be automatically packaged before each run.
 
-```
-git clone https://github.com/CallumFerguson/GameEngine
-```
+#### Emscripten Build
 
-- Open project in CLion
-- create a .env file and add emscripten_cmake_path=C:\Program Files\JetBrains\CLion [version]
-  \bin\cmake\win\x64\bin\cmake.exe
-- Go to "File" > "Settings", then "Build, Execution, Deployment" > "Toolchains"
-- Add a new System toolchain and name it "Emscripten"
-- Set CMake to the included cmake-emscripten.bat
-- go to "Build, Execution, Deployment" > "CMake"
-- Duplicate "Debug" and name it "Debug-Emscripten"
-- Select "Emscripten" for "Toolchain"
-- Add -DEMSDK_PATH=C:\path\to\emsdk to CMake Options
-- Close settings and select the Sandbox-Emscripten | Debug-Emscripten run configuration
-- Go to "Run" > "Edit Configurations..."
-- Select "CMake Application" > "Sandbox-Emscripten"
-- Set Executable to the included start-http-server.bat
-- cd into browser-reloader and run "npm install"
-- Press run and go to http://127.0.0.1:3002
+Building natively is a prerequisite for building with emscripten because the PackageAssets tool must run natively to
+package the assets for the emscripten build. If you use the run configurations that come in this repo, assets will be
+automatically packaged before each run using a Release build of PackageAssets.
+
+- Create a System Toolchain called Emscripten
+- Select emcc and em++ for the c and cpp compilers
+    - path\to\emsdk\upstream\emscripten\emcc.bat
+    - path\to\emsdk\upstream\emscripten\em++.bat
+- create cmake profiles for debug/release
+- select Emscripten toolchain
+- set CMAKE_TOOLCHAIN_FILE CMake option
+    - -DCMAKE_TOOLCHAIN_FILE=path\to\emsdk\upstream\emscripten\cmake\Modules\Platform\Emscripten.cmake
+- debug build compiles faster and has more debugging information and logging, but creates builds with very bad
+  performance
+- release builds compile slower, and create much smaller builds, but hides exceptions, etc.
+- make a third CMake profile called Debug-Faster-Emscripten that uses debug and the additional CMake option
+  -DDEBUG_FASTER=ON. This will use optimization level O2 which is a good balance between compile speed, exception
+  handling, and performance
+- Edit run configuration Sandbox-Emscripten, and under "Before Launch", edit External tool "External
+  Tools/PreloadAssetsEmscripten"
+- make sure it uses
+    - program: ge-engine\Sandbox\platform\emscripten\scripts\preloadAssetsEmscripten.bat
+    - arguments: $CMakeCurrentBuildDir$ path\to\emsdk
+    - working directory: ge-engine\Sandbox
+- Press build or run
