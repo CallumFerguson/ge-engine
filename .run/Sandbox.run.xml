@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Sandbox" type="CMakeRunConfiguration" factoryName="Application" nameIsGenerated="true" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="GameEngineProject" TARGET_NAME="Sandbox" CONFIG_NAME="Debug-Visual Studio" RUN_TARGET_PROJECT_NAME="GameEngineProject" RUN_TARGET_NAME="Sandbox">
-    <method v="2">
-      <option name="RunConfigurationTask" enabled="false" run_configuration_name="PackageAssets" run_configuration_type="CMakeRunConfiguration" />
-      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-    </method>
-  </configuration>
-</component>
