@@ -59,7 +59,9 @@ void Scene::onUpdate() {
         }
     });
 
-    renderImGuiEntityHierarchy(m_registry);
+    if (m_showSceneHierarchy) {
+        renderImGuiEntityHierarchy(m_registry);
+    }
 
     m_registry.view<NativeScriptComponent>().each([](auto &nsc) {
         for (NativeScriptComponent::NSCInstanceFunctions &instanceFunctions: nsc.instancesFunctions) {
@@ -97,6 +99,14 @@ void Scene::onPBRRendererDestroy(entt::registry &, entt::entity entity) {
 //        Entity(entity, this).removeComponent<WebGPUPBRRendererDataComponent>();
         std::cout << "TODO: onPBRRendererDestroy" << std::endl;
     }
+}
+
+void Scene::showSceneHierarchy() {
+    m_showSceneHierarchy = true;
+}
+
+void Scene::hideSceneHierarchy() {
+    m_showSceneHierarchy = false;
 }
 
 }

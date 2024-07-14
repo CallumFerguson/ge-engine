@@ -19,8 +19,14 @@ public:
 
     void onUpdate();
 
+    void showSceneHierarchy();
+
+    void hideSceneHierarchy();
+
 private:
     entt::registry m_registry;
+
+    bool m_showSceneHierarchy = false;
 
     void onPBRRendererConstruct(entt::registry &, entt::entity entity);
 
