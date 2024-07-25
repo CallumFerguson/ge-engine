@@ -11,7 +11,7 @@ class Window {
 public:
     Window();
 
-    static const Window &mainWindow();
+    static Window &mainWindow();
 
     void init(const std::function<void()> &rerenderRequiredCallback, const std::string &windowTitle);
 
@@ -24,6 +24,8 @@ public:
     [[nodiscard]] int renderSurfaceHeight() const;
 
     [[nodiscard]] float aspectRatio() const;
+
+    void addDropCallback(std::function<void(std::vector<std::filesystem::path>& paths)> callback);
 
 private:
     GLFWwindow *m_glfwWindow = nullptr;

@@ -20,6 +20,8 @@ namespace GameEngine {
 static Window *s_mainWindow;
 static std::function<void()> s_rerenderRequiredCallback;
 
+static std::vector<std::function<void(std::vector<std::filesystem::path>& paths)>> s_dropCallbacks;
+
 #ifndef __EMSCRIPTEN__
 
 static void windowPosCallback(GLFWwindow *, int, int) {
@@ -37,23 +39,15 @@ void Window::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) 
 }
 
 void Window::dropCallback(GLFWwindow *window, int count, const char **paths) {
+    std::vector<std::filesystem::path> pathsVector;
+
     for (size_t i = 0; i < count; i++) {
         std::filesystem::path currentPath(paths[i]);
+        pathsVector.push_back(currentPath);
+    }
 
-        if (std::filesystem::is_regular_file(currentPath)) {
-            std::ifstream file(currentPath);
-            if (file.is_open()) {
-                std::cout << "Contents of file " << currentPath << ":\n";
-                std::cout << std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>()) << "\n";
-                file.close();
-            } else {
-                std::cerr << "Unable to open file " << currentPath << "\n";
-            }
-        } else if (std::filesystem::is_directory(currentPath)) {
-            std::cout << "Directory path: " << currentPath << "\n";
-        } else {
-            std::cerr << "Not a regular file or directory: " << currentPath << "\n";
-        }
+    for(auto &callback : s_dropCallbacks) {
+        callback(pathsVector);
     }
 }
 
@@ -146,7 +140,7 @@ double Window::getWindowTime() {
     return glfwGetTime();
 }
 
-const Window &Window::mainWindow() {
+Window &Window::mainWindow() {
     return *s_mainWindow;
 }
 
@@ -156,6 +150,10 @@ Window::Window() {
 
 float Window::aspectRatio() const {
     return static_cast<float>(m_renderSurfaceWidth) / static_cast<float>(m_renderSurfaceHeight);
+}
+
+void Window::addDropCallback(std::function<void(std::vector<std::filesystem::path>& paths)> callback) {
+    s_dropCallbacks.push_back(std::move(callback));
 }
 
 }
